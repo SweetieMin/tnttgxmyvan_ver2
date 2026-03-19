@@ -24,6 +24,21 @@ test('users can authenticate using the login screen', function () {
     $this->assertAuthenticated();
 });
 
+test('users can authenticate using email on the login screen', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'username' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticated();
+});
+
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
@@ -49,6 +64,25 @@ test('users with two factor enabled are redirected to two factor challenge', fun
 
     $response = $this->post(route('login.store'), [
         'username' => $user->username,
+        'password' => 'password',
+    ]);
+
+    $response->assertRedirect(route('two-factor.login'));
+    $this->assertGuest();
+});
+
+test('users with two factor enabled are redirected to two factor challenge when logging in with email', function () {
+    $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
+
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => true,
+    ]);
+
+    $user = User::factory()->withTwoFactor()->create();
+
+    $response = $this->post(route('login.store'), [
+        'username' => $user->email,
         'password' => 'password',
     ]);
 
