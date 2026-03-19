@@ -10,13 +10,13 @@
 
             <flux:input
                 name="username"
-                :label="__('Mã tài khoản / Email')"
+                :label="__('Username / Email')"
                 :value="old('username')"
                 type="text"
                 required
                 autofocus
                 autocomplete="username"
-                placeholder="MV00000000 hoặc email@example.com"
+                :placeholder="__('Enter your username or email')"
             />
 
             <!-- Password -->
