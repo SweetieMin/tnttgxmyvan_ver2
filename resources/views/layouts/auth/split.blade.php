@@ -7,7 +7,7 @@
 
 <body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
     <div
-        class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
+        class="relative grid min-h-dvh flex-col items-center justify-center px-4 sm:px-6 lg:max-w-none lg:grid-cols-2 lg:px-0">
         <div class="absolute top-4 right-4 z-50">
             <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
                 aria-label="Toggle dark mode" />
@@ -36,9 +36,8 @@
             </div>
         </div>
 
-        <div class="w-full lg:p-8">
-
-            <div class="mx-auto flex w-full max-w-[460px] flex-col justify-center space-y-6 px-4 sm:px-0">
+        <div class="w-full py-6 lg:p-8">
+            <div class="mx-auto flex w-full max-w-[480px] flex-col justify-center space-y-5">
 
                 <a href="{{ route('home') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden"
                     wire:navigate>
@@ -48,7 +47,7 @@
 
                     <span class="sr-only">Đoàn TNTT Gx Mỹ Vân</span>
                 </a>
-                <flux:card class="space-y-6">
+                <flux:card class="space-y-6 p-5 sm:p-6">
                     {{ $slot }}
                 </flux:card>
             </div>
