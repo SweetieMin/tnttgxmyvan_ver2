@@ -38,7 +38,7 @@
 
         <div class="w-full lg:p-8">
 
-            <div class="mx-auto flex w-[400px]  flex-col justify-center space-y-6 ">
+            <div class="mx-auto flex w-full max-w-[460px] flex-col justify-center space-y-6 px-4 sm:px-0">
 
                 <a href="{{ route('home') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden"
                     wire:navigate>
