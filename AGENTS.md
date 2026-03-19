@@ -247,6 +247,15 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - State lives on the server; the UI reflects it. Validate and authorize in actions (they're like HTTP requests).
 - IMPORTANT: Activate `livewire-development` every time you're working with Livewire-related tasks.
 
+## Livewire Page Flow
+
+- For index/list pages, render the page shell immediately.
+- Always show the header, actions, and filter section first.
+- Use lazy loading for heavy data sections such as tables, pagination, and activity/history panels.
+- Do not lazy load the entire page unless the whole screen depends on heavy data.
+- Prefer separating page layout, filter UI, table/list component, and modal form component.
+
+
 === pint/core rules ===
 
 # Laravel Pint Code Formatter
@@ -279,5 +288,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Fortify is a headless authentication backend that provides authentication routes and controllers for Laravel applications.
 - IMPORTANT: Always use the `search-docs` tool for detailed Laravel Fortify patterns and documentation.
 - IMPORTANT: Activate `developing-with-fortify` skill when working with Fortify authentication features.
+
+
 
 </laravel-boost-guidelines>
