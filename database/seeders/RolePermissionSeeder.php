@@ -1,0 +1,70 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+class RolePermissionSeeder extends Seeder
+{
+    use WithoutModelEvents;
+
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $permissions = [
+            'access.impersonate.users',
+            'access.role.view',
+            'access.role.create',
+            'access.role.update',
+            'access.role.delete',
+            'access.permission.view',
+            'access.permission.create',
+            'access.permission.update',
+            'access.permission.delete',
+
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $adminRole = Role::findOrCreate('Admin', 'web');
+        $adminRole->syncPermissions(
+            Permission::query()
+                ->where('guard_name', 'web')
+                ->get()
+        );
+
+        $admin = User::withTrashed()
+            ->where('username', 'MV21081010')
+            ->orWhere('email', 'tntt.myvan@gmail.com')
+            ->first() ?? new User;
+
+        $admin->fill([
+            'christian_name' => 'Giuse',
+            'last_name' => 'Đặng Đình',
+            'name' => 'Viên',
+            'birthday' => '2010-08-21',
+            'username' => 'MV21081010',
+            'email' => 'tntt.myvan@gmail.com',
+            'password' => '12345',
+            'status_login' => 'active',
+            'token' => $admin->token ?: Str::random(60),
+        ]);
+
+        $admin->deleted_at = null;
+        $admin->save();
+
+        $admin->syncRoles([$adminRole]);
+    }
+}

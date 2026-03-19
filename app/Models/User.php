@@ -3,24 +3,27 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Support\Str;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
+use App\Concerns\LogsModelActivity;
 use BaconQrCode\Renderer\Color\Rgb;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\Fill;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable 
+class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, HasRoles, LogsModelActivity, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -87,7 +90,7 @@ class User extends Authenticatable
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn($word) => Str::substr($word, 0, 1))
+            ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
 
@@ -98,7 +101,7 @@ class User extends Authenticatable
                 new RendererStyle(250, 1, null, null, Fill::uniformColor(new Rgb(255, 255, 255), new Rgb(0, 0, 0))),
                 new SvgImageBackEnd
             )
-        ))->writeString(url('/profile/' . $this->token));
+        ))->writeString(url('/profile/'.$this->token));
 
         return $svg;
     }
@@ -130,10 +133,10 @@ class User extends Authenticatable
         return trim($this->name);
     }
 
-    /** 
+    /**
      * Relationship with User Detail
-     * 
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     *
+     * @return HasOne
      */
     public function details()
     {
@@ -142,8 +145,8 @@ class User extends Authenticatable
 
     /**
      * Relationship with User Parent
-     * 
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     *
+     * @return HasOne
      */
     public function parents()
     {
@@ -152,12 +155,11 @@ class User extends Authenticatable
 
     /**
      * Relationship with User Religious Profile
-     * 
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     *
+     * @return HasOne
      */
     public function religious_profile()
     {
         return $this->hasOne(UserReligiousProfile::class);
     }
-
 }

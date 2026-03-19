@@ -17,14 +17,17 @@ class UserDetailSeeder extends Seeder
                 'user_id' => 2,
                 'picture' => 'MV19019797-681c7d271bf67.png',
                 'bio' => '',
-                'phone'=> '',
-                'address'=> '',
-                'gender'=> 'male',
+                'phone' => '',
+                'address' => '',
+                'gender' => 'male',
             ],
         ];
 
-        foreach ($details as $detail){
-            UserDetail::create($detail);
+        foreach ($details as $detail) {
+            UserDetail::updateOrCreate(
+                ['user_id' => $detail['user_id']],
+                $detail,
+            );
         }
     }
 }

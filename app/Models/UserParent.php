@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Concerns\LogsModelActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class UserParent extends Model
 {
+    use LogsModelActivity;
+
     protected $primaryKey = 'user_id';
+
     public $incrementing = false;
+
     protected $keyType = 'int';
 
     protected $table = 'user_parents';

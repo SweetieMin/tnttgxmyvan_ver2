@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Concerns\LogsModelActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class UserReligiousProfile extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsModelActivity;
 
     protected $table = 'user_religious_profiles';
+
     protected $primaryKey = 'user_id';
+
     public $incrementing = false; // vì user_id là primary key nhưng không auto increment
+
     protected $keyType = 'int';
 
     protected $fillable = [
