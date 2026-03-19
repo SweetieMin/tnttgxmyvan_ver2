@@ -129,15 +129,23 @@ class UserSeeder extends Seeder
         foreach ($users as $user) {
             $existingUser = User::withTrashed()
                 ->where('username', $user['username'])
-                ->orWhere('email', $user['email'] ?? null)
                 ->first();
 
-            $user['token'] = $existingUser?->token ?? $user['token'];
+            if (! $existingUser && filled($user['email'] ?? null)) {
+                $existingUser = User::withTrashed()
+                    ->where('email', $user['email'])
+                    ->first();
+            }
 
-            User::updateOrCreate(
-                ['username' => $user['username']],
-                array_merge($user, ['deleted_at' => null]),
-            );
+            if ($existingUser) {
+                $existingUser->fill(collect($user)->except(['token'])->all());
+                $existingUser->deleted_at = null;
+                $existingUser->save();
+
+                continue;
+            }
+
+            User::create($user);
         }
     }
 }
