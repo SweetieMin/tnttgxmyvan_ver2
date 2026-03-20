@@ -31,7 +31,7 @@ class PermissionList extends Component
 
     public function placeholder(): string
     {
-        return view('components.placeholder.permission-list')->render();
+        return view('components.placeholder.table')->render();
     }
 
     public function render(): View

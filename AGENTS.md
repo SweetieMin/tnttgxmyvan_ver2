@@ -53,6 +53,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 - For admin CRUD domains, prefer the structure `app/Livewire/Admin/<Domain>/<Entity>/Index.php`, `.../<Entity>List.php`, `.../<Entity>Actions.php` with matching views in `resources/views/livewire/admin/<domain>/<entity>/`.
 - For admin CRUD pages, `Index` should be the page shell, `List` should own lazy table rendering and placeholder output, and `Actions` should own modal state, form state, validation, create/update/delete actions, authorization, and toast feedback.
 - For admin CRUD list components, `placeholder()` should render a dedicated Blade view from `resources/views/components/placeholder` instead of returning inline HTML strings.
+- Prefer shared placeholder views such as `components.placeholder.table` for repeated table/list skeletons instead of creating near-duplicate placeholder files per entity.
 - When admin CRUD tables are built or refactored, prefer Flux table components for the list rendering layer.
 - Repository structure should use `app/Repositories/BaseRepository.php`, `app/Repositories/Contracts`, and `app/Repositories/Eloquent`.
 - Repository interfaces and implementations should be named by model, for example `RoleRepositoryInterface` and `RoleRepository`.
