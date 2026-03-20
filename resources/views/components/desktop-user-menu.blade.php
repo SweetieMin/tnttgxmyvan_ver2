@@ -3,6 +3,7 @@
         :name="auth()->user()->full_name"
         :avatar="auth()->user()->details?->picture"
         icon:trailing="chevrons-up-down"
+        class="[&>span]:max-lg:hidden"
         data-test="sidebar-menu-button"
     />
 
