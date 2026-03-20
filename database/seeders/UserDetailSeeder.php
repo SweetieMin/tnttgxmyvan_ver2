@@ -16,7 +16,7 @@ class UserDetailSeeder extends Seeder
         $details = [
             [
                 'username' => 'MV19019797',
-                'picture' => 'MV19019797-681c7d271bf67.png',
+                'picture' => null,
                 'bio' => 'Huynh truong phuc vu tai xu doan Thieu Nhi Thanh The giao xu My Van.',
                 'phone' => '0901000001',
                 'address' => 'Giao xu My Van, Nam Dinh',
@@ -24,7 +24,7 @@ class UserDetailSeeder extends Seeder
             ],
             [
                 'username' => 'MV21081010',
-                'picture' => null,
+                'picture' => 'MV21081010-681c7d271bf67.png',
                 'bio' => 'Thieu nhi tham gia sinh hoat tai giao xu My Van.',
                 'phone' => '0901000002',
                 'address' => 'Giao xu My Van, Nam Dinh',
