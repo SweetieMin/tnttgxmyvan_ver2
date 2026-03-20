@@ -5,16 +5,13 @@
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-white antialiased dark:bg-zinc-800">
+<body class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800">
     <flux:sidebar sticky collapsible
         class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-17 z-10">
         <flux:sidebar.header>
             <flux:sidebar.brand href="{{ route('dashboard') }}" logo="/storage/images/sites/FAVICON_default.png"
                 logo:dark="/storage/images/sites/FAVICON_default.png" name="Đoàn TNTT Gx Mỹ Vân" wire:navigate
                 alt='Đoàn TNTT Gx Mỹ Vân' />
-
-            <flux:sidebar.collapse
-                class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
         </flux:sidebar.header>
 
         <flux:separator :text="__('General')" />
@@ -47,7 +44,7 @@
         <flux:separator :text="__('Advance')" />
         <flux:sidebar.nav>
             @can('settings.site.general.view')
-                <flux:sidebar.item icon="wrench-screwdriver" :href="route('admin.settings.site.general')"
+                <flux:sidebar.item icon="cog" :href="route('admin.settings.site.general')"
                     :current="request()->routeIs('admin.settings.site.*')" wire:navigate>
                     {{ __('System configuration') }}
                 </flux:sidebar.item>
@@ -57,46 +54,48 @@
         <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
     </flux:sidebar>
 
-    <flux:header class="lg:hidden">
-        <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+    <flux:header
+        class="sticky top-0 block! h-14 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700">
+        <flux:navbar class="lg:hidden h-full w-full items-center px-3">
 
-        <flux:spacer />
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+            <flux:spacer />
 
-        <flux:dropdown position="top" align="start">
-            <flux:profile :initials="auth()->user()->initials()" icon-trailing="chevron-down" />
+            <flux:button variant="ghost" x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon"
+                aria-label="Toggle dark mode" />
+            <flux:separator vertical class="my-2" />
 
-            <flux:menu>
-                <flux:menu.radio.group>
-                    <div class="p-0 text-sm font-normal">
-                        <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                            <flux:avatar :name="auth()->user()->name" :initials="auth()->user()->initials()" />
+            <x-desktop-user-menu :name="auth()->user()->name" />
 
-                            <div class="grid flex-1 text-start text-sm leading-tight">
-                                <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
-                                <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
-                            </div>
-                        </div>
-                    </div>
-                </flux:menu.radio.group>
+        </flux:navbar>
+        <flux:navbar scrollable class="hidden lg:flex h-full items-center gap-2 px-4">
 
-                <flux:menu.separator />
+            <flux:sidebar.collapse
+                class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 hidden lg:flex" />
 
-                <flux:menu.item :href="route('profile.edit')" icon="cog-6-tooth" wire:navigate>
-                    {{ __('Settings') }}
-                </flux:menu.item>
+            <flux:breadcrumbs>
 
-                <form method="POST" action="{{ route('logout') }}" class="w-full">
-                    @csrf
-                    <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle"
-                        class="w-full cursor-pointer" data-test="logout-button">
-                        {{ __('Log out') }}
-                    </flux:menu.item>
-                </form>
-            </flux:menu>
-        </flux:dropdown>
+            </flux:breadcrumbs>
+
+            <flux:sidebar.spacer />
+
+            <div class="flex h-full min-w-100 items-center">
+
+            </div>
+
+            <flux:separator vertical class="my-2" />
+
+            <flux:button variant="ghost" x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon"
+                aria-label="Toggle dark mode" />
+            <flux:separator vertical class="my-2" />
+
+
+        </flux:navbar>
     </flux:header>
 
-    {{ $slot }}
+    <flux:main class="h-[calc(100vh-57px)] overflow-y-auto p-4!">
+        {{ $slot }}
+    </flux:main>
 
     @fluxScripts
 </body>

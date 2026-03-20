@@ -163,7 +163,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'branding',
                 'key' => 'branding.login_image',
-                'value' => 'images/sites/login_default.png',
+                'value' => 'images/sites/LOGO-6927a1a4d7c6b.png',
                 'type' => 'image',
                 'label' => 'Login image',
                 'description' => 'Image shown on the authentication split layout.',
