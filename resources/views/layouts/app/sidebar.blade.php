@@ -7,7 +7,7 @@
 
 <body class="min-h-screen bg-white antialiased dark:bg-zinc-800">
     <flux:sidebar sticky collapsible
-        class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-70 data-flux-sidebar-collapsed-desktop:w-15 z-10">
+        class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-17 z-10">
         <flux:sidebar.header>
             <flux:sidebar.brand href="{{ route('dashboard') }}" logo="/storage/images/sites/FAVICON_default.png"
                 logo:dark="/storage/images/sites/FAVICON_default.png" name="Đoàn TNTT Gx Mỹ Vân" wire:navigate
@@ -25,7 +25,7 @@
             </flux:sidebar.item>
         </flux:sidebar.nav>
 
-        <flux:separator :text="__('Admin Access')" />
+        <flux:separator :text="__('Access')" />
         <flux:sidebar.nav>
             @can('access.role.view')
                 <flux:sidebar.item icon="shield-check" :href="route('admin.access.roles')"
@@ -44,16 +44,9 @@
 
         <flux:spacer />
 
+        <flux:separator :text="__('Advance')" />
         <flux:sidebar.nav>
-            <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit"
-                target="_blank">
-                {{ __('Repository') }}
-            </flux:sidebar.item>
-
-            <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire"
-                target="_blank">
-                {{ __('Documentation') }}
-            </flux:sidebar.item>
+           
         </flux:sidebar.nav>
 
         <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />

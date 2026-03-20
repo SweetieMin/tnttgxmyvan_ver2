@@ -19,10 +19,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(
             when(
                 Features::canManageTwoFactorAuthentication()
-                && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
+                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
                 ['password.confirm'],
                 [],
             ),
         )
         ->name('security.edit');
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::prefix('site')->name('site.')->group(function () {});
+
+            Route::prefix('log')->name('log.')->group(function () {});
+        });
+    });
 });

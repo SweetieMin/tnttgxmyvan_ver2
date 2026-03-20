@@ -43,7 +43,7 @@
         --color-accent-foreground: var(--color-white);
 
         --color-background: var(--color-zinc-700);
-        --color-background-icon: var(--color-zinc-400);
+        --color-background-icon: var(--color-zinc-600);
         --color-text-hidden: var(--color-white);
         --color-heading-table: var(--color-sky-500);
     }
