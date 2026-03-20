@@ -52,12 +52,15 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Do not change the application's dependencies without approval.
 - For admin CRUD domains, prefer the structure `app/Livewire/Admin/<Domain>/<Entity>/Index.php`, `.../<Entity>List.php`, `.../<Entity>Actions.php` with matching views in `resources/views/livewire/admin/<domain>/<entity>/`.
 - For admin CRUD pages, `Index` should be the page shell, `List` should own lazy table rendering and placeholder output, and `Actions` should own modal state, form state, validation, create/update/delete actions, authorization, and toast feedback.
+- For admin CRUD list components, `placeholder()` should render a dedicated Blade view from `resources/views/components/placeholder` instead of returning inline HTML strings.
+- When admin CRUD tables are built or refactored, prefer Flux table components for the list rendering layer.
 - Repository structure should use `app/Repositories/BaseRepository.php`, `app/Repositories/Contracts`, and `app/Repositories/Eloquent`.
 - Repository interfaces and implementations should be named by model, for example `RoleRepositoryInterface` and `RoleRepository`.
 - Keep model-specific query and persistence logic in repositories, while UI state and validation stay in Livewire components/forms.
 - For Spatie permission entities, use `App\Models\Role` and `App\Models\Permission` instead of importing Spatie models directly so project-level behavior like activity log can be applied consistently.
 - Any new user-facing English string added in Blade, Livewire components, validation messages, callouts, headings, button labels, table labels, toasts, or empty states must be added to `lang/vi.json` in the same change.
 - Prefer writing the source string in English with `__()` and then adding the Vietnamese translation to `lang/vi.json` immediately.
+- When a new project-wide pattern, structure, naming rule, or architectural convention is agreed and intended to be reused, update `AGENTS.md` in the same change so future work follows the latest rule set automatically.
 
 ## Frontend Bundling
 
