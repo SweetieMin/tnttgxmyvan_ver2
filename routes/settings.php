@@ -3,6 +3,7 @@
 use App\Livewire\Admin\Settings\Site\GeneralSettings;
 use App\Livewire\Admin\Settings\Site\MailSettings;
 use App\Livewire\Admin\Settings\Site\MaintenanceSettings;
+use App\Livewire\Admin\Settings\Site\ThemeSettings;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\Security;
@@ -33,6 +34,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::prefix('site')->name('site.')->group(function () {
                 Route::get('general', GeneralSettings::class)->name('general')->middleware('permission:settings.site.general.view');
+
+                Route::get('theme', ThemeSettings::class)->name('theme')->middleware('permission:settings.site.theme.view');
 
                 Route::get('mail', MailSettings::class)->name('mail')->middleware('permission:settings.site.email.view');
 

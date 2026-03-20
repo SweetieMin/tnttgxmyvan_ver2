@@ -10,6 +10,13 @@
                     </flux:navlist.item>
                 @endcan
 
+                @can('settings.site.theme.view')
+                    <flux:navlist.item :href="route('admin.settings.site.theme')"
+                        :current="request()->routeIs('admin.settings.site.theme')" wire:navigate>
+                        {{ __('Theme configuration') }}
+                    </flux:navlist.item>
+                @endcan
+
                 @can('settings.site.email.view')
                     <flux:navlist.item :href="route('admin.settings.site.mail')"
                         :current="request()->routeIs('admin.settings.site.mail')" wire:navigate>

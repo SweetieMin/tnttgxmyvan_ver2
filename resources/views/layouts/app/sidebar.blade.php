@@ -1,11 +1,17 @@
 <!DOCTYPE html>
+@php($themePreset = \App\Models\Setting::query()->where('key', 'theme.preset')->first()?->value ?? 'sky')
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
 
 <head>
     @include('partials.head')
 </head>
 
-<body class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800">
+<body
+    x-data="{ themePreset: '{{ $themePreset }}' }"
+    x-on:theme-preset-updated.window="themePreset = $event.detail.preset"
+    :data-theme="themePreset"
+    class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800"
+>
     <flux:sidebar sticky collapsible
         class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-15 z-10">
         <flux:sidebar.header>

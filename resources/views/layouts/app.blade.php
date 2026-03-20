@@ -1,5 +1,5 @@
 <x-layouts::app.sidebar :title="$title ?? null">
-
+    
         {{ $slot }}
 
     <flux:toast.group position="top end">
