@@ -13,8 +13,12 @@
                 aria-label="Toggle dark mode" />
         </div>
         <div
-            class="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-e dark:border-neutral-800">
-            <div class="absolute inset-0 bg-neutral-900"></div>
+            class="bg-muted relative hidden h-full overflow-hidden p-10 text-white lg:flex lg:flex-col dark:border-e dark:border-neutral-800">
+            <img
+                src="{{ asset('storage/images/sites/login_default.png') }}"
+                alt="Login illustration"
+                class="absolute inset-0 h-full w-full object-cover"
+            />
             <a href="{{ route('home') }}" class="relative z-20 flex items-center text-lg font-medium" wire:navigate>
                 <span class="flex h-10 w-10 items-center justify-center rounded-md">
                     <x-app-logo-icon class="me-2 h-7 fill-current text-white" />
