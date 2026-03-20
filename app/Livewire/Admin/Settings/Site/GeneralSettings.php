@@ -238,7 +238,8 @@ class GeneralSettings extends Component
     {
         return Setting::query()
             ->where('key', $key)
-            ->value('value');
+            ->first()
+            ?->value;
     }
 
     protected function upsertSetting(string $key, ?string $value): void

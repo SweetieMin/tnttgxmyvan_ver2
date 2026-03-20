@@ -10,6 +10,20 @@
                     </flux:navlist.item>
                 @endcan
 
+                @can('settings.site.email.view')
+                    <flux:navlist.item :href="route('admin.settings.site.mail')"
+                        :current="request()->routeIs('admin.settings.site.mail')" wire:navigate>
+                        {{ __('Mail configuration') }}
+                    </flux:navlist.item>
+                @endcan
+
+                @can('settings.site.maintenance.view')
+                    <flux:navlist.item :href="route('admin.settings.site.maintenance')"
+                        :current="request()->routeIs('admin.settings.site.maintenance')" wire:navigate>
+                        {{ __('Maintenance configuration') }}
+                    </flux:navlist.item>
+                @endcan
+
 
             </flux:navlist>
         </flux:card>

@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Admin\Settings\Site\GeneralSettings;
+use App\Livewire\Admin\Settings\Site\MailSettings;
+use App\Livewire\Admin\Settings\Site\MaintenanceSettings;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\Security;
@@ -31,6 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::prefix('site')->name('site.')->group(function () {
                 Route::get('general', GeneralSettings::class)->name('general')->middleware('permission:settings.site.general.view');
+
+                Route::get('mail', MailSettings::class)->name('mail')->middleware('permission:settings.site.email.view');
+
+                Route::get('maintenance', MaintenanceSettings::class)->name('maintenance')->middleware('permission:settings.site.maintenance.view');
             });
 
             Route::prefix('log')->name('log.')->group(function () {});

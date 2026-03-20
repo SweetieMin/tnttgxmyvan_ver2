@@ -28,12 +28,12 @@ $textClasses = Flux::classes()
                 {{ $logo }}
             </div>
         <?php else: ?>
-            <div class="flex items-center justify-center h-10 min-w-10 rounded-sm overflow-hidden shrink-0">
+            <div class="flex items-center justify-center h-8 min-w-8 rounded-sm overflow-hidden shrink-0">
                 <?php if ($logoDark): ?>
-                    <img src="{{ $logo }}" alt="{{ $alt }}" class="h-10 min-w-10 dark:hidden" />
-                    <img src="{{ $logoDark }}" alt="{{ $alt }}" class="h-10 min-w-10 hidden dark:block" />
+                    <img src="{{ $logo }}" alt="{{ $alt }}" class="h-8 min-w-8 dark:hidden" />
+                    <img src="{{ $logoDark }}" alt="{{ $alt }}" class="h-8 min-w-8 hidden dark:block" />
                 <?php elseif ($logo): ?>
-                    <img src="{{ $logo }}" alt="{{ $alt }}" class="h-6 min-w-6" />
+                    <img src="{{ $logo }}" alt="{{ $alt }}" class="h-8 min-w-8" />
                 <?php else: ?>
                     {{ $slot }}
                 <?php endif; ?>

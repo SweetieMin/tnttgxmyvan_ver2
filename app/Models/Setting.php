@@ -4,8 +4,11 @@ namespace App\Models;
 
 use App\Concerns\LogsModelActivity;
 use Database\Factories\SettingFactory;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class Setting extends Model
 {
@@ -39,5 +42,41 @@ class Setting extends Model
             'autoload' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Setting $setting): void {
+            if (! $setting->is_encrypted || ! $setting->isDirty('value')) {
+                return;
+            }
+
+            if ($setting->value === null || $setting->value === '') {
+                return;
+            }
+
+            $setting->attributes['value'] = Crypt::encryptString($setting->value);
+        });
+    }
+
+    protected function value(): Attribute
+    {
+        return Attribute::make(
+            get: function (?string $value, array $attributes): ?string {
+                if ($value === null) {
+                    return null;
+                }
+
+                if (! ($attributes['is_encrypted'] ?? false)) {
+                    return $value;
+                }
+
+                try {
+                    return Crypt::decryptString($value);
+                } catch (DecryptException) {
+                    return $value;
+                }
+            },
+        );
     }
 }
