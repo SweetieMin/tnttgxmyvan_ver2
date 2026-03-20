@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Settings\Site;
 use App\Models\Setting;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -371,7 +372,7 @@ class GeneralSettings extends Component
 
     protected function ensureCanUpdate(): void
     {
-        abort_unless((bool) auth()->user()?->can('settings.site.general.update'), 403);
+        abort_unless((bool) Auth::user()?->can('settings.site.general.update'), 403);
     }
 
     public function render(): View

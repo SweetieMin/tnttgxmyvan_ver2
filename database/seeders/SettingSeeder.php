@@ -19,7 +19,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'general',
                 'key' => 'general.site_name',
-                'value' => 'TNTT Gx My Van',
+                'value' => 'Đoàn TNTT Gx Mỹ Vân',
                 'type' => 'string',
                 'label' => 'Site name',
                 'description' => 'The public website name shown in headings and browser titles.',
@@ -139,7 +139,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'branding',
                 'key' => 'branding.logo',
-                'value' => 'images/sites/FAVICON_default.png',
+                'value' => 'images/sites/LOGO-6927a1a4d7c6b.png',
                 'type' => 'image',
                 'label' => 'Logo',
                 'description' => 'Primary brand image used in the app shell.',
@@ -163,7 +163,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'branding',
                 'key' => 'branding.login_image',
-                'value' => 'images/sites/LOGO-6927a1a4d7c6b.png',
+                'value' => 'images/sites/login_default.png',
                 'type' => 'image',
                 'label' => 'Login image',
                 'description' => 'Image shown on the authentication split layout.',

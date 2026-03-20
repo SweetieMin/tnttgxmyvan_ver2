@@ -97,7 +97,7 @@
                                 @elseif ($existLogo)
                                     <div class="relative mb-2 inline-block group">
                                         <img src="{{ Storage::url($existLogo) }}"
-                                            class="w-full h-auto max-h-[80vh] border-2 border-(--color-accent-content) rounded-xl object-cover">
+                                            class="max-h-50 md:max-h-80 border-2 border-(--color-accent-content) rounded-xl object-cover">
 
                                         @can('settings.site.general.update')
                                             <flux:tooltip content="{{ __('Remove current logo') }}" placement="top">
@@ -158,7 +158,7 @@
                                 @elseif ($existFavicon)
                                     <div class="relative mb-2 group inline-block">
                                         <img src="{{ Storage::url($existFavicon) }}"
-                                            class="max-h-50 md:max-h-85 border-2 border-(--color-accent-content) rounded-xl object-cover">
+                                            class="max-h-50 md:max-h-80 border-2 border-(--color-accent-content) rounded-xl object-cover">
 
                                         @can('settings.site.general.update')
                                             <flux:tooltip content="{{ __('Remove current favicon') }}" placement="top">
@@ -198,8 +198,10 @@
                 <flux:separator class="mb-2" />
 
                 <flux:modal.trigger name="site-image-guide">
-                    <flux:button variant="ghost" icon="information-circle">
-                        {{ __('How to update Open Graph (OG) and favicon images.') }}
+                    <flux:button variant="ghost" icon="information-circle" class="w-full justify-start text-left md:w-auto">
+                        <span class="whitespace-normal">
+                            {{ __('How to update Open Graph (OG) and favicon images.') }}
+                        </span>
                     </flux:button>
                 </flux:modal.trigger>
 
