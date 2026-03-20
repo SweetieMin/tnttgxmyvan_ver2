@@ -10,17 +10,36 @@
         class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-70 data-flux-sidebar-collapsed-desktop:w-15 z-10">
         <flux:sidebar.header>
             <flux:sidebar.brand href="{{ route('dashboard') }}" logo="/storage/images/sites/FAVICON_default.png"
-                logo:dark="/storage/images/sites/FAVICON_default.png" name="TNTT Gx Mỹ Vân" wire:navigate
+                logo:dark="/storage/images/sites/FAVICON_default.png" name="Đoàn TNTT Gx Mỹ Vân" wire:navigate
                 alt='Đoàn TNTT Gx Mỹ Vân' />
+
+            <flux:sidebar.collapse
+                class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
         </flux:sidebar.header>
         
         <flux:separator :text="__('General')" />
         <flux:sidebar.nav>
-
             <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
                 wire:navigate>
                 {{ __('Dashboard') }}
             </flux:sidebar.item>
+        </flux:sidebar.nav>
+
+        <flux:separator :text="__('Admin Access')" />
+        <flux:sidebar.nav>
+            @can('access.role.view')
+                <flux:sidebar.item icon="shield-check" :href="route('admin.access.roles')"
+                    :current="request()->routeIs('admin.access.roles')" wire:navigate>
+                    {{ __('Roles') }}
+                </flux:sidebar.item>
+            @endcan
+
+            @can('access.permission.view')
+                <flux:sidebar.item icon="key" :href="route('admin.access.permissions')"
+                    :current="request()->routeIs('admin.access.permissions')" wire:navigate>
+                    {{ __('Permissions') }}
+                </flux:sidebar.item>
+            @endcan
         </flux:sidebar.nav>
 
         <flux:spacer />

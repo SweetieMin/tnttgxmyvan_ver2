@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserDetail;
 use App\Models\UserParent;
@@ -50,6 +52,26 @@ test('all models record activity for create update and delete events', function 
     ]);
     $religiousProfile->delete();
 
+    $role = Role::create([
+        'name' => 'Activity Role',
+        'guard_name' => 'web',
+    ]);
+
+    $role->update([
+        'name' => 'Updated Activity Role',
+    ]);
+    $role->delete();
+
+    $permission = Permission::create([
+        'name' => 'activity.permission.view',
+        'guard_name' => 'web',
+    ]);
+
+    $permission->update([
+        'name' => 'activity.permission.manage',
+    ]);
+    $permission->delete();
+
     expect(Activity::query()->where('subject_type', User::class)->pluck('event')->all())
         ->toBe(['created', 'updated', 'deleted']);
 
@@ -60,6 +82,12 @@ test('all models record activity for create update and delete events', function 
         ->toBe(['created', 'updated', 'deleted']);
 
     expect(Activity::query()->where('subject_type', UserReligiousProfile::class)->pluck('event')->all())
+        ->toBe(['created', 'updated', 'deleted']);
+
+    expect(Activity::query()->where('subject_type', Role::class)->pluck('event')->all())
+        ->toBe(['created', 'updated', 'deleted']);
+
+    expect(Activity::query()->where('subject_type', Permission::class)->pluck('event')->all())
         ->toBe(['created', 'updated', 'deleted']);
 });
 

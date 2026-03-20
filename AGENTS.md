@@ -50,6 +50,14 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
+- For admin CRUD domains, prefer the structure `app/Livewire/Admin/<Domain>/<Entity>/Index.php`, `.../<Entity>List.php`, `.../<Entity>Actions.php` with matching views in `resources/views/livewire/admin/<domain>/<entity>/`.
+- For admin CRUD pages, `Index` should be the page shell, `List` should own lazy table rendering and placeholder output, and `Actions` should own modal state, form state, validation, create/update/delete actions, authorization, and toast feedback.
+- Repository structure should use `app/Repositories/BaseRepository.php`, `app/Repositories/Contracts`, and `app/Repositories/Eloquent`.
+- Repository interfaces and implementations should be named by model, for example `RoleRepositoryInterface` and `RoleRepository`.
+- Keep model-specific query and persistence logic in repositories, while UI state and validation stay in Livewire components/forms.
+- For Spatie permission entities, use `App\Models\Role` and `App\Models\Permission` instead of importing Spatie models directly so project-level behavior like activity log can be applied consistently.
+- Any new user-facing English string added in Blade, Livewire components, validation messages, callouts, headings, button labels, table labels, toasts, or empty states must be added to `lang/vi.json` in the same change.
+- Prefer writing the source string in English with `__()` and then adding the Vietnamese translation to `lang/vi.json` immediately.
 
 ## Frontend Bundling
 
@@ -254,6 +262,8 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Use lazy loading for heavy data sections such as tables, pagination, and activity/history panels.
 - Do not lazy load the entire page unless the whole screen depends on heavy data.
 - Prefer separating page layout, filter UI, table/list component, and modal form component.
+- Table for destop and card for mobie and card will use Accordion 
+- use multi lang and use English then re-write in vi.json for vietnamemes
 
 
 === pint/core rules ===

@@ -26,16 +26,26 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: var(--color-sky-600);
+    --color-accent-content: var(--color-sky-600);
     --color-accent-foreground: var(--color-white);
+
+    --color-background: var(--color-sky-100);
+    --color-background-icon: var(--color-sky-200);
+    --color-text-hidden: var(--color-sky-500);
+    --color-heading-table: var(--color-sky-500);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-sky-600);
+        --color-accent-content: var(--color-sky-400);
+        --color-accent-foreground: var(--color-white);
+
+        --color-background: var(--color-zinc-700);
+        --color-background-icon: var(--color-zinc-400);
+        --color-text-hidden: var(--color-white);
+        --color-heading-table: var(--color-sky-500);
     }
 }
 
