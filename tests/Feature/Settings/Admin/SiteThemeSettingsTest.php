@@ -34,12 +34,15 @@ test('theme settings can be updated from the livewire screen', function () {
 
     Livewire::test(ThemeSettings::class)
         ->call('selectPreset', 'rose')
+        ->call('selectNeutralPalette', 'stone')
         ->set('seasonal_enabled', true)
         ->call('updateThemeSettings')
         ->assertHasNoErrors()
         ->assertSet('preset', 'rose')
+        ->assertSet('neutral_palette', 'stone')
         ->assertSet('seasonal_enabled', true);
 
     expect(Setting::query()->where('key', 'theme.preset')->value('value'))->toBe('rose');
+    expect(Setting::query()->where('key', 'theme.neutral_palette')->value('value'))->toBe('stone');
     expect(Setting::query()->where('key', 'theme.seasonal_enabled')->value('value'))->toBe('1');
 });

@@ -12,11 +12,14 @@ class ThemeSettings extends Component
 {
     public string $preset = 'sky';
 
+    public string $neutral_palette = 'gray';
+
     public bool $seasonal_enabled = false;
 
     public function mount(): void
     {
         $this->preset = (string) ($this->settingValue('theme.preset') ?? 'sky');
+        $this->neutral_palette = (string) ($this->settingValue('theme.neutral_palette') ?? 'gray');
         $this->seasonal_enabled = $this->settingValue('theme.seasonal_enabled') === '1';
     }
 
@@ -31,21 +34,36 @@ class ThemeSettings extends Component
         $this->dispatch('theme-preset-updated', preset: $preset);
     }
 
+    public function selectNeutralPalette(string $neutralPalette): void
+    {
+        if (! array_key_exists($neutralPalette, $this->neutralPalettes())) {
+            return;
+        }
+
+        $this->neutral_palette = $neutralPalette;
+
+        $this->dispatch('theme-neutral-palette-updated', neutralPalette: $neutralPalette);
+    }
+
     public function updateThemeSettings(): void
     {
         $this->ensureCanUpdate();
 
         $validated = $this->validate([
             'preset' => ['required', 'string'],
+            'neutral_palette' => ['required', 'string'],
             'seasonal_enabled' => ['required', 'boolean'],
         ], [
             'preset.required' => __('Theme preset is required.'),
+            'neutral_palette.required' => __('Neutral palette is required.'),
         ]);
 
         $this->upsertSetting('theme.preset', $validated['preset']);
+        $this->upsertSetting('theme.neutral_palette', $validated['neutral_palette']);
         $this->upsertSetting('theme.seasonal_enabled', $validated['seasonal_enabled'] ? '1' : '0');
 
         $this->dispatch('theme-preset-updated', preset: $validated['preset']);
+        $this->dispatch('theme-neutral-palette-updated', neutralPalette: $validated['neutral_palette']);
 
         Flux::toast(
             text: __('Theme settings updated successfully.'),
@@ -78,6 +96,24 @@ class ThemeSettings extends Component
             'fuchsia' => ['label' => 'Fuchsia', 'dot' => 'bg-fuchsia-500 border-fuchsia-500'],
             'pink' => ['label' => 'Pink', 'dot' => 'bg-pink-500 border-pink-500'],
             'rose' => ['label' => 'Rose', 'dot' => 'bg-rose-500 border-rose-500'],
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    public function neutralPalettes(): array
+    {
+        return [
+            'slate' => ['label' => 'Slate', 'dot' => 'bg-slate-400 border-slate-400'],
+            'gray' => ['label' => 'Gray', 'dot' => 'bg-gray-400 border-gray-400'],
+            'zinc' => ['label' => 'Zinc', 'dot' => 'bg-zinc-400 border-zinc-400'],
+            'neutral' => ['label' => 'Neutral', 'dot' => 'bg-neutral-400 border-neutral-400'],
+            'stone' => ['label' => 'Stone', 'dot' => 'bg-stone-400 border-stone-400'],
+            'mauve' => ['label' => 'Mauve', 'dot' => 'bg-[var(--color-mauve-400)] border-[var(--color-mauve-400)]'],
+            'olive' => ['label' => 'Olive', 'dot' => 'bg-[var(--color-olive-400)] border-[var(--color-olive-400)]'],
+            'mist' => ['label' => 'Mist', 'dot' => 'bg-[var(--color-mist-400)] border-[var(--color-mist-400)]'],
+            'taupe' => ['label' => 'Taupe', 'dot' => 'bg-[var(--color-taupe-400)] border-[var(--color-taupe-400)]'],
         ];
     }
 
@@ -115,6 +151,16 @@ class ThemeSettings extends Component
                 'autoload' => true,
                 'sort_order' => 70,
             ],
+            'theme.neutral_palette' => [
+                'group' => 'theme',
+                'type' => 'string',
+                'label' => 'Bảng màu trung tính',
+                'description' => 'Bảng màu trung tính được dùng cho nền và các tông xám của giao diện.',
+                'is_public' => true,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 75,
+            ],
             'theme.seasonal_enabled' => [
                 'group' => 'theme',
                 'type' => 'boolean',
@@ -137,6 +183,7 @@ class ThemeSettings extends Component
     {
         return view('livewire.admin.settings.site.theme-settings', [
             'presets' => $this->themePresets(),
+            'neutralPalettes' => $this->neutralPalettes(),
         ]);
     }
 }

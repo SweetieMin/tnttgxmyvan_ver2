@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 @php($themePreset = \App\Models\Setting::query()->where('key', 'theme.preset')->first()?->value ?? 'sky')
+@php($themeNeutralPalette = \App\Models\Setting::query()->where('key', 'theme.neutral_palette')->first()?->value ?? 'gray')
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
 
 <head>
@@ -7,9 +8,11 @@
 </head>
 
 <body
-    x-data="{ themePreset: '{{ $themePreset }}' }"
+    x-data="{ themePreset: '{{ $themePreset }}', themeNeutralPalette: '{{ $themeNeutralPalette }}' }"
     x-on:theme-preset-updated.window="themePreset = $event.detail.preset"
+    x-on:theme-neutral-palette-updated.window="themeNeutralPalette = $event.detail.neutralPalette"
     :data-theme="themePreset"
+    :data-neutral-palette="themeNeutralPalette"
     class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800"
 >
     <flux:sidebar sticky collapsible
