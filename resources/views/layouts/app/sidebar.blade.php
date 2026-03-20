@@ -16,7 +16,7 @@
             <flux:sidebar.collapse
                 class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
         </flux:sidebar.header>
-        
+
         <flux:separator :text="__('General')" />
         <flux:sidebar.nav>
             <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
@@ -46,7 +46,12 @@
 
         <flux:separator :text="__('Advance')" />
         <flux:sidebar.nav>
-           
+            @can('settings.site.general.view')
+                <flux:sidebar.item icon="wrench-screwdriver" :href="route('admin.settings.site.general')"
+                    :current="request()->routeIs('admin.settings.site.*')" wire:navigate>
+                    {{ __('System configuration') }}
+                </flux:sidebar.item>
+            @endcan
         </flux:sidebar.nav>
 
         <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />

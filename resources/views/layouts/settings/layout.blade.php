@@ -6,24 +6,10 @@
                 @can('settings.site.general.view')
                     <flux:navlist.item :href="route('admin.settings.site.general')"
                         :current="request()->routeIs('admin.settings.site.general')" wire:navigate>
-                        {{ __('Configuration general') }}
+                        {{ __('General configuration') }}
                     </flux:navlist.item>
                 @endcan
 
-                @can('settings.site.email.view')
-                    <flux:navlist.item :href="route('admin.settings.site.email')"
-                        :current="request()->routeIs('admin.settings.site.email')" wire:navigate>
-                        {{ __('Configuration email') }}
-                    </flux:navlist.item>
-                @endcan
-
-
-                @can('settings.site.maintenance.view')
-                    <flux:navlist.item :href="route('admin.settings.site.maintenance')"
-                        :current="request()->routeIs('admin.settings.site.maintenance')" wire:navigate>
-                        {{ __('Configuration maintenance') }}
-                    </flux:navlist.item>
-                @endcan
 
             </flux:navlist>
         </flux:card>

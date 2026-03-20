@@ -30,6 +30,9 @@ class RolePermissionSeeder extends Seeder
             'access.permission.update',
             'access.permission.delete',
 
+            'settings.site.general.view',
+            'settings.site.general.update',
+
         ];
 
         foreach ($permissions as $permission) {
