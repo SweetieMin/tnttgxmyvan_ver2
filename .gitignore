@@ -26,5 +26,5 @@ yarn-error.log
 .agents
 .codex
 .cursor
-.github
 AGENTS.md
+.DS_Store
