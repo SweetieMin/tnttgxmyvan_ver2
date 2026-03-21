@@ -231,7 +231,6 @@ class TransactionActions extends Component
             ->whereNotNull('transaction_item')
             ->where('transaction_item', '!=', '')
             ->distinct()
-            ->latest('id')
             ->limit(20)
             ->pluck('transaction_item')
             ->all();
