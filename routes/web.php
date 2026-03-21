@@ -1,9 +1,10 @@
 <?php
 
-use App\Livewire\Admin\Access\Permissions\Index as PermissionIndex;
-use App\Livewire\Admin\Access\Roles\Index as RoleIndex;
-use App\Livewire\Admin\Management\AcademicYear\Index as AcademicYearIndex;
-use App\Livewire\Admin\Management\Programs\Index as ProgramIndex;
+use App\Livewire\Admin\Access\Permissions\PermissionIndex;
+use App\Livewire\Admin\Access\Roles\RoleIndex;
+use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
+use App\Livewire\Admin\Management\Programs\ProgramIndex;
+use App\Livewire\Admin\Management\Regulations\RegulationIndex;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('programs', ProgramIndex::class)
                 ->middleware('permission:management.program.view')
                 ->name('programs');
+
+            Route::livewire('regulations', RegulationIndex::class)
+                ->middleware('permission:management.regulation.view')
+                ->name('regulations');
         });
 
     });

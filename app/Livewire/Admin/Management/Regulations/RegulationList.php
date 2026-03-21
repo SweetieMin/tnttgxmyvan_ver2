@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Livewire\Admin\Management\Programs;
+namespace App\Livewire\Admin\Management\Regulations;
 
-use App\Repositories\Contracts\ProgramRepositoryInterface;
+use App\Repositories\Contracts\RegulationRepositoryInterface;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +11,7 @@ use Livewire\Component;
 use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 
-class ProgramList extends Component
+class RegulationList extends Component
 {
     use WithoutUrlPagination;
     use WithPagination;
@@ -26,9 +26,9 @@ class ProgramList extends Component
         $this->perPage = $perPage;
     }
 
-    #[On('program-saved')]
-    #[On('program-deleted')]
-    #[On('program-reordered')]
+    #[On('regulation-saved')]
+    #[On('regulation-deleted')]
+    #[On('regulation-reordered')]
     public function refreshList(): void
     {
         $this->resetPage();
@@ -44,21 +44,21 @@ class ProgramList extends Component
         $this->resetPage();
     }
 
-    public function sortProgram(int $item, int $position): void
+    public function sortRegulation(int $item, int $position): void
     {
-        abort_unless((bool) Auth::user()?->can('management.program.update'), 403);
+        abort_unless((bool) Auth::user()?->can('management.regulation.update'), 403);
 
         $absolutePosition = (($this->getPage() - 1) * $this->perPage) + $position;
 
-        $this->programRepository()->reorder($item, $absolutePosition);
+        $this->regulationRepository()->reorder($item, $absolutePosition);
 
         Flux::toast(
-            text: __('Program order updated successfully.'),
+            text: __('Regulation order updated successfully.'),
             heading: __('Success'),
             variant: 'success',
         );
 
-        $this->dispatch('program-reordered');
+        $this->dispatch('regulation-reordered');
     }
 
     public function placeholder(): string
@@ -68,13 +68,13 @@ class ProgramList extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.programs.program-list', [
-            'programs' => $this->programRepository()->paginateForAdmin($this->search, $this->perPage),
+        return view('livewire.admin.management.regulations.regulation-list', [
+            'regulations' => $this->regulationRepository()->paginateForAdmin($this->search, $this->perPage),
         ]);
     }
 
-    protected function programRepository(): ProgramRepositoryInterface
+    protected function regulationRepository(): RegulationRepositoryInterface
     {
-        return app(ProgramRepositoryInterface::class);
+        return app(RegulationRepositoryInterface::class);
     }
 }

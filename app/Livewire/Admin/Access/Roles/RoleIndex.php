@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Livewire\Admin\Management\Programs;
+namespace App\Livewire\Admin\Access\Roles;
 
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
-class Index extends Component
+class RoleIndex extends Component
 {
     public string $search = '';
 
@@ -19,11 +19,11 @@ class Index extends Component
 
     public function openCreateModal(): void
     {
-        $this->dispatch('open-create-program-modal');
+        $this->dispatch('open-create-role-modal');
     }
 
     public function render(): View
     {
-        return view('livewire.admin.management.programs.index');
+        return view('livewire.admin.access.roles.index');
     }
 }

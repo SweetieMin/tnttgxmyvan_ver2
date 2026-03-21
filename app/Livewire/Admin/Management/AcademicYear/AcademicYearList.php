@@ -6,10 +6,12 @@ use App\Repositories\Contracts\AcademicYearRepositoryInterface;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 
 class AcademicYearList extends Component
 {
+    use WithoutUrlPagination;
     use WithPagination;
 
     public string $search = '';
@@ -25,6 +27,16 @@ class AcademicYearList extends Component
     #[On('academic-year-saved')]
     #[On('academic-year-deleted')]
     public function refreshList(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
     {
         $this->resetPage();
     }

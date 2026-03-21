@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Livewire\Admin\Access\Permissions;
+namespace App\Livewire\Admin\Management\Programs;
 
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
-class Index extends Component
+class ProgramIndex extends Component
 {
     public string $search = '';
 
@@ -19,11 +19,11 @@ class Index extends Component
 
     public function openCreateModal(): void
     {
-        $this->dispatch('open-create-permission-modal');
+        $this->dispatch('open-create-program-modal');
     }
 
     public function render(): View
     {
-        return view('livewire.admin.access.permissions.index');
+        return view('livewire.admin.management.programs.index');
     }
 }

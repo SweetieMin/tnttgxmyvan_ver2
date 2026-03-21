@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SettingSeeder::class,
             ProgramSeeder::class,
+            AcademicYearSeeder::class,
+            RegulationSeeder::class,
             UserDetailSeeder::class,
             UserParentSeeder::class,
         ]);

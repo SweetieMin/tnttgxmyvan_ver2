@@ -29,7 +29,7 @@
             </flux:sidebar.item>
         </flux:sidebar.nav>
 
-        @canany(['management.academic-year.view', 'management.program.view'])
+        @canany(['management.academic-year.view', 'management.program.view', 'management.regulation.view'])
             <flux:separator :text="__('Management')" />
             <flux:sidebar.nav>
                 @can('management.academic-year.view')
@@ -42,6 +42,12 @@
                     <flux:sidebar.item icon="academic-cap" :href="route('admin.management.programs')"
                         :current="request()->routeIs('admin.management.programs')" wire:navigate>
                         {{ __('Programs') }}
+                    </flux:sidebar.item>
+                @endcan
+                @can('management.regulation.view')
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.management.regulations')"
+                        :current="request()->routeIs('admin.management.regulations')" wire:navigate>
+                        {{ __('Regulations') }}
                     </flux:sidebar.item>
                 @endcan
             </flux:sidebar.nav>

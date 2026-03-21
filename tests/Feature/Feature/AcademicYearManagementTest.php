@@ -4,6 +4,7 @@ use App\Livewire\Admin\Management\AcademicYear\AcademicYearActions;
 use App\Models\AcademicYear;
 use App\Models\Permission;
 use App\Models\User;
+use App\Repositories\Contracts\AcademicYearRepositoryInterface;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -143,4 +144,37 @@ test('create academic year keeps the year selection step when the code already e
         ->call('continueToAcademicYearDetails')
         ->assertSet('showAcademicYearDetails', false)
         ->assertHasErrors(['start_year']);
+});
+
+test('academic years are ordered by current status priority', function () {
+    AcademicYear::factory()->create([
+        'name' => 'NK24-25',
+        'status_academic' => 'finished',
+        'catechism_start_date' => '2024-09-01',
+    ]);
+
+    AcademicYear::factory()->create([
+        'name' => 'NK26-27',
+        'status_academic' => 'upcoming',
+        'catechism_start_date' => '2026-09-01',
+    ]);
+
+    AcademicYear::factory()->create([
+        'name' => 'NK25-26',
+        'status_academic' => 'ongoing',
+        'catechism_start_date' => '2025-09-01',
+    ]);
+
+    $academicYears = app(AcademicYearRepositoryInterface::class)
+        ->paginateForAdmin('', 15)
+        ->getCollection()
+        ->pluck('name')
+        ->values()
+        ->all();
+
+    expect($academicYears)->toBe([
+        'NK25-26',
+        'NK26-27',
+        'NK24-25',
+    ]);
 });

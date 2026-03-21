@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\Management\AcademicYear;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
-class Index extends Component
+class AcademicYearIndex extends Component
 {
     public string $search = '';
 

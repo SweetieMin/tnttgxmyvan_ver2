@@ -42,6 +42,11 @@ class RolePermissionSeeder extends Seeder
             'management.program.update',
             'management.program.delete',
 
+            'management.regulation.view',
+            'management.regulation.create',
+            'management.regulation.update',
+            'management.regulation.delete',
+
             'settings.site.general.view',
             'settings.site.general.update',
 

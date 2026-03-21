@@ -27,7 +27,16 @@ class AcademicYearRepository extends BaseRepository implements AcademicYearRepos
                 $query->where('name', 'like', '%'.$search.'%')
                     ->orWhere('status_academic', 'like', '%'.$search.'%');
             })
-            ->latest()
+            ->orderByRaw("
+                case status_academic
+                    when 'ongoing' then 1
+                    when 'upcoming' then 2
+                    when 'finished' then 3
+                    else 4
+                end
+            ")
+            ->orderByDesc('catechism_start_date')
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 
