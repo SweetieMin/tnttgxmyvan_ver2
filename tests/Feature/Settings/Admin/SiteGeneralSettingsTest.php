@@ -81,9 +81,29 @@ test('logo and favicon can be uploaded and removed', function () {
 
     expect($logoPath)->not->toBeNull();
     expect($faviconPath)->not->toBeNull();
+    expect($logoPath)->toStartWith('images/sites/LOGO-');
+    expect($faviconPath)->toStartWith('images/sites/FAVICON-');
 
     Storage::disk('public')->assertExists($logoPath);
     Storage::disk('public')->assertExists($faviconPath);
+
+    $component
+        ->set('site_logo', UploadedFile::fake()->image('logo-second.png'))
+        ->call('saveLogo')
+        ->set('site_favicon', UploadedFile::fake()->image('favicon-second.png'))
+        ->call('saveFavicon')
+        ->assertHasNoErrors();
+
+    $updatedLogoPath = Setting::query()->where('key', 'branding.logo')->value('value');
+    $updatedFaviconPath = Setting::query()->where('key', 'branding.favicon')->value('value');
+
+    expect($updatedLogoPath)->not->toBe($logoPath);
+    expect($updatedFaviconPath)->not->toBe($faviconPath);
+
+    Storage::disk('public')->assertMissing($logoPath);
+    Storage::disk('public')->assertMissing($faviconPath);
+    Storage::disk('public')->assertExists($updatedLogoPath);
+    Storage::disk('public')->assertExists($updatedFaviconPath);
 
     $component
         ->call('removeLogo')
@@ -94,6 +114,8 @@ test('logo and favicon can be uploaded and removed', function () {
 
     expect(Setting::query()->where('key', 'branding.logo')->value('value'))->toBeNull();
     expect(Setting::query()->where('key', 'branding.favicon')->value('value'))->toBeNull();
+    Storage::disk('public')->assertMissing($updatedLogoPath);
+    Storage::disk('public')->assertMissing($updatedFaviconPath);
 });
 
 test('selected tab is restored from the query string', function () {

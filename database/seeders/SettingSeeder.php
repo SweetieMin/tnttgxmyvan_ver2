@@ -139,7 +139,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'branding',
                 'key' => 'branding.logo',
-                'value' => 'images/sites/LOGO-6927a1a4d7c6b.png',
+                'value' => 'images/sites/LOGO-20260321040347-a2jpbb6c.png',
                 'type' => 'image',
                 'label' => 'Logo',
                 'description' => 'Hình ảnh thương hiệu chính được dùng trong khung ứng dụng.',

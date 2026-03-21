@@ -7,6 +7,8 @@ use App\Validation\Admin\Settings\Site\GeneralSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\Validate;
@@ -104,7 +106,7 @@ class GeneralSettings extends Component
             GeneralSettingsRules::logoMessages(),
         );
 
-        $path = $this->site_logo?->store('images/sites', 'public');
+        $path = $this->storeBrandingImage($this->site_logo, 'LOGO', 'branding.logo');
 
         $this->upsertSetting('branding.logo', $path);
         $this->existLogo = $path;
@@ -127,7 +129,7 @@ class GeneralSettings extends Component
             GeneralSettingsRules::faviconMessages(),
         );
 
-        $path = $this->site_favicon?->store('images/sites', 'public');
+        $path = $this->storeBrandingImage($this->site_favicon, 'FAVICON', 'branding.favicon');
 
         $this->upsertSetting('branding.favicon', $path);
         $this->existFavicon = $path;
@@ -181,6 +183,9 @@ class GeneralSettings extends Component
             return;
         }
 
+        $existingPath = $this->settingValue($this->deletingImageKey);
+
+        $this->deleteStoredFile($existingPath);
         $this->upsertSetting($this->deletingImageKey, null);
 
         if ($this->deletingImageKey === 'branding.logo') {
@@ -421,6 +426,32 @@ class GeneralSettings extends Component
     protected function ensureCanUpdate(): void
     {
         abort_unless((bool) Auth::user()?->can('settings.site.general.update'), 403);
+    }
+
+    protected function storeBrandingImage(?TemporaryUploadedFile $file, string $prefix, string $settingKey): ?string
+    {
+        if ($file === null) {
+            return null;
+        }
+
+        $existingPath = $this->settingValue($settingKey);
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
+        $filename = sprintf('%s-%s-%s.%s', $prefix, now()->format('YmdHis'), Str::lower(Str::random(8)), $extension);
+
+        $this->deleteStoredFile($existingPath);
+
+        return $file->storeAs('images/sites', $filename, 'public');
+    }
+
+    protected function deleteStoredFile(?string $path): void
+    {
+        if ($path === null || $path === '') {
+            return;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     public function render(): View
