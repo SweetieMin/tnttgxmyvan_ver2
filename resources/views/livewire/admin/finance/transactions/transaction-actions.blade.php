@@ -85,10 +85,10 @@
                     @endif
 
                     @if (! $attachment)
-                        <flux:file-upload wire:model.live="attachment" :label="__('Upload file')" accept=".pdf,.xls,.xlsx">
+                        <flux:file-upload wire:model.live="attachment" :label="__('Upload file')" accept=".pdf">
                             <flux:file-upload.dropzone
                                 :heading="__('Drop a file here or click to browse')"
-                                :text="__('PDF, XLS, or XLSX up to 10MB')"
+                                :text="__('PDF up to 10MB')"
                                 with-progress
                                 inline
                             />
