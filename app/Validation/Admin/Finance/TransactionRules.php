@@ -15,7 +15,7 @@ class TransactionRules
             'description' => ['nullable', 'string'],
             'type' => ['required', 'in:income,expense'],
             'amount' => ['required', 'integer', 'min:1'],
-            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,webp'],
+            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:pdf,xls,xlsx'],
             'in_charge' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'in:pending,completed'],
         ];
@@ -35,7 +35,7 @@ class TransactionRules
             'amount.min' => __('Amount must be at least 1.'),
             'attachment.file' => __('Attachment must be a valid file.'),
             'attachment.max' => __('Attachment must not be greater than 10MB.'),
-            'attachment.mimes' => __('Attachment must be a PDF, JPG, JPEG, PNG, or WEBP file.'),
+            'attachment.mimes' => __('Attachment must be a PDF, XLS, or XLSX file.'),
             'status.required' => __('Transaction status is required.'),
         ];
     }

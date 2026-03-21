@@ -42,7 +42,7 @@ test('transactions can be created updated and deleted from the livewire screen',
 
     $this->actingAs($user);
 
-    $receipt = UploadedFile::fake()->image('receipt.png');
+    $receipt = UploadedFile::fake()->create('receipt.xlsx', 200, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
     Livewire::test(TransactionActions::class)
         ->call('openCreateModal')
@@ -130,6 +130,24 @@ test('selected transaction attachment can be removed before saving', function ()
         ->assertSet('attachment', fn ($attachment) => $attachment !== null)
         ->call('removeSelectedAttachment')
         ->assertSet('attachment', null);
+});
+
+test('transaction attachment only accepts pdf or excel files', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.create');
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionActions::class)
+        ->call('openCreateModal')
+        ->set('transaction_date', '2026-03-21')
+        ->set('transaction_item', 'Thu quỹ đầu năm')
+        ->set('type', 'income')
+        ->set('amount', 500000)
+        ->set('status', 'completed')
+        ->set('attachment', UploadedFile::fake()->image('receipt.png'))
+        ->call('saveTransaction')
+        ->assertHasErrors(['attachment']);
 });
 
 test('transaction item field shows existing unique suggestions in autocomplete', function () {
