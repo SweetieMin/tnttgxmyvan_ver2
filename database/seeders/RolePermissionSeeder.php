@@ -42,6 +42,8 @@ class RolePermissionSeeder extends Seeder
             'settings.site.theme.view',
             'settings.site.theme.update',
 
+            'settings.log.activity.view',
+
         ];
 
         foreach ($permissions as $permission) {

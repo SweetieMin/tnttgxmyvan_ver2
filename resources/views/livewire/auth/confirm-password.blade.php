@@ -20,9 +20,12 @@
                 viewable
             />
 
-            <flux:button variant="primary" type="submit" class="w-full" data-test="confirm-password-button">
-                {{ __('Confirm') }}
-            </flux:button>
+            <div class="flex gap-3">
+                <flux:button icon="arrow-uturn-left" class="flex-1" onclick="window.history.back();">{{ __('Back') }}</flux:button>
+                <flux:button variant="primary" type="submit" class="flex-2" data-test="confirm-password-button">
+                    {{ __('Confirm') }}
+                </flux:button>
+            </div>
         </form>
     </div>
 </x-layouts::auth>

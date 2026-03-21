@@ -1,12 +1,12 @@
 <section class="w-full">
     @include('partials.site-settings-heading')
 
-    <x-layouts::settings.layout :heading="__('Theme configuration')" :subheading="__('Choose the color preset used across the application interface.')">
+    <x-layouts::settings.site.layout :heading="__('Theme configuration')" :subheading="__('Choose the color preset used across the application interface.')">
         <form wire:submit.prevent="updateThemeSettings()" class="my-6 w-full space-y-6">
             <div class="space-y-6">
                 <flux:separator :text="__('Theme preset')" class="my-6" />
 
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
                     @foreach ($presets as $key => $presetConfig)
                         @php
                             $palette = $key === 'base' ? 'zinc' : $key;

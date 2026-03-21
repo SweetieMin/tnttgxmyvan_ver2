@@ -1,4 +1,4 @@
-<div class="flex items-start max-md:flex-col">
+<div class="flex items-start max-md:flex-col mt-4">
 
     <div class="me-4 w-full pb-4 md:w-sm">
         <flux:card class="space-y-6">

@@ -2,7 +2,7 @@
     @include('partials.site-settings-heading')
 
 
-    <x-layouts::settings.layout :heading="__('General configuration')" :subheading="__('Update the general system settings')">
+    <x-layouts::settings.site.layout :heading="__('General configuration')" :subheading="__('Update the general system settings')">
 
         <flux:tab.group>
 
@@ -268,7 +268,7 @@
         </flux:tab.group>
 
 
-    </x-layouts::settings.layout>
+    </x-layouts::settings.site.layout>
 
     <flux:modal name="settings-site-image" class="min-w-88">
         <div class="space-y-6">

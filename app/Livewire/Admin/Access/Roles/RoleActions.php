@@ -5,11 +5,11 @@ namespace App\Livewire\Admin\Access\Roles;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Validation\Admin\Access\RoleRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Spatie\Permission\PermissionRegistrar;
@@ -68,19 +68,10 @@ class RoleActions extends Component
             $this->authorize('create', Role::class);
         }
 
-        $validated = $this->validate([
-            'roleName' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique(Role::class, 'name')->ignore($this->editingRoleId),
-            ],
-            'selectedPermissions' => ['array'],
-            'selectedPermissions.*' => ['string', Rule::exists(Permission::class, 'name')],
-        ], [
-            'roleName.required' => __('Role name is required.'),
-            'roleName.unique' => __('This role name already exists.'),
-        ]);
+        $validated = $this->validate(
+            RoleRules::rules($this->editingRoleId),
+            RoleRules::messages(),
+        );
 
         $this->roleRepository()->save(
             $validated['roleName'],

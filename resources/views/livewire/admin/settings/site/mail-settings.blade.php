@@ -1,7 +1,7 @@
 <section class="w-full">
     @include('partials.site-settings-heading')
 
-    <x-layouts::settings.layout :heading="__('Mail configuration')" :subheading="__('Update the email system settings')">
+    <x-layouts::settings.site.layout :heading="__('Mail configuration')" :subheading="__('Update the email system settings')">
 
         <form wire:submit.prevent="updateEmailSettings()" class="my-6 w-full">
             <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8 items-start">

@@ -62,7 +62,7 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
             ]);
         }
 
-        $role->syncPermissions($selectedPermissions);
+        $role->syncPermissionsWithActivityLog($selectedPermissions);
 
         return $role;
     }

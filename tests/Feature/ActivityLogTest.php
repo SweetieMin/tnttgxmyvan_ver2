@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserDetail;
 use App\Models\UserParent;
 use App\Models\UserReligiousProfile;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use Spatie\Activitylog\Models\Activity;
 
 test('all models record activity for create update and delete events', function () {
@@ -105,4 +106,41 @@ test('user activity log excludes hidden attributes', function () {
 
     expect($activity->properties['attributes'])
         ->not->toHaveKeys(['password', 'token', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes']);
+});
+
+test('role permission changes are logged when only pivot data changes', function () {
+    $user = User::factory()->create();
+    $firstPermission = Permission::create([
+        'name' => 'activity.role.view',
+        'guard_name' => 'web',
+    ]);
+    $secondPermission = Permission::create([
+        'name' => 'activity.role.update',
+        'guard_name' => 'web',
+    ]);
+
+    $role = Role::create([
+        'name' => 'Pivot Activity Role',
+        'guard_name' => 'web',
+    ]);
+
+    $role->syncPermissions([$firstPermission->name]);
+
+    $this->actingAs($user);
+
+    app(RoleRepositoryInterface::class)->save(
+        $role->name,
+        [$secondPermission->name],
+        $role->id,
+    );
+
+    $activity = Activity::query()
+        ->where('subject_type', Role::class)
+        ->where('subject_id', $role->id)
+        ->where('event', 'updated')
+        ->latest('id')
+        ->firstOrFail();
+
+    expect($activity->properties['attributes']['attached_permissions'])->toBe([$secondPermission->name]);
+    expect($activity->properties['attributes']['detached_permissions'])->toBe([$firstPermission->name]);
 });

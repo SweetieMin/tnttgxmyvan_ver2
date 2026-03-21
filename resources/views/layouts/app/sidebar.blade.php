@@ -7,21 +7,17 @@
     @include('partials.head')
 </head>
 
-<body
-    x-data="{ themePreset: '{{ $themePreset }}', themeNeutralPalette: '{{ $themeNeutralPalette }}' }"
-    x-on:theme-preset-updated.window="themePreset = $event.detail.preset"
+<body x-data="{ themePreset: '{{ $themePreset }}', themeNeutralPalette: '{{ $themeNeutralPalette }}' }" x-on:theme-preset-updated.window="themePreset = $event.detail.preset"
     x-on:theme-neutral-palette-updated.window="themeNeutralPalette = $event.detail.neutralPalette"
-    :data-theme="themePreset"
-    :data-neutral-palette="themeNeutralPalette"
-    class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800"
->
+    :data-theme="themePreset" :data-neutral-palette="themeNeutralPalette"
+    class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800">
     <flux:sidebar sticky collapsible
         class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-15 z-10">
         <flux:sidebar.header>
             <flux:sidebar.brand href="{{ route('dashboard') }}" logo="/storage/images/sites/FAVICON_default.png"
                 logo:dark="/storage/images/sites/FAVICON_default.png" name="Đoàn TNTT Gx Mỹ Vân" wire:navigate
                 alt='Đoàn TNTT Gx Mỹ Vân' />
-                <flux:sidebar.collapse
+            <flux:sidebar.collapse
                 class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 hidden lg:flex" />
         </flux:sidebar.header>
 
@@ -58,6 +54,13 @@
                 <flux:sidebar.item icon="cog" :href="route('admin.settings.site.general')"
                     :current="request()->routeIs('admin.settings.site.*')" wire:navigate>
                     {{ __('System configuration') }}
+                </flux:sidebar.item>
+            @endcan
+
+            @canany(['settings.log.activity.view'])
+                <flux:sidebar.item icon="notebook-pen" :href="route('admin.settings.log.activity')"
+                    :current="request()->routeIs('admin.settings.log.activity')" wire:navigate>
+                    {{ __('System logs') }}
                 </flux:sidebar.item>
             @endcan
         </flux:sidebar.nav>

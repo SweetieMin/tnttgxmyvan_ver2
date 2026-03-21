@@ -179,8 +179,7 @@
     "Are you sure you want to delete image :name from the system?": "Bạn có chắc muốn xóa hình ảnh :name khỏi hệ thống không?",
     "Delete permanently": "Xóa vĩnh viễn",
     "Remove current logo": "Xóa logo hiện tại",
-    "Remove current favicon": "Xóa favicon hiện tại"
-    ,
+    "Remove current favicon": "Xóa favicon hiện tại",
     "A new verification link has been sent to the email address you provided during registration.": "Một liên kết xác minh mới đã được gửi đến địa chỉ email bạn cung cấp khi đăng ký.",
     "Advance": "Nâng cao",
     "All location": "Tất cả địa điểm",
@@ -235,8 +234,7 @@
     "Verify authentication code": "Xác minh mã xác thực",
     "Welcome": "Chào mừng",
     "en-EN": "en-EN",
-    "items/page": "mục/trang"
-    ,
+    "items/page": "mục/trang",
     "Mail configuration": "Cấu hình email",
     "Update the email system settings": "Cập nhật cài đặt hệ thống email",
     "Sender information": "Thông tin người gửi",
@@ -273,8 +271,7 @@
     "Maintenance access": "Quyền truy cập khi bảo trì",
     "Keep the secret key private. It can be shared with testers or administrators who still need temporary access during maintenance.": "Giữ khóa bí mật ở chế độ riêng tư. Bạn chỉ nên chia sẻ nó cho người kiểm thử hoặc quản trị viên vẫn cần quyền truy cập tạm thời trong thời gian bảo trì.",
     "Save maintenance settings": "Lưu cấu hình bảo trì",
-    "Maintenance settings updated successfully.": "Đã cập nhật cài đặt bảo trì thành công."
-    ,
+    "Maintenance settings updated successfully.": "Đã cập nhật cài đặt bảo trì thành công.",
     "Enable maintenance mode?": "Bật chế độ bảo trì?",
     "The system will switch to maintenance mode and users will not be able to access it.": "Hệ thống sẽ chuyển sang chế độ bảo trì và người dùng sẽ không thể truy cập.",
     "Are you sure you want to continue?": "Bạn có chắc chắn muốn tiếp tục không?",
@@ -317,5 +314,20 @@
     "Save theme settings": "Lưu cấu hình giao diện",
     "Theme settings updated successfully.": "Đã cập nhật cấu hình giao diện thành công.",
     "Theme preset is required.": "Bộ màu giao diện là bắt buộc.",
-    "Neutral palette is required.": "Bảng màu trung tính là bắt buộc."
+    "Neutral palette is required.": "Bảng màu trung tính là bắt buộc.",
+    "System logs": "Nhật ký hệ thống",
+    "Review recorded system activities and audit history": "Xem lại các hoạt động hệ thống đã được ghi nhận và lịch sử kiểm tra.",
+    "Activity system": "Hoạt động hệ thống",
+    "Manage activity logs and system events": "Quản lý nhật ký hoạt động và các sự kiện hệ thống",
+    "Time": "Thời gian",
+    "User": "Người dùng",
+    "Event": "Sự kiện",
+    "Details": "Chi tiết",
+    "N/A": "Không có",
+    "No activity logs found.": "Không tìm thấy nhật ký hoạt động nào.",
+    "Activity log details": "Chi tiết nhật ký hoạt động",
+    "Log name": "Tên nhật ký",
+    "Causer": "Người thực hiện",
+    "Causer id": "Mã người thực hiện",
+    "Properties": "Thuộc tính"
 }

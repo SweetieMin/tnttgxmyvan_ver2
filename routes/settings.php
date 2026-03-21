@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Settings\Log\ActivitySystem;
 use App\Livewire\Admin\Settings\Site\GeneralSettings;
 use App\Livewire\Admin\Settings\Site\MailSettings;
 use App\Livewire\Admin\Settings\Site\MaintenanceSettings;
@@ -42,7 +43,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('maintenance', MaintenanceSettings::class)->name('maintenance')->middleware('permission:settings.site.maintenance.view');
             });
 
-            Route::prefix('log')->name('log.')->group(function () {});
+            Route::prefix('log')->name('log.')->group(function () {
+                Route::get('activity', ActivitySystem::class)->name('activity')->middleware('permission:settings.log.activity.view');
+            });
         });
     });
 });

@@ -4,10 +4,10 @@ namespace App\Livewire\Admin\Access\Permissions;
 
 use App\Models\Permission;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Validation\Admin\Access\PermissionRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Spatie\Permission\PermissionRegistrar;
@@ -54,17 +54,10 @@ class PermissionActions extends Component
             $this->authorize('create', Permission::class);
         }
 
-        $validated = $this->validate([
-            'permissionName' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique(Permission::class, 'name')->ignore($this->editingPermissionId),
-            ],
-        ], [
-            'permissionName.required' => __('Permission name is required.'),
-            'permissionName.unique' => __('This permission already exists.'),
-        ]);
+        $validated = $this->validate(
+            PermissionRules::rules($this->editingPermissionId),
+            PermissionRules::messages(),
+        );
 
         $this->permissionRepository()->save(
             $validated['permissionName'],

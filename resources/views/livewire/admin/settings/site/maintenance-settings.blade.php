@@ -1,7 +1,7 @@
 <section class="w-full">
     @include('partials.site-settings-heading')
 
-    <x-layouts::settings.layout :heading="__('Maintenance configuration')" :subheading="__('Control maintenance mode, access secret, and the maintenance notice shown to users.')">
+    <x-layouts::settings.site.layout :heading="__('Maintenance configuration')" :subheading="__('Control maintenance mode, access secret, and the maintenance notice shown to users.')">
 
         <form wire:submit.prevent="updateMaintenanceSettings()" class="my-6 w-full">
             <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8 items-start">

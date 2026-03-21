@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Settings\Site;
 
 use App\Models\Setting;
+use App\Validation\Admin\Settings\Site\MaintenanceSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Artisan;
@@ -49,13 +50,10 @@ class MaintenanceSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate([
-            'is_maintenance' => ['required', 'boolean'],
-            'secret_key' => ['nullable', 'string', 'max:255'],
-            'message' => ['nullable', 'string', 'max:2000'],
-            'start_at' => ['nullable', 'string', 'max:255'],
-            'end_at' => ['nullable', 'string', 'max:255'],
-        ]);
+        $validated = $this->validate(
+            MaintenanceSettingsRules::rules(),
+            MaintenanceSettingsRules::messages(),
+        );
 
         if ($validated['is_maintenance'] && blank($validated['secret_key'])) {
             $validated['secret_key'] = Str::orderedUuid()->toString();

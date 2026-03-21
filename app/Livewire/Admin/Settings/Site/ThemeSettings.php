@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Settings\Site;
 
 use App\Models\Setting;
+use App\Validation\Admin\Settings\Site\ThemeSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -49,14 +50,10 @@ class ThemeSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate([
-            'preset' => ['required', 'string'],
-            'neutral_palette' => ['required', 'string'],
-            'seasonal_enabled' => ['required', 'boolean'],
-        ], [
-            'preset.required' => __('Theme preset is required.'),
-            'neutral_palette.required' => __('Neutral palette is required.'),
-        ]);
+        $validated = $this->validate(
+            ThemeSettingsRules::rules(),
+            ThemeSettingsRules::messages(),
+        );
 
         $this->upsertSetting('theme.preset', $validated['preset']);
         $this->upsertSetting('theme.neutral_palette', $validated['neutral_palette']);

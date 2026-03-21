@@ -1,7 +1,9 @@
+@php($userPicture = data_get(auth()->user()->details, 'picture'))
+
 <flux:dropdown position="bottom" align="start">
     <flux:sidebar.profile circle
         :name="auth()->user()->full_name"
-        :avatar="auth()->user()->details->picture"
+        :avatar="$userPicture"
         icon:trailing="chevrons-up-down"
         class="[&>span]:max-lg:hidden"
         data-test="sidebar-menu-button"
@@ -10,7 +12,7 @@
     <flux:menu>
         <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
             <flux:avatar circle
-                :src="auth()->user()->details->picture"
+                :src="$userPicture"
             />
             <div class="grid flex-1 text-start text-sm leading-tight">
                 <flux:heading class="truncate">{{ auth()->user()->full_name }}</flux:heading>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Settings\Site;
 
 use App\Models\Setting;
+use App\Validation\Admin\Settings\Site\GeneralSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -62,19 +63,10 @@ class GeneralSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate([
-            'site_title' => ['required', 'string', 'max:255'],
-            'site_email' => ['nullable', 'email', 'max:255'],
-            'site_phone' => ['nullable', 'string', 'max:255'],
-            'site_meta_keywords' => ['nullable', 'string', 'max:1000'],
-            'site_meta_description' => ['nullable', 'string', 'max:2000'],
-            'facebook_url' => ['nullable', 'url', 'max:255'],
-            'instagram_url' => ['nullable', 'url', 'max:255'],
-            'youtube_url' => ['nullable', 'url', 'max:255'],
-            'tikTok_url' => ['nullable', 'url', 'max:255'],
-        ], [
-            'site_title.required' => __('Site title is required.'),
-        ]);
+        $validated = $this->validate(
+            GeneralSettingsRules::rules(),
+            GeneralSettingsRules::messages(),
+        );
 
         foreach ($this->generalSettingMap() as $property => $key) {
             $this->upsertSetting($key, $validated[$property] ?? null);
@@ -91,13 +83,10 @@ class GeneralSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $this->validate([
-            'site_logo' => ['required', 'image', 'max:10240'],
-        ], [
-            'site_logo.required' => __('Please choose a logo image.'),
-            'site_logo.image' => __('The logo must be an image.'),
-            'site_logo.max' => __('The logo may not be greater than 10 MB.'),
-        ]);
+        $this->validate(
+            GeneralSettingsRules::logoRules(),
+            GeneralSettingsRules::logoMessages(),
+        );
 
         $path = $this->site_logo?->store('images/sites', 'public');
 
@@ -117,13 +106,10 @@ class GeneralSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $this->validate([
-            'site_favicon' => ['required', 'image', 'max:10240'],
-        ], [
-            'site_favicon.required' => __('Please choose a favicon image.'),
-            'site_favicon.image' => __('The favicon must be an image.'),
-            'site_favicon.max' => __('The favicon may not be greater than 10 MB.'),
-        ]);
+        $this->validate(
+            GeneralSettingsRules::faviconRules(),
+            GeneralSettingsRules::faviconMessages(),
+        );
 
         $path = $this->site_favicon?->store('images/sites', 'public');
 
