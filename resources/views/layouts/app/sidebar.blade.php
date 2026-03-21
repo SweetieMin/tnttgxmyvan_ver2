@@ -48,6 +48,18 @@
             </flux:sidebar.nav>
         @endcanany
 
+        @canany(['management.academic-year.view'])
+            <flux:separator :text="__('Management')" />
+            <flux:sidebar.nav>
+                @can('management.academic-year.view')
+                    <flux:sidebar.item icon="calendar-days" :href="route('admin.management.academic-years')"
+                        :current="request()->routeIs('admin.management.academic-years')" wire:navigate>
+                        {{ __('Academic years') }}
+                    </flux:sidebar.item>
+                @endcan
+            </flux:sidebar.nav>
+        @endcanany
+
         <flux:spacer />
 
         @canany(['settings.site.general.view', 'settings.site.theme.view', 'settings.log.activity.view',

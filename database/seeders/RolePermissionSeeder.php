@@ -30,6 +30,11 @@ class RolePermissionSeeder extends Seeder
             'access.permission.update',
             'access.permission.delete',
 
+            'management.academic-year.view',
+            'management.academic-year.create',
+            'management.academic-year.update',
+            'management.academic-year.delete',
+
             'settings.site.general.view',
             'settings.site.general.update',
 

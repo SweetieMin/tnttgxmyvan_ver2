@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\Access\Permissions\Index as PermissionIndex;
 use App\Livewire\Admin\Access\Roles\Index as RoleIndex;
+use App\Livewire\Admin\Management\AcademicYear\Index as AcademicYearIndex;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('can:viewAny,'.Permission::class)
                 ->name('permissions');
         });
+
+        Route::prefix('management')->name('management.')->group(function () {
+            Route::livewire('academic-years', AcademicYearIndex::class)
+                ->middleware('permission:management.academic-year.view')
+                ->name('academic-years');
+        });
+
     });
 });
 

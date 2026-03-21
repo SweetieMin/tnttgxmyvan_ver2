@@ -286,5 +286,8 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - For Livewire form fields that should respond while typing, prefer `wire:model.live` or `wire:model.live.debounce.500ms`.
 - When a Livewire component already uses `app/Validation/...` rules/messages, add `#[Validate]` to the related properties so validation also runs during input updates.
 - For create/update flows, keep an original state snapshot in the component and only show the add/save button when the current state differs from that snapshot.
+- For date and time inputs in Flux-based forms, prefer `flux:date-picker` or `flux:time-picker` over plain HTML date/time inputs.
+- Default Flux date/time picker locale to `vi-VN` unless a screen has a clear reason to use a different locale.
+- When using CSS grids in Blade/Flux layouts, prefer explicit `col-span-*` usage on grid children instead of relying only on implicit flow so the layout intent stays clear across breakpoints.
 
 </laravel-boost-guidelines>
