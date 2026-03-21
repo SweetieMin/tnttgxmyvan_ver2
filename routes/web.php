@@ -3,6 +3,7 @@
 use App\Livewire\Admin\Access\Permissions\Index as PermissionIndex;
 use App\Livewire\Admin\Access\Roles\Index as RoleIndex;
 use App\Livewire\Admin\Management\AcademicYear\Index as AcademicYearIndex;
+use App\Livewire\Admin\Management\Programs\Index as ProgramIndex;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('academic-years', AcademicYearIndex::class)
                 ->middleware('permission:management.academic-year.view')
                 ->name('academic-years');
+
+            Route::livewire('programs', ProgramIndex::class)
+                ->middleware('permission:management.program.view')
+                ->name('programs');
         });
 
     });

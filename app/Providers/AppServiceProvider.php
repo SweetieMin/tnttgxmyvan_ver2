@@ -8,9 +8,11 @@ use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
 use App\Repositories\Contracts\AcademicYearRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Repositories\Contracts\ProgramRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Eloquent\AcademicYearRepository;
 use App\Repositories\Eloquent\PermissionRepository;
+use App\Repositories\Eloquent\ProgramRepository;
 use App\Repositories\Eloquent\RoleRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(AcademicYearRepositoryInterface::class, AcademicYearRepository::class);
+        $this->app->bind(ProgramRepositoryInterface::class, ProgramRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
     }

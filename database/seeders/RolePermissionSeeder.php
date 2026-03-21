@@ -21,10 +21,12 @@ class RolePermissionSeeder extends Seeder
     {
         $permissions = [
             'access.impersonate.users',
+
             'access.role.view',
             'access.role.create',
             'access.role.update',
             'access.role.delete',
+
             'access.permission.view',
             'access.permission.create',
             'access.permission.update',
@@ -34,6 +36,11 @@ class RolePermissionSeeder extends Seeder
             'management.academic-year.create',
             'management.academic-year.update',
             'management.academic-year.delete',
+
+            'management.program.view',
+            'management.program.create',
+            'management.program.update',
+            'management.program.delete',
 
             'settings.site.general.view',
             'settings.site.general.update',
