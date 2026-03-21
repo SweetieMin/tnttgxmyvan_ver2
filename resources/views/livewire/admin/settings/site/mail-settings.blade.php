@@ -9,16 +9,16 @@
                 <div class="space-y-6">
                     <flux:separator :text="__('Sender information')" class="my-6" />
 
-                    <flux:input wire:model="from_address" :label="__('From address')" type="email" autofocus
+                    <flux:input wire:model.live.debounce.500ms="from_address" :label="__('From address')" type="email" autofocus
                         placeholder="noreply@example.com" wire:dirty.class="border-yellow-500!" x-data x-init="$nextTick(() => $el.focus())" />
 
-                    <flux:input wire:model="from_name" :label="__('From name')" type="text"
+                    <flux:input wire:model.live.debounce.500ms="from_name" :label="__('From name')" type="text"
                         :placeholder="__('Parish Youth Group')" wire:dirty.class="border-yellow-500!" />
 
-                    <flux:input wire:model="reply_to_address" :label="__('Reply-to address')" type="email"
+                    <flux:input wire:model.live.debounce.500ms="reply_to_address" :label="__('Reply-to address')" type="email"
                         placeholder="reply@example.com" wire:dirty.class="border-yellow-500!" />
 
-                    <flux:input wire:model="username" :label="__('SMTP username')" type="text"
+                    <flux:input wire:model.live.debounce.500ms="username" :label="__('SMTP username')" type="text"
                         placeholder="mailer@example.com" wire:dirty.class="border-yellow-500!" />
 
                     <div class="space-y-2">
@@ -37,7 +37,7 @@
                         @else
                             <div class="{{ $isHavePassword ? 'flex' : '' }} gap-2 items-start">
                                 <div class="flex-1">
-                                    <flux:input wire:model="password" :label="__('SMTP password')" type="password"
+                                    <flux:input wire:model.live.debounce.500ms="password" :label="__('SMTP password')" type="password"
                                         :placeholder="__('Enter a new password')" viewable
                                         wire:dirty.class="border-yellow-500!" />
                                 </div>
@@ -59,7 +59,7 @@
                 <div class="space-y-6">
                     <flux:separator :text="__('SMTP server settings')" class="my-6" />
 
-                    <flux:select variant="listbox" wire:model="mailer" :label="__('Mail transport')" placeholder="smtp">
+                    <flux:select variant="listbox" wire:model.live="mailer" :label="__('Mail transport')" placeholder="smtp">
                         <flux:select.option value="smtp">SMTP</flux:select.option>
                         <flux:select.option value="sendmail">Sendmail</flux:select.option>
                         <flux:select.option value="mailgun">Mailgun</flux:select.option>
@@ -68,17 +68,17 @@
                         <flux:select.option value="array">{{ __('Array (do not send mail)') }}</flux:select.option>
                     </flux:select>
 
-                    <flux:input wire:model="host" :label="__('SMTP host')" type="text"
+                    <flux:input wire:model.live.debounce.500ms="host" :label="__('SMTP host')" type="text"
                         placeholder="smtp.gmail.com" />
 
-                    <flux:select wire:model.lazy="encryption" variant="listbox"
+                    <flux:select wire:model.live="encryption" variant="listbox"
                         :label="__('Connection encryption')"
                         :placeholder="__('Connection encryption')">
                         <flux:select.option value="tls">tls</flux:select.option>
                         <flux:select.option value="ssl">ssl</flux:select.option>
                     </flux:select>
 
-                    <flux:input wire:model="port" :label="__('SMTP port')" type="number" placeholder="587" />
+                    <flux:input wire:model.live.debounce.500ms="port" :label="__('SMTP port')" type="number" placeholder="587" />
                 </div>
 
             </div>
@@ -88,9 +88,11 @@
             {{-- Nút lưu --}}
             <div class="mt-8 flex items-center gap-4">
                 @can('settings.site.email.update')
-                    <flux:button variant="primary" type="submit" class="cursor-pointer">
-                        {{ __('Save') }}
-                    </flux:button>
+                    @if ($this->hasMailChanges())
+                        <flux:button variant="primary" type="submit" class="cursor-pointer">
+                            {{ __('Save') }}
+                        </flux:button>
+                    @endif
                 @endcan
             </div>
         </form>

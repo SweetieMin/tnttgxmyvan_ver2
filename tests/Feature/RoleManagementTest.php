@@ -83,3 +83,30 @@ test('roles assigned to users cannot be deleted', function () {
 
     expect(Role::findByName('Assigned Role', 'web'))->not->toBeNull();
 });
+
+test('role save button only appears after the form changes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'access.role.view',
+        'access.role.create',
+        'access.role.update',
+    ]);
+
+    $role = Role::findOrCreate('Existing Role', 'web');
+
+    $this->actingAs($user);
+
+    Livewire::test(RoleActions::class)
+        ->call('openCreateModal')
+        ->call('hasRoleChanges')
+        ->assertReturned(false)
+        ->set('roleName', 'New Role')
+        ->call('hasRoleChanges')
+        ->assertReturned(true)
+        ->call('openEditModal', $role->id)
+        ->call('hasRoleChanges')
+        ->assertReturned(false)
+        ->set('roleName', 'Updated Role')
+        ->call('hasRoleChanges')
+        ->assertReturned(true);
+});

@@ -78,3 +78,30 @@ test('permissions in use cannot be deleted', function () {
 
     expect(Permission::findByName('access.locked.view', 'web'))->not->toBeNull();
 });
+
+test('permission save button only appears after the form changes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'access.permission.view',
+        'access.permission.create',
+        'access.permission.update',
+    ]);
+
+    $permission = Permission::findOrCreate('access.permission.test', 'web');
+
+    $this->actingAs($user);
+
+    Livewire::test(PermissionActions::class)
+        ->call('openCreateModal')
+        ->call('hasPermissionChanges')
+        ->assertReturned(false)
+        ->set('permissionName', 'access.permission.created')
+        ->call('hasPermissionChanges')
+        ->assertReturned(true)
+        ->call('openEditModal', $permission->id)
+        ->call('hasPermissionChanges')
+        ->assertReturned(false)
+        ->set('permissionName', 'access.permission.updated')
+        ->call('hasPermissionChanges')
+        ->assertReturned(true);
+});

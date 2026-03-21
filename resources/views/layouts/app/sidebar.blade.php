@@ -51,6 +51,7 @@
         <flux:spacer />
 
         @canany(['settings.site.general.view', 'settings.site.theme.view', 'settings.log.activity.view',
+            'settings.log.activity-failed.view',
             'settings.site.email.view', 'settings.site.maintenance.view', 'settings.log.system.view'])
             <flux:separator :text="__('Advance')" />
             <flux:sidebar.nav>
@@ -61,9 +62,9 @@
                     </flux:sidebar.item>
                 @endcan
 
-                @canany(['settings.log.activity.view'])
+                @canany(['settings.log.activity.view', 'settings.log.activity-failed.view'])
                     <flux:sidebar.item icon="notebook-pen" :href="route('admin.settings.log.activity')"
-                        :current="request()->routeIs('admin.settings.log.activity')" wire:navigate>
+                        :current="request()->routeIs('admin.settings.log.*')" wire:navigate>
                         {{ __('System logs') }}
                     </flux:sidebar.item>
                 @endcan

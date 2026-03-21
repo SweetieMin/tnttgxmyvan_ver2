@@ -15,6 +15,11 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
         return Role::class;
     }
 
+    protected function logName(): string
+    {
+        return 'roles';
+    }
+
     public function paginateForAdmin(string $search, int $perPage): LengthAwarePaginator
     {
         return $this->query()
@@ -46,29 +51,51 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
      */
     public function save(string $roleName, array $selectedPermissions, ?int $editingRoleId = null): Role
     {
-        /** @var Role $role */
-        $role = $editingRoleId
-            ? $this->findOrFail($editingRoleId)
-            : $this->create([
-                'name' => $roleName,
-                'guard_name' => 'web',
-            ]);
+        /** @var Role|null $subject */
+        $subject = $editingRoleId ? $this->findOrFail($editingRoleId) : null;
 
-        if ($editingRoleId) {
-            /** @var Role $role */
-            $role = $this->update($role, [
-                'name' => $roleName,
-                'guard_name' => 'web',
-            ]);
-        }
+        /** @var Role */
+        return $this->runInTransaction(
+            action: $editingRoleId ? 'update' : 'create',
+            subject: $subject,
+            properties: [
+                'role_name' => $roleName,
+                'selected_permissions' => $selectedPermissions,
+            ],
+            callback: function () use ($roleName, $selectedPermissions, $editingRoleId): Role {
+                /** @var Role $role */
+                $role = $editingRoleId
+                    ? $this->findOrFail($editingRoleId)
+                    : $this->create([
+                        'name' => $roleName,
+                        'guard_name' => 'web',
+                    ]);
 
-        $role->syncPermissionsWithActivityLog($selectedPermissions);
+                if ($editingRoleId) {
+                    /** @var Role $role */
+                    $role = $this->update($role, [
+                        'name' => $roleName,
+                        'guard_name' => 'web',
+                    ]);
+                }
 
-        return $role;
+                $role->syncPermissionsWithActivityLog($selectedPermissions);
+
+                return $role;
+            },
+        );
     }
 
     public function delete(Model $model): bool
     {
-        return parent::delete($model);
+        return $this->runInTransaction(
+            action: 'delete',
+            subject: $model,
+            properties: [
+                'role_id' => $model->getKey(),
+                'role_name' => $model->getAttribute('name'),
+            ],
+            callback: fn (): bool => parent::delete($model),
+        );
     }
 }

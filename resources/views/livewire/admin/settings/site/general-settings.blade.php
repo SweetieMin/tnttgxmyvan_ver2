@@ -22,11 +22,11 @@
                         {{-- Cột trái: Cài đặt chung --}}
                         <div class="space-y-6">
                             <flux:separator :text="__('General configuration')" class="my-2" />
-                            <flux:input wire:model.lazy="site_title" :label="__('Site title')" type="text" autofocus
+                            <flux:input wire:model.live.debounce.500ms="site_title" :label="__('Site title')" type="text" autofocus
                                 x-data x-init="$nextTick(() => $el.focus())" />
-                            <flux:input wire:model.lazy="site_email" :label="__('Email')" type="email" autofocus />
-                            <flux:input wire:model.lazy="site_phone" :label="__('Phone')" type="text" />
-                            <flux:input wire:model.lazy="site_meta_keywords" :label="__('Meta keywords')"
+                            <flux:input wire:model.live.debounce.500ms="site_email" :label="__('Email')" type="email" autofocus />
+                            <flux:input wire:model.live.debounce.500ms="site_phone" :label="__('Phone')" type="text" />
+                            <flux:input wire:model.live.debounce.500ms="site_meta_keywords" :label="__('Meta keywords')"
                                 type="text" />
 
                         </div>
@@ -37,15 +37,15 @@
                         {{-- Cột phải: Liên kết --}}
                         <div class="space-y-6">
                             <flux:separator :text="__('Link')" class="my-2" />
-                            <flux:input wire:model.lazy="facebook_url" :label="__('URL Facebook')" type="text" />
-                            <flux:input wire:model.lazy="instagram_url" :label="__('URL Instagram')" type="text" />
-                            <flux:input wire:model.lazy="youtube_url" :label="__('URL YouTube')" type="text" />
-                            <flux:input wire:model.lazy="tikTok_url" :label="__('URL TikTok')" type="text" />
+                            <flux:input wire:model.live.debounce.500ms="facebook_url" :label="__('URL Facebook')" type="text" />
+                            <flux:input wire:model.live.debounce.500ms="instagram_url" :label="__('URL Instagram')" type="text" />
+                            <flux:input wire:model.live.debounce.500ms="youtube_url" :label="__('URL YouTube')" type="text" />
+                            <flux:input wire:model.live.debounce.500ms="tikTok_url" :label="__('URL TikTok')" type="text" />
                         </div>
 
                     </div>
                     <div class="my-2">
-                        <flux:textarea wire:model="site_meta_description" :label="__('Meta description')"
+                        <flux:textarea wire:model.live.debounce.500ms="site_meta_description" :label="__('Meta description')"
                             class="min-h-30" />
 
                     </div>
@@ -53,9 +53,11 @@
                     {{-- Nút lưu --}}
                     <div class="mt-8 flex items-center gap-4">
                         @can('settings.site.general.update')
-                            <flux:button variant="primary" type="submit" class="cursor-pointer">
-                                {{ __('Save') }}
-                            </flux:button>
+                            @if ($this->hasGeneralChanges())
+                                <flux:button variant="primary" type="submit" class="cursor-pointer">
+                                    {{ __('Save') }}
+                                </flux:button>
+                            @endif
                         @endcan
                     </div>
                 </form>

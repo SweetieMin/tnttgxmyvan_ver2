@@ -43,6 +43,7 @@ class RolePermissionSeeder extends Seeder
             'settings.site.theme.update',
 
             'settings.log.activity.view',
+            'settings.log.activity-failed.view',
 
         ];
 

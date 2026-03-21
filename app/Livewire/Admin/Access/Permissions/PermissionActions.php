@@ -8,9 +8,12 @@ use App\Validation\Admin\Access\PermissionRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Spatie\Permission\PermissionRegistrar;
+use Throwable;
 
 class PermissionActions extends Component
 {
@@ -24,7 +27,11 @@ class PermissionActions extends Component
 
     public ?int $editingPermissionId = null;
 
+    #[Validate]
     public string $permissionName = '';
+
+    #[Locked]
+    public string $originalPermissionName = '';
 
     #[On('open-create-permission-modal')]
     public function openCreateModal(): void
@@ -41,28 +48,37 @@ class PermissionActions extends Component
         $this->authorize('update', $permission);
         $this->editingPermissionId = (int) $permission->id;
         $this->permissionName = $permission->name;
+        $this->syncOriginalFormState();
         $this->showPermissionModal = true;
     }
 
     public function savePermission(): void
     {
         $isUpdating = $this->editingPermissionId !== null;
-
         if ($this->editingPermissionId) {
             $this->authorize('update', $this->permissionRepository()->findOrFail($this->editingPermissionId));
         } else {
             $this->authorize('create', Permission::class);
         }
 
-        $validated = $this->validate(
-            PermissionRules::rules($this->editingPermissionId),
-            PermissionRules::messages(),
-        );
+        $validated = $this->validate();
 
-        $this->permissionRepository()->save(
-            $validated['permissionName'],
-            $this->editingPermissionId,
-        );
+        try {
+            $this->permissionRepository()->save(
+                $validated['permissionName'],
+                $this->editingPermissionId,
+            );
+        } catch (Throwable $exception) {
+            $this->addError('permissionName', __('Permission save failed.'));
+
+            Flux::toast(
+                text: __('Permission save failed.'),
+                heading: __('Error'),
+                variant: 'danger',
+            );
+
+            return;
+        }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
@@ -95,7 +111,19 @@ class PermissionActions extends Component
             return;
         }
 
-        $this->permissionRepository()->delete($permission);
+        try {
+            $this->permissionRepository()->delete($permission);
+        } catch (Throwable $exception) {
+            $this->addError('deletePermission', __('Permission delete failed.'));
+
+            Flux::toast(
+                text: __('Permission delete failed.'),
+                heading: __('Error'),
+                variant: 'danger',
+            );
+
+            return;
+        }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
@@ -122,10 +150,37 @@ class PermissionActions extends Component
         $this->resetErrorBag('deletePermission');
     }
 
+    public function hasPermissionChanges(): bool
+    {
+        return trim($this->permissionName) !== trim($this->originalPermissionName);
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function rules(): array
+    {
+        return PermissionRules::rules($this->editingPermissionId);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return PermissionRules::messages();
+    }
+
     protected function resetForm(): void
     {
         $this->reset(['editingPermissionId', 'permissionName']);
+        $this->syncOriginalFormState();
         $this->resetErrorBag();
+    }
+
+    protected function syncOriginalFormState(): void
+    {
+        $this->originalPermissionName = $this->permissionName;
     }
 
     protected function permissionRepository(): PermissionRepositoryInterface

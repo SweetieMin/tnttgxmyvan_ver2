@@ -106,3 +106,17 @@ test('selected tab is restored from the query string', function () {
         ->test(GeneralSettings::class)
         ->assertSet('tab', 'logo-favicon');
 });
+
+test('general settings save button only appears after the form changes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('settings.site.general.update');
+
+    $this->actingAs($user);
+
+    Livewire::test(GeneralSettings::class)
+        ->call('hasGeneralChanges')
+        ->assertReturned(false)
+        ->set('site_title', 'My Van Parish')
+        ->call('hasGeneralChanges')
+        ->assertReturned(true);
+});

@@ -10,6 +10,13 @@
                     </flux:navlist.item>
                 @endcan
 
+                @can('settings.log.activity-failed.view')
+                    <flux:navlist.item :href="route('admin.settings.log.activity-failed')"
+                        :current="request()->routeIs('admin.settings.log.activity-failed')" wire:navigate>
+                        {{ __('Failed activity logs') }}
+                    </flux:navlist.item>
+                @endcan
+
             </flux:navlist>
         </flux:card>
     </div>

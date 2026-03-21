@@ -94,9 +94,11 @@
 
             <div class="mt-8 flex items-center gap-4">
                 @can('settings.site.theme.update')
-                    <flux:button variant="primary" type="submit" class="cursor-pointer">
-                        {{ __('Save theme settings') }}
-                    </flux:button>
+                    @if ($this->hasThemeChanges())
+                        <flux:button variant="primary" type="submit" class="cursor-pointer">
+                            {{ __('Save theme settings') }}
+                        </flux:button>
+                    @endif
                 @endcan
             </div>
         </form>

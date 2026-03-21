@@ -9,21 +9,34 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class MaintenanceSettings extends Component
 {
+    #[Validate]
     public bool $is_maintenance = false;
 
     public bool $app_is_in_maintenance = false;
 
+    #[Validate]
     public string $secret_key = '';
 
+    #[Validate]
     public string $message = '';
 
+    #[Validate]
     public string $start_at = '';
 
+    #[Validate]
     public string $end_at = '';
+
+    /**
+     * @var array<string, mixed>
+     */
+    #[Locked]
+    public array $originalMaintenanceSettings = [];
 
     public function mount(): void
     {
@@ -50,10 +63,7 @@ class MaintenanceSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate(
-            MaintenanceSettingsRules::rules(),
-            MaintenanceSettingsRules::messages(),
-        );
+        $validated = $this->validate();
 
         if ($validated['is_maintenance'] && blank($validated['secret_key'])) {
             $validated['secret_key'] = Str::orderedUuid()->toString();
@@ -93,6 +103,8 @@ class MaintenanceSettings extends Component
             heading: __('Success'),
             variant: 'success',
         );
+
+        $this->syncOriginalMaintenanceSettings();
     }
 
     public function enableMaintenanceConfirm(): void
@@ -117,6 +129,28 @@ class MaintenanceSettings extends Component
         $this->message = (string) ($this->settingValue('maintenance.message') ?? '');
         $this->start_at = (string) ($this->settingValue('maintenance.start_at') ?? '');
         $this->end_at = (string) ($this->settingValue('maintenance.end_at') ?? '');
+        $this->syncOriginalMaintenanceSettings();
+    }
+
+    public function hasMaintenanceChanges(): bool
+    {
+        return $this->currentMaintenanceSettings() !== $this->originalMaintenanceSettings;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    protected function rules(): array
+    {
+        return MaintenanceSettingsRules::rules();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return MaintenanceSettingsRules::messages();
     }
 
     protected function settingValue(string $key): ?string
@@ -199,6 +233,25 @@ class MaintenanceSettings extends Component
     protected function ensureCanUpdate(): void
     {
         abort_unless((bool) Auth::user()?->can('settings.site.maintenance.update'), 403);
+    }
+
+    protected function syncOriginalMaintenanceSettings(): void
+    {
+        $this->originalMaintenanceSettings = $this->currentMaintenanceSettings();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function currentMaintenanceSettings(): array
+    {
+        return [
+            'is_maintenance' => $this->is_maintenance,
+            'secret_key' => $this->secret_key,
+            'message' => $this->message,
+            'start_at' => $this->start_at,
+            'end_at' => $this->end_at,
+        ];
     }
 
     public function render(): View

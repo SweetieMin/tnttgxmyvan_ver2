@@ -16,10 +16,10 @@
                     </flux:field>
 
                     @if ($is_maintenance)
-                        <flux:input icon="key" readonly :copyable="$is_maintenance" wire:model="secret_key"
+                        <flux:input icon="key" readonly :copyable="$is_maintenance" wire:model.live="secret_key"
                             :label="__('Secret key')" />
 
-                        <flux:textarea wire:model="message" :label="__('Maintenance message')"
+                        <flux:textarea wire:model.live.debounce.500ms="message" :label="__('Maintenance message')"
                             :placeholder="__('Please provide a maintenance notice')" class="min-h-30" />
                     @endif
                 </div>
@@ -31,8 +31,8 @@
                         <flux:separator :text="__('Maintenance schedule')" class="my-6" />
 
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-17">
-                            <flux:time-picker wire:model="start_at" :label="__('Start at')" type="input" locale="vi-VN" />
-                            <flux:time-picker wire:model="end_at" :label="__('End at')" type="input" locale="vi-VN" />
+                            <flux:time-picker wire:model.live="start_at" :label="__('Start at')" type="input" locale="vi-VN" />
+                            <flux:time-picker wire:model.live="end_at" :label="__('End at')" type="input" locale="vi-VN" />
                         </div>
 
                         <flux:callout icon="information-circle" color="sky" class="md:mt-12">
@@ -49,9 +49,11 @@
             <flux:separator class="my-6" />
             <div class="mt-8 flex items-center gap-4">
                 @can('settings.site.maintenance.update')
-                    <flux:button variant="primary" type="submit" class="cursor-pointer">
-                        {{ $app_is_in_maintenance ? __('Disable maintenance mode') : __('Enable maintenance mode') }}
-                    </flux:button>
+                    @if ($this->hasMaintenanceChanges())
+                        <flux:button variant="primary" type="submit" class="cursor-pointer">
+                            {{ $app_is_in_maintenance ? __('Disable maintenance mode') : __('Enable maintenance mode') }}
+                        </flux:button>
+                    @endif
                 @endcan
             </div>
 

@@ -46,3 +46,20 @@ test('theme settings can be updated from the livewire screen', function () {
     expect(Setting::query()->where('key', 'theme.neutral_palette')->value('value'))->toBe('stone');
     expect(Setting::query()->where('key', 'theme.seasonal_enabled')->value('value'))->toBe('1');
 });
+
+test('theme save button only appears after the form changes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'settings.site.theme.view',
+        'settings.site.theme.update',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ThemeSettings::class)
+        ->call('hasThemeChanges')
+        ->assertReturned(false)
+        ->call('selectPreset', 'rose')
+        ->call('hasThemeChanges')
+        ->assertReturned(true);
+});

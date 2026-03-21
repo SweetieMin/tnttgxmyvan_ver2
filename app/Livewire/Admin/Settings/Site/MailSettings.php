@@ -7,31 +7,48 @@ use App\Validation\Admin\Settings\Site\MailSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class MailSettings extends Component
 {
+    #[Validate]
     public string $from_address = '';
 
+    #[Validate]
     public string $from_name = '';
 
+    #[Validate]
     public string $reply_to_address = '';
 
+    #[Validate]
     public string $username = '';
 
+    #[Validate]
     public string $password = '';
 
     public bool $isHavePassword = false;
 
     public bool $showPasswordInput = false;
 
+    #[Validate]
     public string $mailer = 'smtp';
 
+    #[Validate]
     public string $host = '';
 
+    #[Validate]
     public string $encryption = 'tls';
 
+    #[Validate]
     public int $port = 587;
+
+    /**
+     * @var array<string, mixed>
+     */
+    #[Locked]
+    public array $originalMailSettings = [];
 
     public function mount(): void
     {
@@ -45,6 +62,7 @@ class MailSettings extends Component
         $this->host = (string) ($this->settingValue('mail.host') ?? '');
         $this->encryption = (string) ($this->settingValue('mail.encryption') ?? 'tls');
         $this->port = (int) ($this->settingValue('mail.port') ?? 587);
+        $this->syncOriginalMailSettings();
     }
 
     public function togglePasswordInput(): void
@@ -74,10 +92,7 @@ class MailSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate(
-            MailSettingsRules::rules(),
-            MailSettingsRules::messages(),
-        );
+        $validated = $this->validate();
 
         $this->upsertSetting('mail.from_address', $validated['from_address']);
         $this->upsertSetting('mail.from_name', $validated['from_name']);
@@ -100,6 +115,29 @@ class MailSettings extends Component
             heading: __('Success'),
             variant: 'success',
         );
+
+        $this->syncOriginalMailSettings();
+    }
+
+    public function hasMailChanges(): bool
+    {
+        return $this->currentMailSettings() !== $this->originalMailSettings;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    protected function rules(): array
+    {
+        return MailSettingsRules::rules();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return MailSettingsRules::messages();
     }
 
     protected function settingValue(string $key): ?string
@@ -222,6 +260,29 @@ class MailSettings extends Component
     protected function ensureCanUpdate(): void
     {
         abort_unless((bool) Auth::user()?->can('settings.site.email.update'), 403);
+    }
+
+    protected function syncOriginalMailSettings(): void
+    {
+        $this->originalMailSettings = $this->currentMailSettings();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function currentMailSettings(): array
+    {
+        return [
+            'from_address' => $this->from_address,
+            'from_name' => $this->from_name,
+            'reply_to_address' => $this->reply_to_address,
+            'username' => $this->username,
+            'password' => $this->password,
+            'mailer' => $this->mailer,
+            'host' => $this->host,
+            'encryption' => $this->encryption,
+            'port' => $this->port,
+        ];
     }
 
     public function render(): View

@@ -8,11 +8,15 @@
                 <flux:text>{{ __('Use a dot notation key such as access.role.view.') }}</flux:text>
             </div>
 
-            <flux:input wire:model="permissionName" :label="__('Permission key')" :placeholder="__('Enter permission key')" />
+            <flux:input wire:model.live.debounce.500ms="permissionName" :label="__('Permission key')" :placeholder="__('Enter permission key')" />
 
             <div class="flex justify-end gap-3">
                 <flux:button variant="ghost" wire:click="closePermissionModal">{{ __('Cancel') }}</flux:button>
-                <flux:button variant="primary" wire:click="savePermission">{{ __('Save permission') }}</flux:button>
+                @if ($this->hasPermissionChanges())
+                    <flux:button variant="primary" wire:click="savePermission">
+                        {{ $editingPermissionId ? __('Save permission') : __('Add permission') }}
+                    </flux:button>
+                @endif
             </div>
         </div>
     </flux:modal>

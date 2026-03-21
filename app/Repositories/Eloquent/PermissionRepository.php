@@ -15,6 +15,11 @@ class PermissionRepository extends BaseRepository implements PermissionRepositor
         return Permission::class;
     }
 
+    protected function logName(): string
+    {
+        return 'permissions';
+    }
+
     public function paginateForAdmin(string $search, int $perPage): LengthAwarePaginator
     {
         return $this->query()
@@ -42,27 +47,48 @@ class PermissionRepository extends BaseRepository implements PermissionRepositor
 
     public function save(string $permissionName, ?int $editingPermissionId = null): Permission
     {
-        /** @var Permission $permission */
-        $permission = $editingPermissionId
-            ? $this->findOrFail($editingPermissionId)
-            : $this->create([
-                'name' => $permissionName,
-                'guard_name' => 'web',
-            ]);
+        /** @var Permission|null $subject */
+        $subject = $editingPermissionId ? $this->findOrFail($editingPermissionId) : null;
 
-        if ($editingPermissionId) {
-            /** @var Permission $permission */
-            $permission = $this->update($permission, [
-                'name' => $permissionName,
-                'guard_name' => 'web',
-            ]);
-        }
+        /** @var Permission */
+        return $this->runInTransaction(
+            action: $editingPermissionId ? 'update' : 'create',
+            subject: $subject,
+            properties: [
+                'permission_name' => $permissionName,
+            ],
+            callback: function () use ($permissionName, $editingPermissionId): Permission {
+                /** @var Permission $permission */
+                $permission = $editingPermissionId
+                    ? $this->findOrFail($editingPermissionId)
+                    : $this->create([
+                        'name' => $permissionName,
+                        'guard_name' => 'web',
+                    ]);
 
-        return $permission;
+                if ($editingPermissionId) {
+                    /** @var Permission $permission */
+                    $permission = $this->update($permission, [
+                        'name' => $permissionName,
+                        'guard_name' => 'web',
+                    ]);
+                }
+
+                return $permission;
+            },
+        );
     }
 
     public function delete(Model $model): bool
     {
-        return parent::delete($model);
+        return $this->runInTransaction(
+            action: 'delete',
+            subject: $model,
+            properties: [
+                'permission_id' => $model->getKey(),
+                'permission_name' => $model->getAttribute('name'),
+            ],
+            callback: fn (): bool => parent::delete($model),
+        );
     }
 }

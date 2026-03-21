@@ -7,21 +7,33 @@ use App\Validation\Admin\Settings\Site\ThemeSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class ThemeSettings extends Component
 {
+    #[Validate]
     public string $preset = 'sky';
 
+    #[Validate]
     public string $neutral_palette = 'gray';
 
+    #[Validate]
     public bool $seasonal_enabled = false;
+
+    /**
+     * @var array<string, mixed>
+     */
+    #[Locked]
+    public array $originalThemeSettings = [];
 
     public function mount(): void
     {
         $this->preset = (string) ($this->settingValue('theme.preset') ?? 'sky');
         $this->neutral_palette = (string) ($this->settingValue('theme.neutral_palette') ?? 'gray');
         $this->seasonal_enabled = $this->settingValue('theme.seasonal_enabled') === '1';
+        $this->syncOriginalThemeSettings();
     }
 
     public function selectPreset(string $preset): void
@@ -50,10 +62,7 @@ class ThemeSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate(
-            ThemeSettingsRules::rules(),
-            ThemeSettingsRules::messages(),
-        );
+        $validated = $this->validate();
 
         $this->upsertSetting('theme.preset', $validated['preset']);
         $this->upsertSetting('theme.neutral_palette', $validated['neutral_palette']);
@@ -67,6 +76,8 @@ class ThemeSettings extends Component
             heading: __('Success'),
             variant: 'success',
         );
+
+        $this->syncOriginalThemeSettings();
     }
 
     /**
@@ -174,6 +185,44 @@ class ThemeSettings extends Component
     protected function ensureCanUpdate(): void
     {
         abort_unless((bool) Auth::user()?->can('settings.site.theme.update'), 403);
+    }
+
+    public function hasThemeChanges(): bool
+    {
+        return $this->currentThemeSettings() !== $this->originalThemeSettings;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    protected function rules(): array
+    {
+        return ThemeSettingsRules::rules();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return ThemeSettingsRules::messages();
+    }
+
+    protected function syncOriginalThemeSettings(): void
+    {
+        $this->originalThemeSettings = $this->currentThemeSettings();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function currentThemeSettings(): array
+    {
+        return [
+            'preset' => $this->preset,
+            'neutral_palette' => $this->neutral_palette,
+            'seasonal_enabled' => $this->seasonal_enabled,
+        ];
     }
 
     public function render(): View

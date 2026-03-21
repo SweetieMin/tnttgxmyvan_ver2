@@ -7,7 +7,9 @@ use App\Validation\Admin\Settings\Site\GeneralSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -19,22 +21,31 @@ class GeneralSettings extends Component
     #[Url(except: 'general')]
     public string $tab = 'general';
 
+    #[Validate]
     public string $site_title = '';
 
+    #[Validate]
     public string $site_email = '';
 
+    #[Validate]
     public string $site_phone = '';
 
+    #[Validate]
     public string $site_meta_keywords = '';
 
+    #[Validate]
     public string $site_meta_description = '';
 
+    #[Validate]
     public string $facebook_url = '';
 
+    #[Validate]
     public string $instagram_url = '';
 
+    #[Validate]
     public string $youtube_url = '';
 
+    #[Validate]
     public string $tikTok_url = '';
 
     public ?string $existLogo = null;
@@ -48,6 +59,12 @@ class GeneralSettings extends Component
     public ?TemporaryUploadedFile $site_logo = null;
 
     public ?TemporaryUploadedFile $site_favicon = null;
+
+    /**
+     * @var array<string, string>
+     */
+    #[Locked]
+    public array $originalGeneralSettings = [];
 
     public function mount(): void
     {
@@ -63,10 +80,7 @@ class GeneralSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate(
-            GeneralSettingsRules::rules(),
-            GeneralSettingsRules::messages(),
-        );
+        $validated = $this->validate();
 
         foreach ($this->generalSettingMap() as $property => $key) {
             $this->upsertSetting($key, $validated[$property] ?? null);
@@ -77,6 +91,8 @@ class GeneralSettings extends Component
             heading: __('Success'),
             variant: 'success',
         );
+
+        $this->syncOriginalGeneralSettings();
     }
 
     public function saveLogo(): void
@@ -218,6 +234,51 @@ class GeneralSettings extends Component
         $this->tikTok_url = (string) ($this->settingValue('social.tiktok_url') ?? '');
         $this->existLogo = $this->settingValue('branding.logo');
         $this->existFavicon = $this->settingValue('branding.favicon');
+        $this->syncOriginalGeneralSettings();
+    }
+
+    public function hasGeneralChanges(): bool
+    {
+        return $this->currentGeneralSettings() !== $this->originalGeneralSettings;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    protected function rules(): array
+    {
+        return GeneralSettingsRules::rules();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return GeneralSettingsRules::messages();
+    }
+
+    protected function syncOriginalGeneralSettings(): void
+    {
+        $this->originalGeneralSettings = $this->currentGeneralSettings();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function currentGeneralSettings(): array
+    {
+        return [
+            'site_title' => $this->site_title,
+            'site_email' => $this->site_email,
+            'site_phone' => $this->site_phone,
+            'site_meta_keywords' => $this->site_meta_keywords,
+            'site_meta_description' => $this->site_meta_description,
+            'facebook_url' => $this->facebook_url,
+            'instagram_url' => $this->instagram_url,
+            'youtube_url' => $this->youtube_url,
+            'tikTok_url' => $this->tikTok_url,
+        ];
     }
 
     protected function settingValue(string $key): ?string

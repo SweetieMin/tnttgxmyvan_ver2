@@ -8,19 +8,19 @@
                 <flux:text>{{ __('Manage the role name and choose the permissions it should have.') }}</flux:text>
             </div>
 
-            <flux:input wire:model="roleName" :label="__('Role name')" :placeholder="__('Enter role name')" />
+            <flux:input wire:model.live.debounce.500ms="roleName" :label="__('Role name')" :placeholder="__('Enter role name')" />
 
             <div class="flex items-center justify-between gap-4">
                 <flux:heading size="sm">{{ __('Permissions') }}</flux:heading>
                 <flux:badge color="sky">{{ count($selectedPermissions) }} {{ __('selected') }}</flux:badge>
             </div>
 
-            <flux:input wire:model.live.debounce.300ms="permissionSearch" :placeholder="__('Search permissions...')" />
+            <flux:input wire:model.live.debounce.500ms="permissionSearch" :placeholder="__('Search permissions...')" />
 
             <div class="max-h-[420px] space-y-5 overflow-y-auto rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
                 @forelse ($permissionGroups as $group => $permissions)
                     <div wire:key="permission-group-{{ $group }}" class="space-y-3">
-                        <flux:checkbox.group wire:model="selectedPermissions" class="space-y-3">
+                        <flux:checkbox.group wire:model.live="selectedPermissions" class="space-y-3">
                             <div class="flex items-center justify-between gap-4">
                                 <flux:heading size="sm">{{ $group }}</flux:heading>
 
@@ -54,7 +54,11 @@
 
             <div class="flex justify-end gap-3">
                 <flux:button variant="ghost" wire:click="closeRoleModal">{{ __('Cancel') }}</flux:button>
-                <flux:button variant="primary" wire:click="saveRole">{{ __('Save role') }}</flux:button>
+                @if ($this->hasRoleChanges())
+                    <flux:button variant="primary" wire:click="saveRole">
+                        {{ $editingRoleId ? __('Save role') : __('Add role') }}
+                    </flux:button>
+                @endif
             </div>
         </div>
     </flux:modal>

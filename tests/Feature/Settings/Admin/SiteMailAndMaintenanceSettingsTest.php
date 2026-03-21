@@ -176,3 +176,27 @@ test('disabling maintenance clears maintenance settings and brings the app back 
     expect(Setting::query()->where('key', 'maintenance.start_at')->value('value'))->toBe('');
     expect(Setting::query()->where('key', 'maintenance.end_at')->value('value'))->toBe('');
 });
+
+test('mail and maintenance save buttons only appear after the form changes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'settings.site.email.update',
+        'settings.site.maintenance.update',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MailSettings::class)
+        ->call('hasMailChanges')
+        ->assertReturned(false)
+        ->set('from_name', 'Updated Sender')
+        ->call('hasMailChanges')
+        ->assertReturned(true);
+
+    Livewire::test(MaintenanceSettings::class)
+        ->call('hasMaintenanceChanges')
+        ->assertReturned(false)
+        ->set('is_maintenance', true)
+        ->call('hasMaintenanceChanges')
+        ->assertReturned(true);
+});

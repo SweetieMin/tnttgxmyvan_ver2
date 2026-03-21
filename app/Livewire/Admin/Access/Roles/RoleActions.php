@@ -10,9 +10,12 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Spatie\Permission\PermissionRegistrar;
+use Throwable;
 
 class RoleActions extends Component
 {
@@ -28,12 +31,23 @@ class RoleActions extends Component
 
     public string $permissionSearch = '';
 
+    #[Validate]
     public string $roleName = '';
 
     /**
      * @var array<int, string>
      */
+    #[Validate]
     public array $selectedPermissions = [];
+
+    #[Locked]
+    public string $originalRoleName = '';
+
+    /**
+     * @var array<int, string>
+     */
+    #[Locked]
+    public array $originalSelectedPermissions = [];
 
     #[On('open-create-role-modal')]
     public function openCreateModal(): void
@@ -54,6 +68,7 @@ class RoleActions extends Component
             ->pluck('name')
             ->values()
             ->all();
+        $this->syncOriginalFormState();
         $this->permissionSearch = '';
         $this->showRoleModal = true;
     }
@@ -61,23 +76,31 @@ class RoleActions extends Component
     public function saveRole(): void
     {
         $isUpdating = $this->editingRoleId !== null;
-
         if ($this->editingRoleId) {
             $this->authorize('update', $this->roleRepository()->findOrFail($this->editingRoleId));
         } else {
             $this->authorize('create', Role::class);
         }
 
-        $validated = $this->validate(
-            RoleRules::rules($this->editingRoleId),
-            RoleRules::messages(),
-        );
+        $validated = $this->validate();
 
-        $this->roleRepository()->save(
-            $validated['roleName'],
-            $validated['selectedPermissions'] ?? [],
-            $this->editingRoleId,
-        );
+        try {
+            $this->roleRepository()->save(
+                $validated['roleName'],
+                $validated['selectedPermissions'] ?? [],
+                $this->editingRoleId,
+            );
+        } catch (Throwable $exception) {
+            $this->addError('roleName', __('Role save failed.'));
+
+            Flux::toast(
+                text: __('Role save failed.'),
+                heading: __('Error'),
+                variant: 'danger',
+            );
+
+            return;
+        }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
@@ -110,7 +133,19 @@ class RoleActions extends Component
             return;
         }
 
-        $this->roleRepository()->delete($role);
+        try {
+            $this->roleRepository()->delete($role);
+        } catch (Throwable $exception) {
+            $this->addError('deleteRole', __('Role delete failed.'));
+
+            Flux::toast(
+                text: __('Role delete failed.'),
+                heading: __('Error'),
+                variant: 'danger',
+            );
+
+            return;
+        }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
@@ -172,11 +207,50 @@ class RoleActions extends Component
             ->toString();
     }
 
+    public function hasRoleChanges(): bool
+    {
+        return trim($this->roleName) !== trim($this->originalRoleName)
+            || $this->normalizePermissions($this->selectedPermissions) !== $this->normalizePermissions($this->originalSelectedPermissions);
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function rules(): array
+    {
+        return RoleRules::rules($this->editingRoleId);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return RoleRules::messages();
+    }
+
     protected function resetForm(): void
     {
         $this->reset(['editingRoleId', 'roleName', 'selectedPermissions', 'permissionSearch']);
-        $this->reset('permissionSearch');
+        $this->syncOriginalFormState();
         $this->resetErrorBag();
+    }
+
+    protected function syncOriginalFormState(): void
+    {
+        $this->originalRoleName = $this->roleName;
+        $this->originalSelectedPermissions = $this->normalizePermissions($this->selectedPermissions);
+    }
+
+    /**
+     * @param  array<int, string>  $permissions
+     * @return array<int, string>
+     */
+    protected function normalizePermissions(array $permissions): array
+    {
+        sort($permissions);
+
+        return array_values($permissions);
     }
 
     protected function roleRepository(): RoleRepositoryInterface
