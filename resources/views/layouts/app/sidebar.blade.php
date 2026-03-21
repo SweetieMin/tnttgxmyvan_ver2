@@ -53,6 +53,21 @@
             </flux:sidebar.nav>
         @endcanany
 
+        @canany(['finance.transaction.view'])
+            <flux:sidebar.nav>
+
+                <flux:separator :text="__('Finance')" />
+
+                @can('finance.transaction.view')
+                    <flux:sidebar.item icon="banknotes" :href="route('admin.finance.transactions')"
+                        :current="request()->routeIs('admin.finance.transactions*')" wire:navigate>
+                        {{ __('Common fund') }}
+                    </flux:sidebar.item>
+                @endcan
+
+            </flux:sidebar.nav>
+        @endcanany
+
         @canany(['access.role.view', 'access.permission.view'])
             <flux:separator :text="__('Access')" />
             <flux:sidebar.nav>

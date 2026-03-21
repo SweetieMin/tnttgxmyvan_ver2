@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('points')->default(0);
 
             $table->enum('status', ['applied', 'not_applied', 'pending'])->default('pending');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

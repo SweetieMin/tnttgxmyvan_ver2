@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Concerns\LogsModelActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserDetail extends Model
 {
-    use LogsModelActivity;
+    use LogsModelActivity,SoftDeletes;
 
     protected $primaryKey = 'user_id';
 

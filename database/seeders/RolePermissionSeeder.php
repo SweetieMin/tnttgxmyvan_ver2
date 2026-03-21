@@ -47,6 +47,11 @@ class RolePermissionSeeder extends Seeder
             'management.regulation.update',
             'management.regulation.delete',
 
+            'finance.transaction.view',
+            'finance.transaction.create',
+            'finance.transaction.update',
+            'finance.transaction.delete',
+
             'settings.site.general.view',
             'settings.site.general.update',
 

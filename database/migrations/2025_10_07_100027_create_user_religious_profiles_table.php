@@ -33,9 +33,10 @@ return new class extends Migration
             $table->string('pledge_place')->nullable();
             $table->string('pledge_sponsor')->nullable();
 
-            $table->enum('status_religious', ['in_course','graduated'])->default('in_course');
+            $table->enum('status_religious', ['in_course', 'graduated'])->default('in_course');
             $table->boolean('is_attendance')->default(true);
 
+            $table->softDeletes();
             $table->timestamps();
         });
     }

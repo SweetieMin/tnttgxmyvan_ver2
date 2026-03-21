@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Concerns\LogsModelActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserReligiousProfile extends Model
 {
-    use HasFactory, LogsModelActivity;
+    use HasFactory, LogsModelActivity,SoftDeletes;
 
     protected $table = 'user_religious_profiles';
 

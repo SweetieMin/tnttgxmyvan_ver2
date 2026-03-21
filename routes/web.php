@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\Access\Permissions\PermissionIndex;
 use App\Livewire\Admin\Access\Roles\RoleIndex;
+use App\Livewire\Admin\Finance\Transactions\TransactionIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
 use App\Livewire\Admin\Management\Regulations\RegulationIndex;
@@ -37,6 +38,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('regulations', RegulationIndex::class)
                 ->middleware('permission:management.regulation.view')
                 ->name('regulations');
+        });
+
+        Route::prefix('finance')->name('finance.')->group(function () {
+
+            Route::livewire('transactions', TransactionIndex::class)
+                ->middleware('permission:finance.transaction.view')
+                ->name('transactions');
+
         });
 
     });

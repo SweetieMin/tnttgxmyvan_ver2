@@ -1,14 +1,8 @@
 @blaze
 
 @props([
-    'locations' => [],
-    'seasons' => [],
-    'programs' => [],
-    'subjects' => [],
     'types' => [],
-    'skills' => [],
-    'courses' => [],
-    'sortDate' => false,
+    'statuses' => [],
     'hasPages' => false,
     'importData' => false,
     'canImportData' => false,
@@ -28,55 +22,7 @@
                         clearable />
                 </div>
 
-                @if (count($locations) > 1)
-                    <div class="w-full sm:w-56 lg:w-64">
-                        <flux:select variant="listbox" searchable wire:model.lazy="selectedLocation"
-                            :placeholder="__('Select...')">
-                            <flux:select.option value="">{{ __('All location') }}</flux:select.option>
-                            @foreach ($locations as $loc)
-                                <flux:select.option value="{{ $loc['id'] }}">{{ $loc['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                @endif
-
-                @if (count($seasons) > 1)
-                    <div class="w-full sm:w-56 lg:w-64">
-                        <flux:select wire:model.lazy="selectedSeason" variant="listbox" searchable
-                            :placeholder="__('Select...')">
-                            <flux:select.option value="">{{ __('All season') }}</flux:select.option>
-                            @foreach ($seasons as $season)
-                                <flux:select.option value="{{ $season['id'] }}">{{ $season['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                @endif
-
-                @if (count($programs) > 1)
-                    <div class="w-full sm:w-56 lg:w-64">
-                        <flux:select wire:model.lazy="selectedProgram" variant="listbox" searchable
-                            :placeholder="__('Select...')">
-                            <flux:select.option value="">{{ __('All program') }}</flux:select.option>
-                            @foreach ($programs as $prog)
-                                <flux:select.option value="{{ $prog['id'] }}">{{ $prog['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                @endif
-
-                @if (count($subjects) > 1)
-                    <div class="w-full sm:w-56 lg:w-64">
-                        <flux:select wire:model.lazy="selectedSubject" variant="listbox" searchable
-                            :placeholder="__('Select...')">
-                            <flux:select.option value="">{{ __('All subject') }}</flux:select.option>
-                            @foreach ($subjects as $subject)
-                                <flux:select.option value="{{ $subject['id'] }}">{{ $subject['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                @endif
-
-                @if (count($types) > 0)
+                @if (count($types) > 1)
                     <div class="w-full sm:w-56 lg:w-64">
                         <flux:select wire:model.lazy="selectedType" variant="listbox" searchable
                             :placeholder="__('Select...')">
@@ -88,26 +34,18 @@
                     </div>
                 @endif
 
-                @if (count($skills) > 0)
+                @if (count($statuses) > 1)
                     <div class="w-full sm:w-56 lg:w-64">
-                        <flux:select wire:model.lazy="selectedSkill" variant="listbox" searchable
+                        <flux:select wire:model.lazy="selectedStatus" variant="listbox" searchable
                             :placeholder="__('Select...')">
-                            <flux:select.option value="">{{ __('All skill') }}</flux:select.option>
-                            @foreach ($skills as $skill)
-                                <flux:select.option value="{{ $skill['value'] }}">{{ $skill['label'] }}</flux:select.option>
+                            <flux:select.option value="">{{ __('All status') }}</flux:select.option>
+                            @foreach ($statuses as $status)
+                                <flux:select.option value="{{ $status['value'] }}">{{ $status['label'] }}</flux:select.option>
                             @endforeach
                         </flux:select>
                     </div>
                 @endif
 
-                @if ($sortDate)
-                    <div class="w-full sm:w-72 lg:w-80">
-                        <flux:date-picker wire:model.debounce.live="rangeDate" mode="range" clearable
-                            :locale="__('en-EN')" :placeholder="__('Select date range')" :max="now()->toDateString()"
-                            :open-to="now()->subMonth()->startOfMonth()->toDateString()"
-                            presets="thisMonth lastMonth thisQuarter lastQuarter yearToDate" />
-                    </div>
-                @endif
 
                 @if ($hasPages)
                     <div class="w-full sm:w-44">
