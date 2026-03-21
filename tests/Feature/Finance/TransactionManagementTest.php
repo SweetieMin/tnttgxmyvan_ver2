@@ -42,7 +42,7 @@ test('transactions can be created updated and deleted from the livewire screen',
 
     $this->actingAs($user);
 
-    $receipt = UploadedFile::fake()->create('receipt.xlsx', 200, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    $receipt = UploadedFile::fake()->create('receipt.pdf', 200, 'application/pdf');
 
     Livewire::test(TransactionActions::class)
         ->call('openCreateModal')
@@ -132,7 +132,7 @@ test('selected transaction attachment can be removed before saving', function ()
         ->assertSet('attachment', null);
 });
 
-test('transaction attachment only accepts pdf or excel files', function () {
+test('transaction attachment only accepts pdf files', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('finance.transaction.create');
 

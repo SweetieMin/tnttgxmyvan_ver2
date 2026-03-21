@@ -227,10 +227,11 @@ class TransactionActions extends Component
     public function transactionItemSuggestions(): array
     {
         return Transaction::query()
-            ->select('transaction_item')
+            ->selectRaw('MAX(id) as latest_id, transaction_item')
             ->whereNotNull('transaction_item')
             ->where('transaction_item', '!=', '')
-            ->distinct()
+            ->groupBy('transaction_item')
+            ->orderByDesc('latest_id')
             ->limit(20)
             ->pluck('transaction_item')
             ->all();
