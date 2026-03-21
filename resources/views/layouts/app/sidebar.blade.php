@@ -29,41 +29,46 @@
             </flux:sidebar.item>
         </flux:sidebar.nav>
 
-        <flux:separator :text="__('Access')" />
-        <flux:sidebar.nav>
-            @can('access.role.view')
-                <flux:sidebar.item icon="shield-check" :href="route('admin.access.roles')"
-                    :current="request()->routeIs('admin.access.roles')" wire:navigate>
-                    {{ __('Roles') }}
-                </flux:sidebar.item>
-            @endcan
+        @canany(['access.role.view', 'access.permission.view'])
+            <flux:separator :text="__('Access')" />
+            <flux:sidebar.nav>
+                @can('access.role.view')
+                    <flux:sidebar.item icon="shield-check" :href="route('admin.access.roles')"
+                        :current="request()->routeIs('admin.access.roles')" wire:navigate>
+                        {{ __('Roles') }}
+                    </flux:sidebar.item>
+                @endcan
 
-            @can('access.permission.view')
-                <flux:sidebar.item icon="key" :href="route('admin.access.permissions')"
-                    :current="request()->routeIs('admin.access.permissions')" wire:navigate>
-                    {{ __('Permissions') }}
-                </flux:sidebar.item>
-            @endcan
-        </flux:sidebar.nav>
+                @can('access.permission.view')
+                    <flux:sidebar.item icon="key" :href="route('admin.access.permissions')"
+                        :current="request()->routeIs('admin.access.permissions')" wire:navigate>
+                        {{ __('Permissions') }}
+                    </flux:sidebar.item>
+                @endcan
+            </flux:sidebar.nav>
+        @endcanany
 
         <flux:spacer />
 
-        <flux:separator :text="__('Advance')" />
-        <flux:sidebar.nav>
-            @can('settings.site.general.view')
-                <flux:sidebar.item icon="cog" :href="route('admin.settings.site.general')"
-                    :current="request()->routeIs('admin.settings.site.*')" wire:navigate>
-                    {{ __('System configuration') }}
-                </flux:sidebar.item>
-            @endcan
+        @canany(['settings.site.general.view', 'settings.site.theme.view', 'settings.log.activity.view',
+            'settings.site.email.view', 'settings.site.maintenance.view', 'settings.log.system.view'])
+            <flux:separator :text="__('Advance')" />
+            <flux:sidebar.nav>
+                @can('settings.site.general.view')
+                    <flux:sidebar.item icon="cog" :href="route('admin.settings.site.general')"
+                        :current="request()->routeIs('admin.settings.site.*')" wire:navigate>
+                        {{ __('System configuration') }}
+                    </flux:sidebar.item>
+                @endcan
 
-            @canany(['settings.log.activity.view'])
-                <flux:sidebar.item icon="notebook-pen" :href="route('admin.settings.log.activity')"
-                    :current="request()->routeIs('admin.settings.log.activity')" wire:navigate>
-                    {{ __('System logs') }}
-                </flux:sidebar.item>
-            @endcan
-        </flux:sidebar.nav>
+                @canany(['settings.log.activity.view'])
+                    <flux:sidebar.item icon="notebook-pen" :href="route('admin.settings.log.activity')"
+                        :current="request()->routeIs('admin.settings.log.activity')" wire:navigate>
+                        {{ __('System logs') }}
+                    </flux:sidebar.item>
+                @endcan
+            </flux:sidebar.nav>
+        @endcanany
 
         <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
     </flux:sidebar>
