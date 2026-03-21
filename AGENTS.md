@@ -10,6 +10,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
 - php - 8.4.17
+- laravel/ai (AI) - v0
 - laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
@@ -42,6 +43,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
+- System AI Agent settings live under `admin.settings.site.ai-agent` and use `settings` keys/groups prefixed with `agent.`.
 
 ## Verification Scripts
 
@@ -280,14 +282,5 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Fortify is a headless authentication backend that provides authentication routes and controllers for Laravel applications.
 - IMPORTANT: Always use the `search-docs` tool for detailed Laravel Fortify patterns and documentation.
 - IMPORTANT: Activate `developing-with-fortify` skill when working with Fortify authentication features.
-
-## Project Livewire Patterns
-
-- For Livewire form fields that should respond while typing, prefer `wire:model.live` or `wire:model.live.debounce.500ms`.
-- When a Livewire component already uses `app/Validation/...` rules/messages, add `#[Validate]` to the related properties so validation also runs during input updates.
-- For create/update flows, keep an original state snapshot in the component and only show the add/save button when the current state differs from that snapshot.
-- For date and time inputs in Flux-based forms, prefer `flux:date-picker` or `flux:time-picker` over plain HTML date/time inputs.
-- Default Flux date/time picker locale to `vi-VN` unless a screen has a clear reason to use a different locale.
-- When using CSS grids in Blade/Flux layouts, prefer explicit `col-span-*` usage on grid children instead of relying only on implicit flow so the layout intent stays clear across breakpoints.
 
 </laravel-boost-guidelines>

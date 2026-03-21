@@ -504,5 +504,15 @@
     "Transaction delete failed.": "Xóa giao dịch thất bại.",
     "Transaction created successfully.": "Đã tạo giao dịch thành công.",
     "Transaction updated successfully.": "Đã cập nhật giao dịch thành công.",
-    "Transaction deleted successfully.": "Đã xóa giao dịch thành công."
+    "Transaction deleted successfully.": "Đã xóa giao dịch thành công.",
+    "AI Agent configuration": "Cấu hình AI Agent",
+    "Manage API credentials and endpoints for system AI agents.": "Quản lý khóa API và địa chỉ endpoint cho các AI Agent của hệ thống.",
+    "Group": "Nhóm",
+    "Value": "Giá trị",
+    "Label": "Nhãn",
+    "No AI agent settings found.": "Không tìm thấy cấu hình AI Agent nào.",
+    "Edit AI agent setting": "Chỉnh sửa cấu hình AI Agent",
+    "AI agent": "AI Agent",
+    "Not configured": "Chưa cấu hình",
+    "AI agent setting updated successfully.": "Đã cập nhật cấu hình AI Agent thành công."
 }

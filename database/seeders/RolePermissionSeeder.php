@@ -64,6 +64,9 @@ class RolePermissionSeeder extends Seeder
             'settings.site.theme.view',
             'settings.site.theme.update',
 
+            'settings.site.ai-agent.view',
+            'settings.site.ai-agent.update',
+
             'settings.log.activity.view',
             'settings.log.activity-failed.view',
 

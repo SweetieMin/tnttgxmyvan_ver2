@@ -31,6 +31,13 @@
                     </flux:navlist.item>
                 @endcan
 
+                @can('settings.site.ai-agent.view')
+                    <flux:navlist.item :href="route('admin.settings.site.ai-agent')"
+                        :current="request()->routeIs('admin.settings.site.ai-agent')" wire:navigate>
+                        {{ __('AI Agent configuration') }}
+                    </flux:navlist.item>
+                @endcan
+
 
             </flux:navlist>
         </flux:card>

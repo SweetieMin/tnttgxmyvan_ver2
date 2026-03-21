@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\Settings\Log\ActivityFailedSystem;
 use App\Livewire\Admin\Settings\Log\ActivitySystem;
+use App\Livewire\Admin\Settings\Site\AiAgentSettings;
 use App\Livewire\Admin\Settings\Site\GeneralSettings;
 use App\Livewire\Admin\Settings\Site\MailSettings;
 use App\Livewire\Admin\Settings\Site\MaintenanceSettings;
@@ -42,6 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('mail', MailSettings::class)->name('mail')->middleware('permission:settings.site.email.view');
 
                 Route::get('maintenance', MaintenanceSettings::class)->name('maintenance')->middleware('permission:settings.site.maintenance.view');
+
+                Route::get('ai-agent', AiAgentSettings::class)->name('ai-agent')->middleware('permission:settings.site.ai-agent.view');
             });
 
             Route::prefix('log')->name('log.')->group(function () {
