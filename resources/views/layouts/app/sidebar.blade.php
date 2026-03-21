@@ -29,6 +29,18 @@
             </flux:sidebar.item>
         </flux:sidebar.nav>
 
+        @canany(['management.academic-year.view'])
+            <flux:separator :text="__('Management')" />
+            <flux:sidebar.nav>
+                @can('management.academic-year.view')
+                    <flux:sidebar.item icon="calendar-days" :href="route('admin.management.academic-years')"
+                        :current="request()->routeIs('admin.management.academic-years')" wire:navigate>
+                        {{ __('Academic years') }}
+                    </flux:sidebar.item>
+                @endcan
+            </flux:sidebar.nav>
+        @endcanany
+
         @canany(['access.role.view', 'access.permission.view'])
             <flux:separator :text="__('Access')" />
             <flux:sidebar.nav>
@@ -48,23 +60,11 @@
             </flux:sidebar.nav>
         @endcanany
 
-        @canany(['management.academic-year.view'])
-            <flux:separator :text="__('Management')" />
-            <flux:sidebar.nav>
-                @can('management.academic-year.view')
-                    <flux:sidebar.item icon="calendar-days" :href="route('admin.management.academic-years')"
-                        :current="request()->routeIs('admin.management.academic-years')" wire:navigate>
-                        {{ __('Academic years') }}
-                    </flux:sidebar.item>
-                @endcan
-            </flux:sidebar.nav>
-        @endcanany
-
         <flux:spacer />
 
         @canany(['settings.site.general.view', 'settings.site.theme.view', 'settings.log.activity.view',
-            'settings.log.activity-failed.view',
-            'settings.site.email.view', 'settings.site.maintenance.view', 'settings.log.system.view'])
+            'settings.log.activity-failed.view', 'settings.site.email.view', 'settings.site.maintenance.view',
+            'settings.log.system.view'])
             <flux:separator :text="__('Advance')" />
             <flux:sidebar.nav>
                 @can('settings.site.general.view')
