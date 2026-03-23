@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Admin\Finance\Transactions;
 
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Repositories\Contracts\TransactionRepositoryInterface;
 use App\Validation\Admin\Finance\TransactionRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -32,6 +34,9 @@ class TransactionActions extends Component
 
     #[Validate]
     public string $transaction_date = '';
+
+    #[Validate]
+    public int|string $category_id = '';
 
     #[Validate]
     public string $transaction_item = '';
@@ -78,10 +83,11 @@ class TransactionActions extends Component
 
         $this->editingTransactionId = (int) $transaction->id;
         $this->transaction_date = $transaction->transaction_date?->format('Y-m-d') ?? '';
+        $this->category_id = $transaction->category_id ?? '';
         $this->transaction_item = $transaction->transaction_item;
         $this->description = (string) ($transaction->description ?? '');
         $this->type = $transaction->type;
-        $this->amount = $transaction->amount;
+        $this->amount = number_format($transaction->amount, 0, '.', ',');
         $this->in_charge = (string) ($transaction->in_charge ?? '');
         $this->status = $transaction->status;
         $this->existingAttachment = $transaction->file_name;
@@ -94,6 +100,8 @@ class TransactionActions extends Component
     {
         $this->ensureCan($this->editingTransactionId ? 'finance.transaction.update' : 'finance.transaction.create');
 
+        $this->amount = $this->normalizeAmount($this->amount);
+
         $validated = $this->validate();
 
         $oldAttachmentPath = $this->editingTransactionId ? $this->existingAttachment : null;
@@ -105,6 +113,7 @@ class TransactionActions extends Component
 
         $payload = [
             'transaction_date' => $validated['transaction_date'],
+            'category_id' => $validated['category_id'] !== null && $validated['category_id'] !== '' ? (int) $validated['category_id'] : null,
             'transaction_item' => $validated['transaction_item'],
             'description' => $validated['description'] !== '' ? $validated['description'] : null,
             'type' => $validated['type'],
@@ -238,6 +247,18 @@ class TransactionActions extends Component
     }
 
     /**
+     * @return Collection<int, Category>
+     */
+    public function categories(): Collection
+    {
+        return Category::query()
+            ->where('is_active', true)
+            ->orderBy('ordering')
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
      * @return array<string, array<int, mixed>>
      */
     protected function rules(): array
@@ -258,6 +279,7 @@ class TransactionActions extends Component
         $this->reset([
             'editingTransactionId',
             'transaction_date',
+            'category_id',
             'transaction_item',
             'description',
             'type',
@@ -288,6 +310,7 @@ class TransactionActions extends Component
     {
         return [
             'transaction_date' => $this->transaction_date,
+            'category_id' => $this->category_id,
             'transaction_item' => $this->transaction_item,
             'description' => $this->description,
             'type' => $this->type,
@@ -298,6 +321,11 @@ class TransactionActions extends Component
             'existingAttachment' => $this->existingAttachment,
             'removeCurrentAttachment' => $this->removeCurrentAttachment,
         ];
+    }
+
+    protected function normalizeAmount(int|string $amount): string
+    {
+        return preg_replace('/[^\d]/', '', (string) $amount) ?? '';
     }
 
     protected function transactionRepository(): TransactionRepositoryInterface

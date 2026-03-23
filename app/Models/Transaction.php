@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\LogsModelActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,6 +16,7 @@ class Transaction extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'category_id',
         'transaction_date',
         'transaction_item',
         'description',
@@ -96,5 +98,13 @@ class Transaction extends Model
     public function getFileBasenameAttribute(): ?string
     {
         return $this->file_name ? basename($this->file_name) : null;
+    }
+
+    /**
+     * @return BelongsTo<Category, $this>
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 }

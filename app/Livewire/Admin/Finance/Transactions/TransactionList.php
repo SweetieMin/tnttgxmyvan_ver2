@@ -20,17 +20,21 @@ class TransactionList extends Component
 
     public string $selectedType = '';
 
+    public string $selectedCategory = '';
+
     public string $selectedStatus = '';
 
     public function mount(
         string $search = '',
         int $perPage = 15,
         string $selectedType = '',
+        string $selectedCategory = '',
         string $selectedStatus = '',
     ): void {
         $this->search = $search;
         $this->perPage = $perPage;
         $this->selectedType = $selectedType;
+        $this->selectedCategory = $selectedCategory;
         $this->selectedStatus = $selectedStatus;
     }
 
@@ -61,6 +65,11 @@ class TransactionList extends Component
         $this->resetPage();
     }
 
+    public function updatedSelectedCategory(): void
+    {
+        $this->resetPage();
+    }
+
     public function placeholder(): string
     {
         return view('components.placeholder.table')->render();
@@ -78,6 +87,7 @@ class TransactionList extends Component
                 $this->search,
                 $this->perPage,
                 $this->selectedType,
+                $this->selectedCategory,
                 $this->selectedStatus,
             ),
         ]);

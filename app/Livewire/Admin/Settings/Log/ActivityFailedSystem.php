@@ -7,9 +7,11 @@ use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Title('Nhật ký thao tác lỗi')]
 class ActivityFailedSystem extends Component
 {
     use WithPagination;

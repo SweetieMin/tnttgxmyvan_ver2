@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Admin\Finance\Transactions\TransactionActions;
+use App\Livewire\Admin\Finance\Transactions\TransactionList;
+use App\Models\Category;
 use App\Models\Permission;
 use App\Models\Transaction;
 use App\Models\User;
@@ -26,9 +28,7 @@ test('authorized users can visit the common fund page', function () {
     $response = $this->actingAs($user)->get(route('admin.finance.transactions'));
 
     $response->assertOk()
-        ->assertSeeText(__('Common fund'))
-        ->assertSeeText(__('All type'))
-        ->assertSeeText(__('All status'));
+        ->assertSeeText(__('Common fund'));
 });
 
 test('transactions can be created updated and deleted from the livewire screen', function () {
@@ -43,10 +43,15 @@ test('transactions can be created updated and deleted from the livewire screen',
     $this->actingAs($user);
 
     $receipt = UploadedFile::fake()->create('receipt.pdf', 200, 'application/pdf');
+    $category = Category::factory()->create([
+        'name' => 'Tet',
+        'ordering' => 1,
+    ]);
 
     Livewire::test(TransactionActions::class)
         ->call('openCreateModal')
         ->set('transaction_date', '2026-03-21')
+        ->set('category_id', $category->id)
         ->set('transaction_item', 'Thu quỹ đầu năm')
         ->set('description', 'Phụ huynh đóng quỹ chung')
         ->set('type', 'income')
@@ -59,6 +64,7 @@ test('transactions can be created updated and deleted from the livewire screen',
 
     $transaction = Transaction::query()->where('transaction_item', 'Thu quỹ đầu năm')->firstOrFail();
 
+    expect($transaction->category_id)->toBe($category->id);
     expect($transaction->file_name)->toStartWith('files/transactions/TRANSACTION-');
     Storage::disk('public')->assertExists($transaction->file_name);
 
@@ -118,6 +124,96 @@ test('transaction save button only appears after the form changes', function () 
         ->assertReturned(true);
 });
 
+test('transaction form shows active categories and requires category selection', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.create');
+
+    Category::factory()->create([
+        'name' => 'Tet',
+        'ordering' => 1,
+        'is_active' => true,
+    ]);
+
+    Category::factory()->create([
+        'name' => 'Inactive category',
+        'ordering' => 2,
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionActions::class)
+        ->call('openCreateModal')
+        ->assertSeeText('Tet')
+        ->assertDontSeeText('Inactive category')
+        ->set('transaction_date', '2026-03-21')
+        ->set('transaction_item', 'Chi lẻ')
+        ->set('type', 'expense')
+        ->set('amount', 100000)
+        ->set('status', 'completed')
+        ->call('saveTransaction')
+        ->assertHasErrors(['category_id' => 'required']);
+});
+
+test('transaction amount accepts masked thousands separators', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.create');
+
+    $category = Category::factory()->create([
+        'name' => 'Tet',
+        'ordering' => 1,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionActions::class)
+        ->call('openCreateModal')
+        ->set('transaction_date', '2026-03-21')
+        ->set('category_id', $category->id)
+        ->set('transaction_item', 'Thu quy tu mask')
+        ->set('type', 'income')
+        ->set('amount', '1,231,231,111')
+        ->set('status', 'completed')
+        ->call('saveTransaction')
+        ->assertHasNoErrors();
+
+    expect(Transaction::query()->where('transaction_item', 'Thu quy tu mask')->value('amount'))
+        ->toBe(1231231111);
+});
+
+test('transactions can be filtered by category', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.view');
+
+    $tet = Category::factory()->create([
+        'name' => 'Tet',
+        'ordering' => 1,
+    ]);
+
+    $trungThu = Category::factory()->create([
+        'name' => 'Trung Thu',
+        'ordering' => 2,
+    ]);
+
+    Transaction::factory()->create([
+        'transaction_item' => 'Thu Tet',
+        'category_id' => $tet->id,
+    ]);
+
+    Transaction::factory()->create([
+        'transaction_item' => 'Thu Trung Thu',
+        'category_id' => $trungThu->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionList::class, [
+        'selectedCategory' => (string) $tet->id,
+    ])
+        ->assertSeeText('Thu Tet')
+        ->assertDontSeeText('Thu Trung Thu');
+});
+
 test('selected transaction attachment can be removed before saving', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('finance.transaction.create');
@@ -136,11 +232,17 @@ test('transaction attachment only accepts pdf files', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('finance.transaction.create');
 
+    $category = Category::factory()->create([
+        'name' => 'Tet',
+        'ordering' => 1,
+    ]);
+
     $this->actingAs($user);
 
     Livewire::test(TransactionActions::class)
         ->call('openCreateModal')
         ->set('transaction_date', '2026-03-21')
+        ->set('category_id', $category->id)
         ->set('transaction_item', 'Thu quỹ đầu năm')
         ->set('type', 'income')
         ->set('amount', 500000)

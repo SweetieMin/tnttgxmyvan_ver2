@@ -3,8 +3,10 @@
 namespace App\Livewire\Admin\Access\Permissions;
 
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Title('Quyền')]
 class PermissionIndex extends Component
 {
     public string $search = '';

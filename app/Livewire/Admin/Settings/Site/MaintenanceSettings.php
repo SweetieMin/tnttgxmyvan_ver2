@@ -10,9 +10,11 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
+#[Title('Cấu hình bảo trì')]
 class MaintenanceSettings extends Component
 {
     #[Validate]

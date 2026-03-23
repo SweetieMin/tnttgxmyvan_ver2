@@ -52,6 +52,11 @@ class RolePermissionSeeder extends Seeder
             'finance.transaction.update',
             'finance.transaction.delete',
 
+            'finance.category.view',
+            'finance.category.create',
+            'finance.category.update',
+            'finance.category.delete',
+
             'settings.site.general.view',
             'settings.site.general.update',
 

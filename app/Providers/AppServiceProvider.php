@@ -8,12 +8,14 @@ use App\Models\Role;
 use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
 use App\Repositories\Contracts\AcademicYearRepositoryInterface;
+use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\ProgramRepositoryInterface;
 use App\Repositories\Contracts\RegulationRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\TransactionRepositoryInterface;
 use App\Repositories\Eloquent\AcademicYearRepository;
+use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\PermissionRepository;
 use App\Repositories\Eloquent\ProgramRepository;
 use App\Repositories\Eloquent\RegulationRepository;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(AcademicYearRepositoryInterface::class, AcademicYearRepository::class);
+        $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(ProgramRepositoryInterface::class, ProgramRepository::class);
         $this->app->bind(RegulationRepositoryInterface::class, RegulationRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);

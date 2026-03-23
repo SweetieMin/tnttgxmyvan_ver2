@@ -3,8 +3,10 @@
 namespace App\Livewire\Admin\Management\Regulations;
 
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Title('Nội quy')]
 class RegulationIndex extends Component
 {
     public string $search = '';

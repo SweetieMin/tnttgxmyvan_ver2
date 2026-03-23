@@ -3,6 +3,7 @@
 use App\Foundation\SiteSettings;
 use App\Models\Setting;
 use App\Models\User;
+use Illuminate\Support\Facades\Blade;
 
 test('site settings service returns defaults when settings are missing', function () {
     $siteSettings = app(SiteSettings::class);
@@ -177,5 +178,39 @@ test('app service provider shares site settings with the dashboard layout', func
         ->assertSee("themeNeutralPalette: 'stone'", false)
         ->assertSee('Doan TNTT Gx My Van', false)
         ->assertSee('content="Mo ta tu settings"', false)
-        ->assertSee('images/sites/favicon-test.png', false);
+        ->assertSee('images/sites/favicon-test.png', false)
+        ->assertSee('flex min-h-0 flex-1 flex-col overflow-y-auto', false);
+});
+
+test('head partial uses page title before site title when provided', function () {
+    Setting::factory()->create([
+        'key' => 'general.site_name',
+        'value' => 'Doan TNTT Gx My Van',
+        'autoload' => true,
+    ]);
+
+    $html = Blade::render(<<<'BLADE'
+        @php($title = 'Trang dang nhap')
+        @include('partials.head')
+        BLADE);
+
+    expect($html)->toContain('Trang dang nhap - Doan TNTT Gx My Van')
+        ->toContain('property="og:title" content="Trang dang nhap - Doan TNTT Gx My Van"')
+        ->toContain('name="twitter:title" content="Trang dang nhap - Doan TNTT Gx My Van"');
+});
+
+test('head partial falls back to site title when page title is missing', function () {
+    Setting::factory()->create([
+        'key' => 'general.site_name',
+        'value' => 'Doan TNTT Gx My Van',
+        'autoload' => true,
+    ]);
+
+    $html = Blade::render(<<<'BLADE'
+        @include('partials.head')
+        BLADE);
+
+    expect($html)->toContain('Doan TNTT Gx My Van')
+        ->toContain('property="og:title" content="Doan TNTT Gx My Van"')
+        ->toContain('name="twitter:title" content="Doan TNTT Gx My Van"');
 });

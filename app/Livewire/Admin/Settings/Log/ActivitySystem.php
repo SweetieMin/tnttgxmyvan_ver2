@@ -6,10 +6,12 @@ use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
 
+#[Title('Nhật ký hoạt động')]
 class ActivitySystem extends Component
 {
     use WithPagination;

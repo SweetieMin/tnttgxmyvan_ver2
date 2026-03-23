@@ -20,17 +20,27 @@ class TransactionRepository extends BaseRepository implements TransactionReposit
         return 'transactions';
     }
 
-    public function paginateForAdmin(string $search, int $perPage, string $type = '', string $status = ''): LengthAwarePaginator
-    {
+    public function paginateForAdmin(
+        string $search,
+        int $perPage,
+        string $type = '',
+        string $categoryId = '',
+        string $status = '',
+    ): LengthAwarePaginator {
         return $this->query()
+            ->with('category')
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($builder) use ($search): void {
                     $builder->where('transaction_item', 'like', '%'.$search.'%')
                         ->orWhere('description', 'like', '%'.$search.'%')
-                        ->orWhere('in_charge', 'like', '%'.$search.'%');
+                        ->orWhere('in_charge', 'like', '%'.$search.'%')
+                        ->orWhereHas('category', function ($categoryQuery) use ($search): void {
+                            $categoryQuery->where('name', 'like', '%'.$search.'%');
+                        });
                 });
             })
             ->when($type !== '', fn ($query) => $query->where('type', $type))
+            ->when($categoryId !== '', fn ($query) => $query->where('category_id', $categoryId))
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->orderByDesc('transaction_date')
             ->orderByDesc('id')
@@ -79,6 +89,7 @@ class TransactionRepository extends BaseRepository implements TransactionReposit
             subject: $model,
             properties: [
                 'transaction_id' => $model->getKey(),
+                'category_id' => $model->getAttribute('category_id'),
                 'transaction_item' => $model->getAttribute('transaction_item'),
                 'type' => $model->getAttribute('type'),
                 'amount' => $model->getAttribute('amount'),

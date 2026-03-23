@@ -11,6 +11,7 @@ class TransactionRules
     {
         return [
             'transaction_date' => ['required', 'date'],
+            'category_id' => ['required', 'exists:categories,id'],
             'transaction_item' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', 'in:income,expense'],
@@ -28,6 +29,8 @@ class TransactionRules
     {
         return [
             'transaction_date.required' => __('Transaction date is required.'),
+            'category_id.required' => __('Category is required.'),
+            'category_id.exists' => __('Selected category is invalid.'),
             'transaction_item.required' => __('Fund item is required.'),
             'type.required' => __('Transaction type is required.'),
             'amount.required' => __('Amount is required.'),

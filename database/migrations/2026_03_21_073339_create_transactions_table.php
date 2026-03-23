@@ -16,6 +16,11 @@ return new class extends Migration
 
             $table->date('transaction_date');
 
+            $table->foreignId('category_id')
+                ->nullable()
+                ->constrained('categories')
+                ->nullOnDelete();
+
             $table->string('transaction_item');
             $table->text('description')->nullable();
             $table->enum('type', ['income', 'expense']);

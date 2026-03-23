@@ -2,6 +2,7 @@
 
 @props([
     'types' => [],
+    'categories' => [],
     'statuses' => [],
     'hasPages' => false,
     'importData' => false,
@@ -29,6 +30,18 @@
                             <flux:select.option value="">{{ __('All type') }}</flux:select.option>
                             @foreach ($types as $type)
                                 <flux:select.option value="{{ $type['value'] }}">{{ $type['label'] }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                @endif
+
+                @if (count($categories) > 0)
+                    <div class="w-full sm:w-56 lg:w-64">
+                        <flux:select wire:model.lazy="selectedCategory" variant="listbox" searchable
+                            :placeholder="__('Select...')">
+                            <flux:select.option value="">{{ __('All category') }}</flux:select.option>
+                            @foreach ($categories as $category)
+                                <flux:select.option value="{{ $category['value'] }}">{{ $category['label'] }}</flux:select.option>
                             @endforeach
                         </flux:select>
                     </div>

@@ -2,12 +2,12 @@
 
 namespace App\Repositories\Contracts;
 
-use App\Models\Transaction;
+use App\Models\Category;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-interface TransactionRepositoryInterface
+interface CategoryRepositoryInterface
 {
     public function query(): Builder;
 
@@ -25,12 +25,14 @@ interface TransactionRepositoryInterface
 
     public function delete(Model $model): bool;
 
-    public function paginateForAdmin(string $search, int $perPage, string $type = '', string $categoryId = '', string $status = ''): LengthAwarePaginator;
+    public function paginateForAdmin(string $search, int $perPage): LengthAwarePaginator;
 
-    public function find(int $transactionId): Transaction;
+    public function find(int $categoryId): Category;
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function save(array $attributes, ?int $editingTransactionId = null): Transaction;
+    public function save(array $attributes, ?int $editingCategoryId = null): Category;
+
+    public function reorder(int $categoryId, int $newPosition): void;
 }

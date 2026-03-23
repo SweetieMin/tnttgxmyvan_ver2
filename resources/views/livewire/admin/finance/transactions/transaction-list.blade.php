@@ -2,6 +2,7 @@
     <flux:table :paginate="$transactions">
         <flux:table.columns>
             <flux:table.column>{{ __('Transaction date') }}</flux:table.column>
+            <flux:table.column>{{ __('Category') }}</flux:table.column>
             <flux:table.column>{{ __('Fund item') }}</flux:table.column>
             <flux:table.column>{{ __('Type') }}</flux:table.column>
             <flux:table.column align="end">{{ __('Amount') }}</flux:table.column>
@@ -15,6 +16,7 @@
             @forelse ($transactions as $transaction)
                 <flux:table.row :key="$transaction->id" wire:key="transaction-{{ $transaction->id }}">
                     <flux:table.cell>{{ $transaction->formatted_transaction_date }}</flux:table.cell>
+                    <flux:table.cell>{{ $transaction->category?->name ?: __('No category') }}</flux:table.cell>
                     <flux:table.cell>
                         <div class="space-y-1">
                             <div class="font-medium text-zinc-900 dark:text-white">{{ $transaction->transaction_item }}</div>
@@ -65,7 +67,7 @@
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="8" class="py-8 text-center">
+                    <flux:table.cell colspan="9" class="py-8 text-center">
                         {{ __('No transactions found.') }}
                     </flux:table.cell>
                 </flux:table.row>

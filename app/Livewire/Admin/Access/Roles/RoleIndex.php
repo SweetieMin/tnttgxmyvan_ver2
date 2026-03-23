@@ -3,8 +3,10 @@
 namespace App\Livewire\Admin\Access\Roles;
 
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Title('Chức vụ')]
 class RoleIndex extends Component
 {
     public string $search = '';
