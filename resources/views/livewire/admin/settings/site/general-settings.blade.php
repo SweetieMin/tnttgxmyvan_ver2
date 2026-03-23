@@ -93,7 +93,7 @@
 
                                     <flux:error name="site_logo" />
 
-                                    <flux:callout variant="warning" icon="exclamation-circle"
+                                    <flux:callout class="mb-2" variant="warning" icon="exclamation-circle"
                                         :heading="__('Please click the button on the image to save the new file.')" />
                                     {{-- 2️⃣ Nếu chưa chọn mới nhưng có logo cũ --}}
                                 @elseif ($existLogo)
@@ -154,7 +154,7 @@
 
                                     <flux:error name="site_favicon" />
 
-                                    <flux:callout variant="warning" icon="exclamation-circle"
+                                    <flux:callout class="mb-2" variant="warning" icon="exclamation-circle"
                                         :heading="__('Please click the button on the image to save the new file.')" />
                                     {{-- 2️⃣ Nếu chưa chọn mới nhưng có Favicon cũ --}}
                                 @elseif ($existFavicon)

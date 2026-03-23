@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Foundation\SiteSettings;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Policies\PermissionPolicy;
@@ -22,8 +23,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View as ViewInstance;
 use Livewire\Blaze\Blaze;
 
 class AppServiceProvider extends ServiceProvider
@@ -58,6 +61,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(Permission::class, PermissionPolicy::class);
+
+        View::composer('*', function (ViewInstance $view): void {
+            $view->with(app(SiteSettings::class)->shared());
+        });
 
         Date::use(CarbonImmutable::class);
 

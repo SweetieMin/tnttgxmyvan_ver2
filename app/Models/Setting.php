@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\LogsModelActivity;
+use App\Foundation\SiteSettings;
 use Database\Factories\SettingFactory;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -56,6 +57,14 @@ class Setting extends Model
             }
 
             $setting->attributes['value'] = Crypt::encryptString($setting->value);
+        });
+
+        static::saved(function (): void {
+            app(SiteSettings::class)->forget();
+        });
+
+        static::deleted(function (): void {
+            app(SiteSettings::class)->forget();
         });
     }
 

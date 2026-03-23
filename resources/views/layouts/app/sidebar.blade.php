@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-@php($themePreset = \App\Models\Setting::query()->where('key', 'theme.preset')->first()?->value ?? 'sky')
-@php($themeNeutralPalette = \App\Models\Setting::query()->where('key', 'theme.neutral_palette')->first()?->value ?? 'gray')
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
 
 <head>
@@ -14,9 +12,14 @@
     <flux:sidebar sticky collapsible
         class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-15 z-10">
         <flux:sidebar.header>
-            <flux:sidebar.brand href="{{ route('dashboard') }}" logo="/storage/images/sites/FAVICON_default.png"
-                logo:dark="/storage/images/sites/FAVICON_default.png" name="Đoàn TNTT Gx Mỹ Vân" wire:navigate
-                alt='Đoàn TNTT Gx Mỹ Vân' />
+            <flux:sidebar.brand
+                href="{{ route('dashboard') }}"
+                logo="{{ asset('storage/' . ltrim($siteFavicon ?: 'images/sites/FAVICON_default.png', '/')) }}"
+                logo:dark="{{ asset('storage/' . ltrim($siteFavicon ?: 'images/sites/FAVICON_default.png', '/')) }}"
+                name="{{ $siteTitle }}"
+                wire:navigate
+                alt="{{ $siteTitle }}"
+            />
             <flux:sidebar.collapse
                 class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 hidden lg:flex" />
         </flux:sidebar.header>
