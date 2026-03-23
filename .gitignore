@@ -28,3 +28,4 @@ yarn-error.log
 .cursor
 AGENTS.md
 .DS_Store
+storage/framework/views
