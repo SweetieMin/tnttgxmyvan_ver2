@@ -75,4 +75,26 @@ class GeneralSettingsRules
             'site_favicon.max' => __('The favicon may not be greater than 10 MB.'),
         ];
     }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public static function loginImageRules(): array
+    {
+        return [
+            'site_login_image' => ['required', 'image', 'max:10240'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function loginImageMessages(): array
+    {
+        return [
+            'site_login_image.required' => __('Please choose a login image.'),
+            'site_login_image.image' => __('The login image must be an image.'),
+            'site_login_image.max' => __('The login image may not be greater than 10 MB.'),
+        ];
+    }
 }

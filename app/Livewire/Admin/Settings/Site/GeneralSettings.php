@@ -54,6 +54,8 @@ class GeneralSettings extends Component
 
     public ?string $existFavicon = null;
 
+    public ?string $existLoginImage = null;
+
     public string $namePhotoDelete = '';
 
     public ?string $deletingImageKey = null;
@@ -61,6 +63,8 @@ class GeneralSettings extends Component
     public ?TemporaryUploadedFile $site_logo = null;
 
     public ?TemporaryUploadedFile $site_favicon = null;
+
+    public ?TemporaryUploadedFile $site_login_image = null;
 
     /**
      * @var array<string, string>
@@ -155,6 +159,35 @@ class GeneralSettings extends Component
         $this->resetErrorBag('site_favicon');
     }
 
+    public function saveLoginImage(): void
+    {
+        $this->ensureCanUpdate();
+
+        $this->validate(
+            GeneralSettingsRules::loginImageRules(),
+            GeneralSettingsRules::loginImageMessages(),
+        );
+
+        $path = $this->storeBrandingImage($this->site_login_image, 'LOGIN', 'branding.login_image');
+
+        $this->upsertSetting('branding.login_image', $path);
+        $this->existLoginImage = $path;
+        $this->reset('site_login_image');
+        $this->resetErrorBag('site_login_image');
+
+        Flux::toast(
+            text: __('Login image updated successfully.'),
+            heading: __('Success'),
+            variant: 'success',
+        );
+    }
+
+    public function removeLoginImageUpload(): void
+    {
+        $this->reset('site_login_image');
+        $this->resetErrorBag('site_login_image');
+    }
+
     public function removeLogo(): void
     {
         $this->ensureCanUpdate();
@@ -171,6 +204,16 @@ class GeneralSettings extends Component
 
         $this->deletingImageKey = 'branding.favicon';
         $this->namePhotoDelete = __('Favicon');
+
+        $this->modal('settings-site-image')->show();
+    }
+
+    public function removeLoginImage(): void
+    {
+        $this->ensureCanUpdate();
+
+        $this->deletingImageKey = 'branding.login_image';
+        $this->namePhotoDelete = __('Login image');
 
         $this->modal('settings-site-image')->show();
     }
@@ -194,6 +237,10 @@ class GeneralSettings extends Component
 
         if ($this->deletingImageKey === 'branding.favicon') {
             $this->existFavicon = null;
+        }
+
+        if ($this->deletingImageKey === 'branding.login_image') {
+            $this->existLoginImage = null;
         }
 
         $this->deletingImageKey = null;
@@ -239,6 +286,7 @@ class GeneralSettings extends Component
         $this->tikTok_url = (string) ($this->settingValue('social.tiktok_url') ?? '');
         $this->existLogo = $this->settingValue('branding.logo');
         $this->existFavicon = $this->settingValue('branding.favicon');
+        $this->existLoginImage = $this->settingValue('branding.login_image');
         $this->syncOriginalGeneralSettings();
     }
 
@@ -419,6 +467,16 @@ class GeneralSettings extends Component
                 'is_encrypted' => false,
                 'autoload' => true,
                 'sort_order' => 110,
+            ],
+            'branding.login_image' => [
+                'group' => 'branding',
+                'type' => 'image',
+                'label' => 'Login image',
+                'description' => 'Illustration shown on the authentication screen.',
+                'is_public' => true,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 120,
             ],
         ];
     }

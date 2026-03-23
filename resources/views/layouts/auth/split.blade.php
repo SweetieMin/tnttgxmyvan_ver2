@@ -15,7 +15,7 @@
         <div
             class="bg-muted relative hidden h-full overflow-hidden p-10 text-white lg:flex lg:flex-col dark:border-e dark:border-neutral-800">
             <img
-                src="{{ asset('storage/images/sites/login_default.png') }}"
+                src="{{ asset('storage/' . ltrim($siteLoginImage ?: 'images/sites/login_default.png', '/')) }}"
                 alt="Login illustration"
                 class="absolute inset-0 h-full w-full object-cover"
             />

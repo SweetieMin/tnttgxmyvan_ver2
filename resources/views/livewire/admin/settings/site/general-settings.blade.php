@@ -12,6 +12,8 @@
                     :selected="$tab == 'general'">{{ __('General') }}</flux:tab>
                 <flux:tab wire:click="selectTab('logo-favicon')" name="logo-favicon" icon="globe-alt"
                     :selected="$tab == 'logo-favicon'">{{ __('Logo & Favicon') }}</flux:tab>
+                <flux:tab wire:click="selectTab('login-image')" name="login-image" icon="photo"
+                    :selected="$tab == 'login-image'">{{ __('Login image') }}</flux:tab>
 
             </flux:tabs>
 
@@ -264,6 +266,55 @@
                         </flux:modal.close>
                     </x-slot>
                 </flux:modal>
+
+            </flux:tab.panel>
+
+            <flux:tab.panel name="login-image">
+                <div class="w-full max-w-3xl">
+                    <flux:separator :text="__('Login image')" class="my-2" />
+
+                    <form wire:submit="saveLoginImage">
+                        @if ($site_login_image)
+                            <div class="relative mb-2">
+                                <img src="{{ $site_login_image->temporaryUrl() }}"
+                                    class="w-full h-auto max-h-[80vh] border-2 border-(--color-accent-content) rounded-xl object-cover">
+                                @can('settings.site.general.update')
+                                    <flux:button size="sm" variant="primary" color="green" type="submit"
+                                        icon="check" class="absolute! top-2 left-2 cursor-pointer" />
+                                    <flux:button size="sm" variant="primary" color="rose" type="button"
+                                        icon="trash" class="absolute! top-2 left-12 cursor-pointer"
+                                        wire:click="removeLoginImageUpload" />
+                                @endcan
+                            </div>
+
+                            <flux:error name="site_login_image" />
+
+                            <flux:callout class="mb-2" variant="warning" icon="exclamation-circle"
+                                :heading="__('Please click the button on the image to save the new file.')" />
+                        @elseif ($existLoginImage)
+                            <div class="relative mb-2 inline-block group">
+                                <img src="{{ Storage::url($existLoginImage) }}"
+                                    class="max-h-80 border-2 border-(--color-accent-content) rounded-xl object-cover">
+
+                                @can('settings.site.general.update')
+                                    <flux:tooltip content="{{ __('Remove current login image') }}" placement="top">
+                                        <flux:button size="sm" variant="primary" color="rose" icon="x-mark"
+                                            wire:click="removeLoginImage"
+                                            class="absolute! top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                    </flux:tooltip>
+                                @endcan
+                            </div>
+                        @else
+                            @can('settings.site.general.update')
+                                <flux:file-upload wire:model.live.lazy="site_login_image" :label="__('Upload file')"
+                                    accept=".jpg, .png">
+                                    <flux:file-upload.dropzone :heading="__('Drop a file here or click to browse')"
+                                        :text="__('JPG, PNG up to 10MB')" with-progress inline />
+                                </flux:file-upload>
+                            @endcan
+                        @endif
+                    </form>
+                </div>
 
             </flux:tab.panel>
 

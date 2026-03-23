@@ -58,7 +58,7 @@ test('general settings can be updated from the livewire screen', function () {
     expect(Setting::query()->where('key', 'social.tiktok_url')->value('value'))->toBe('https://www.tiktok.com/@myvan');
 });
 
-test('logo and favicon can be uploaded and removed', function () {
+test('logo, favicon, and login image can be uploaded and removed', function () {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -74,48 +74,64 @@ test('logo and favicon can be uploaded and removed', function () {
         ->call('saveLogo')
         ->set('site_favicon', UploadedFile::fake()->image('favicon.png'))
         ->call('saveFavicon')
+        ->set('site_login_image', UploadedFile::fake()->image('login-image.png'))
+        ->call('saveLoginImage')
         ->assertHasNoErrors();
 
     $logoPath = Setting::query()->where('key', 'branding.logo')->value('value');
     $faviconPath = Setting::query()->where('key', 'branding.favicon')->value('value');
+    $loginImagePath = Setting::query()->where('key', 'branding.login_image')->value('value');
 
     expect($logoPath)->not->toBeNull();
     expect($faviconPath)->not->toBeNull();
+    expect($loginImagePath)->not->toBeNull();
     expect($logoPath)->toStartWith('images/sites/LOGO-');
     expect($faviconPath)->toStartWith('images/sites/FAVICON-');
+    expect($loginImagePath)->toStartWith('images/sites/LOGIN-');
 
     Storage::disk('public')->assertExists($logoPath);
     Storage::disk('public')->assertExists($faviconPath);
+    Storage::disk('public')->assertExists($loginImagePath);
 
     $component
         ->set('site_logo', UploadedFile::fake()->image('logo-second.png'))
         ->call('saveLogo')
         ->set('site_favicon', UploadedFile::fake()->image('favicon-second.png'))
         ->call('saveFavicon')
+        ->set('site_login_image', UploadedFile::fake()->image('login-image-second.png'))
+        ->call('saveLoginImage')
         ->assertHasNoErrors();
 
     $updatedLogoPath = Setting::query()->where('key', 'branding.logo')->value('value');
     $updatedFaviconPath = Setting::query()->where('key', 'branding.favicon')->value('value');
+    $updatedLoginImagePath = Setting::query()->where('key', 'branding.login_image')->value('value');
 
     expect($updatedLogoPath)->not->toBe($logoPath);
     expect($updatedFaviconPath)->not->toBe($faviconPath);
+    expect($updatedLoginImagePath)->not->toBe($loginImagePath);
 
     Storage::disk('public')->assertMissing($logoPath);
     Storage::disk('public')->assertMissing($faviconPath);
+    Storage::disk('public')->assertMissing($loginImagePath);
     Storage::disk('public')->assertExists($updatedLogoPath);
     Storage::disk('public')->assertExists($updatedFaviconPath);
+    Storage::disk('public')->assertExists($updatedLoginImagePath);
 
     $component
         ->call('removeLogo')
         ->call('deleteConfirm')
         ->call('removeFavicon')
         ->call('deleteConfirm')
+        ->call('removeLoginImage')
+        ->call('deleteConfirm')
         ->assertHasNoErrors();
 
     expect(Setting::query()->where('key', 'branding.logo')->value('value'))->toBeNull();
     expect(Setting::query()->where('key', 'branding.favicon')->value('value'))->toBeNull();
+    expect(Setting::query()->where('key', 'branding.login_image')->value('value'))->toBeNull();
     Storage::disk('public')->assertMissing($updatedLogoPath);
     Storage::disk('public')->assertMissing($updatedFaviconPath);
+    Storage::disk('public')->assertMissing($updatedLoginImagePath);
 });
 
 test('selected tab is restored from the query string', function () {
