@@ -23,7 +23,7 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
     public function paginateForAdmin(string $search, int $perPage): LengthAwarePaginator
     {
         return $this->query()
-            ->withCount(['permissions', 'users'])
+            ->withCount(['permissions', 'users', 'manageableRoles'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where('name', 'like', '%'.$search.'%');
             })
@@ -34,7 +34,7 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
     {
         /** @var Role */
         return $this->query()
-            ->with('permissions:id,name')
+            ->with(['permissions:id,name', 'manageableRoles:id,name'])
             ->findOrFail($roleId);
     }
 
@@ -48,8 +48,9 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
 
     /**
      * @param  array<int, string>  $selectedPermissions
+     * @param  array<int, int|string>  $selectedManageableRoles
      */
-    public function save(string $roleName, array $selectedPermissions, ?int $editingRoleId = null): Role
+    public function save(string $roleName, array $selectedPermissions, array $selectedManageableRoles = [], ?int $editingRoleId = null): Role
     {
         /** @var Role|null $subject */
         $subject = $editingRoleId ? $this->findOrFail($editingRoleId) : null;
@@ -61,8 +62,9 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
             properties: [
                 'role_name' => $roleName,
                 'selected_permissions' => $selectedPermissions,
+                'selected_manageable_roles' => $selectedManageableRoles,
             ],
-            callback: function () use ($roleName, $selectedPermissions, $editingRoleId): Role {
+            callback: function () use ($roleName, $selectedPermissions, $selectedManageableRoles, $editingRoleId): Role {
                 /** @var Role $role */
                 $role = $editingRoleId
                     ? $this->findOrFail($editingRoleId)
@@ -80,6 +82,9 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
                 }
 
                 $role->syncPermissionsWithActivityLog($selectedPermissions);
+                $role->syncManageableRolesWithActivityLog(
+                    collect($selectedManageableRoles)->map(fn (mixed $roleId): int => (int) $roleId)->all(),
+                );
 
                 return $role;
             },

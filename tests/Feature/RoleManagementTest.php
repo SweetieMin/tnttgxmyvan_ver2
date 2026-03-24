@@ -42,26 +42,34 @@ test('roles can be created and updated from the livewire screen', function () {
     ]);
 
     Permission::findOrCreate('access.users.view', 'web');
+    $manageableRole = Role::findOrCreate('Catechist', 'web');
+    $secondaryManageableRole = Role::findOrCreate('Assistant Catechist', 'web');
 
     $this->actingAs($user);
 
     Livewire::test(RoleActions::class)
         ->set('roleName', 'Content Manager')
         ->set('selectedPermissions', ['access.users.view'])
+        ->set('selectedManageableRoles', [$manageableRole->id])
         ->call('saveRole')
         ->assertHasNoErrors();
 
     $role = Role::findByName('Content Manager', 'web');
 
-    expect($role->hasPermissionTo('access.users.view'))->toBeTrue();
+    expect($role->hasPermissionTo('access.users.view'))->toBeTrue()
+        ->and($role->manageableRoles()->pluck('roles.id')->all())->toBe([$manageableRole->id]);
 
     Livewire::test(RoleActions::class)
         ->call('openEditModal', $role->id)
         ->set('roleName', 'Content Editor')
+        ->set('selectedManageableRoles', [$secondaryManageableRole->id])
         ->call('saveRole')
         ->assertHasNoErrors();
 
-    expect(Role::findByName('Content Editor', 'web'))->not->toBeNull();
+    $updatedRole = Role::findByName('Content Editor', 'web');
+
+    expect($updatedRole)->not->toBeNull()
+        ->and($updatedRole->manageableRoles()->pluck('roles.id')->all())->toBe([$secondaryManageableRole->id]);
 });
 
 test('roles assigned to users cannot be deleted', function () {
@@ -109,4 +117,41 @@ test('role save button only appears after the form changes', function () {
         ->set('roleName', 'Updated Role')
         ->call('hasRoleChanges')
         ->assertReturned(true);
+});
+
+test('role managed roles list excludes admin and the current role', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'access.role.view',
+        'access.role.update',
+    ]);
+
+    Role::findOrCreate('Admin', 'web');
+    $managerRole = Role::findOrCreate('Manager', 'web');
+    Role::findOrCreate('Staff', 'web');
+
+    $this->actingAs($user);
+
+    Livewire::test(RoleActions::class)
+        ->call('openEditModal', $managerRole->id)
+        ->assertDontSeeText('Admin')
+        ->assertDontSeeText('Manager')
+        ->assertSeeText('Staff');
+});
+
+test('role list shows the managed roles count', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('access.role.view');
+
+    $managerRole = Role::findOrCreate('Manager', 'web');
+    $staffRole = Role::findOrCreate('Staff', 'web');
+    $catechistRole = Role::findOrCreate('Catechist', 'web');
+
+    $managerRole->manageableRoles()->sync([$staffRole->id, $catechistRole->id]);
+
+    $response = $this->actingAs($user)->get(route('admin.access.roles'));
+
+    $response->assertOk()
+        ->assertSeeText(__('Managed roles'))
+        ->assertSeeText('2');
 });

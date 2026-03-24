@@ -10,6 +10,43 @@
 
             <flux:input wire:model.live.debounce.500ms="roleName" :label="__('Role name')" :placeholder="__('Enter role name')" />
 
+            <div class="space-y-3">
+                <div class="flex items-center justify-between gap-4">
+                    <flux:heading size="sm">{{ __('Managed roles') }}</flux:heading>
+                    <flux:badge color="sky">{{ count($selectedManageableRoles) }} {{ __('selected') }}</flux:badge>
+                </div>
+
+                <flux:text>{{ __('Choose which roles this role is allowed to manage.') }}</flux:text>
+
+                <div class="max-h-60 space-y-3 overflow-y-auto rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
+                    <flux:checkbox.group wire:model.live="selectedManageableRoles" class="space-y-3">
+                        <div class="flex items-center justify-between gap-4">
+                            <flux:heading size="sm">{{ __('Roles') }}</flux:heading>
+
+                            <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+                                <flux:checkbox.all />
+                                <span>{{ __('Select all') }}</span>
+                            </label>
+                        </div>
+
+                        <div class="grid gap-3 md:grid-cols-2">
+                            @forelse ($manageableRoles as $role)
+                                <label wire:key="manageable-role-{{ $role->id }}" class="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                                    <flux:checkbox value="{{ $role->id }}" />
+                                    <div class="min-w-0">
+                                        <div class="font-medium text-zinc-900 dark:text-white">
+                                            {{ $role->name }}
+                                        </div>
+                                    </div>
+                                </label>
+                            @empty
+                                <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No managed roles available.') }}</div>
+                            @endforelse
+                        </div>
+                    </flux:checkbox.group>
+                </div>
+            </div>
+
             <div class="flex items-center justify-between gap-4">
                 <flux:heading size="sm">{{ __('Permissions') }}</flux:heading>
                 <flux:badge color="sky">{{ count($selectedPermissions) }} {{ __('selected') }}</flux:badge>

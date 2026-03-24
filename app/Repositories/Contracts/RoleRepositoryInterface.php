@@ -33,6 +33,7 @@ interface RoleRepositoryInterface
 
     /**
      * @param  array<int, string>  $selectedPermissions
+     * @param  array<int, int|string>  $selectedManageableRoles
      */
-    public function save(string $roleName, array $selectedPermissions, ?int $editingRoleId = null): Role;
+    public function save(string $roleName, array $selectedPermissions, array $selectedManageableRoles = [], ?int $editingRoleId = null): Role;
 }

@@ -40,6 +40,12 @@ class RoleActions extends Component
     #[Validate]
     public array $selectedPermissions = [];
 
+    /**
+     * @var array<int, int>
+     */
+    #[Validate]
+    public array $selectedManageableRoles = [];
+
     #[Locked]
     public string $originalRoleName = '';
 
@@ -48,6 +54,12 @@ class RoleActions extends Component
      */
     #[Locked]
     public array $originalSelectedPermissions = [];
+
+    /**
+     * @var array<int, int>
+     */
+    #[Locked]
+    public array $originalSelectedManageableRoles = [];
 
     #[On('open-create-role-modal')]
     public function openCreateModal(): void
@@ -66,6 +78,11 @@ class RoleActions extends Component
         $this->roleName = $role->name;
         $this->selectedPermissions = $role->permissions
             ->pluck('name')
+            ->values()
+            ->all();
+        $this->selectedManageableRoles = $role->manageableRoles
+            ->pluck('id')
+            ->map(fn (mixed $roleId): int => (int) $roleId)
             ->values()
             ->all();
         $this->syncOriginalFormState();
@@ -88,6 +105,7 @@ class RoleActions extends Component
             $this->roleRepository()->save(
                 $validated['roleName'],
                 $validated['selectedPermissions'] ?? [],
+                $validated['selectedManageableRoles'] ?? [],
                 $this->editingRoleId,
             );
         } catch (Throwable $exception) {
@@ -188,6 +206,26 @@ class RoleActions extends Component
             ->groupBy(fn (Permission $permission): string => $this->permissionGroup($permission->name));
     }
 
+    /**
+     * @return Collection<int, Role>
+     */
+    public function manageableRoles(): Collection
+    {
+        $adminRoleId = Role::query()->where('name', 'Admin')->value('id');
+
+        return Role::query()
+            ->orderBy('name')
+            ->when(
+                $this->editingRoleId !== null,
+                fn ($query) => $query->whereKeyNot($this->editingRoleId),
+            )
+            ->when(
+                $adminRoleId !== null,
+                fn ($query) => $query->whereKeyNot((int) $adminRoleId),
+            )
+            ->get();
+    }
+
     public function permissionGroup(string $permission): string
     {
         $parts = explode('.', $permission);
@@ -210,7 +248,8 @@ class RoleActions extends Component
     public function hasRoleChanges(): bool
     {
         return trim($this->roleName) !== trim($this->originalRoleName)
-            || $this->normalizePermissions($this->selectedPermissions) !== $this->normalizePermissions($this->originalSelectedPermissions);
+            || $this->normalizePermissions($this->selectedPermissions) !== $this->normalizePermissions($this->originalSelectedPermissions)
+            || $this->normalizeRoleIds($this->selectedManageableRoles) !== $this->normalizeRoleIds($this->originalSelectedManageableRoles);
     }
 
     /**
@@ -231,7 +270,7 @@ class RoleActions extends Component
 
     protected function resetForm(): void
     {
-        $this->reset(['editingRoleId', 'roleName', 'selectedPermissions', 'permissionSearch']);
+        $this->reset(['editingRoleId', 'roleName', 'selectedPermissions', 'selectedManageableRoles', 'permissionSearch']);
         $this->syncOriginalFormState();
         $this->resetErrorBag();
     }
@@ -240,6 +279,7 @@ class RoleActions extends Component
     {
         $this->originalRoleName = $this->roleName;
         $this->originalSelectedPermissions = $this->normalizePermissions($this->selectedPermissions);
+        $this->originalSelectedManageableRoles = $this->normalizeRoleIds($this->selectedManageableRoles);
     }
 
     /**
@@ -253,6 +293,17 @@ class RoleActions extends Component
         return array_values($permissions);
     }
 
+    /**
+     * @param  array<int, int>  $roleIds
+     * @return array<int, int>
+     */
+    protected function normalizeRoleIds(array $roleIds): array
+    {
+        sort($roleIds);
+
+        return array_values($roleIds);
+    }
+
     protected function roleRepository(): RoleRepositoryInterface
     {
         return app(RoleRepositoryInterface::class);
@@ -262,6 +313,7 @@ class RoleActions extends Component
     {
         return view('livewire.admin.access.roles.role-actions', [
             'permissionGroups' => $this->groupedPermissions(),
+            'manageableRoles' => $this->manageableRoles(),
         ]);
     }
 }
