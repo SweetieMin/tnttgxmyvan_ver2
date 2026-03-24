@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'server_timing' => (bool) env('APP_SERVER_TIMING', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
