@@ -2,12 +2,12 @@
 
 namespace App\Repositories\Contracts;
 
-use App\Models\AcademicYear;
+use App\Models\AcademicCourse;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-interface AcademicYearRepositoryInterface
+interface AcademicCourseRepositoryInterface
 {
     public function query(): Builder;
 
@@ -25,12 +25,16 @@ interface AcademicYearRepositoryInterface
 
     public function delete(Model $model): bool;
 
-    public function paginateForAdmin(string $search, int $perPage): LengthAwarePaginator;
+    public function paginateForAdmin(string $search, int $perPage, ?int $academicYearId = null): LengthAwarePaginator;
 
-    public function find(int $academicYearId): AcademicYear;
+    public function find(int $academicCourseId): AcademicCourse;
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function save(array $attributes, ?int $editingAcademicYearId = null, bool $syncAcademicCourses = false): AcademicYear;
+    public function save(array $attributes, ?int $editingAcademicCourseId = null): AcademicCourse;
+
+    public function reorder(int $academicCourseId, int $newPosition, ?int $academicYearId = null): void;
+
+    public function nextOrderingForAcademicYear(int $academicYearId): int;
 }

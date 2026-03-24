@@ -26,11 +26,15 @@ class SidebarNavigation
                     $permissions->contains('management.academic-year.view')
                         ? $this->item('calendar-days', route('admin.management.academic-years'), 'admin.management.academic-years', __('Academic years'))
                         : null,
+
                     $permissions->contains('management.program.view')
                         ? $this->item('academic-cap', route('admin.management.programs'), 'admin.management.programs', __('Programs'))
                         : null,
                     $permissions->contains('management.regulation.view')
                         ? $this->item('clipboard-document-list', route('admin.management.regulations'), 'admin.management.regulations', __('Regulations'))
+                        : null,
+                    $permissions->contains('management.academic-course.view')
+                        ? $this->item('rectangle-stack', route('admin.management.academic-courses'), 'admin.management.academic-courses', __('Catechism - sector classes'))
                         : null,
                 ]),
                 $this->section(__('Finance'), [

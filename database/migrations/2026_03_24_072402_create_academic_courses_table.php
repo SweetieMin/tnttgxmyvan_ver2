@@ -11,28 +11,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('academic_years', function (Blueprint $table) {
+        Schema::create('academic_courses', function (Blueprint $table) {
             $table->id();
-
-            $table->string('name');
-            // 🔹 Thời gian cho chương trình Giáo lý
-            $table->date('catechism_start_date')->nullable();
-            $table->date('catechism_end_date')->nullable();
+            $table->foreignId('academic_year_id')
+                ->constrained('academic_years')
+                ->cascadeOnDelete();
+            $table->foreignId('program_id')
+                ->constrained('programs')
+                ->restrictOnDelete();
+            $table->unsignedSmallInteger('ordering')->default(0);
+            $table->string('course_name');
+            $table->string('sector_name');
 
             // 🔹 Cài đặt điểm chuẩn cần đạt được
             $table->decimal('catechism_avg_score', 5, 2)->default(5.00);
             $table->decimal('catechism_training_score', 5, 2)->default(5.00);
 
-            // 🔹 Thời gian cho Sinh hoạt - điểm danh TNTT
-            $table->date('activity_start_date')->nullable();
-            $table->date('activity_end_date')->nullable();
-
             $table->unsignedSmallInteger('activity_score')->default(150);
 
-            $table->enum('status_academic', ['upcoming', 'ongoing', 'finished'])->default('upcoming');
-
+            $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();
+
+            $table->unique(['academic_year_id', 'course_name', 'sector_name']);
         });
     }
 
@@ -41,6 +42,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('academic_years');
+        Schema::dropIfExists('academic_courses');
     }
 };

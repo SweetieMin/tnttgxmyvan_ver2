@@ -3,6 +3,7 @@
 @props([
     'types' => [],
     'categories' => [],
+    'academicYears' => [],
     'statuses' => [],
     'dateRange' => false,
     'hasPages' => false,
@@ -16,7 +17,7 @@
 ])
 
 <flux:card {{ $attributes->class('border border-(--color-background) rounded-2xl') }}>
-    @if ($showSearch || count($types) > 1 || count($categories) > 1 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData)
+    @if ($showSearch || count($types) > 1 || count($categories) > 1 || count($academicYears) > 0 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData)
         <div class="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
 
             {{-- Filters --}}
@@ -68,6 +69,28 @@
                                     <flux:select.option value="">{{ __('All category') }}</flux:select.option>
                                     @foreach ($categories as $category)
                                         <flux:select.option value="{{ $category['value'] }}">{{ $category['label'] }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if (count($academicYears) > 0)
+                        <div class="w-full sm:w-56 lg:w-64">
+                            @if ($dateRange)
+                                <flux:select wire:model.live="selectedAcademicYear" variant="listbox" searchable
+                                    :placeholder="__('Select...')">
+                                    <flux:select.option value="">{{ __('All academic years') }}</flux:select.option>
+                                    @foreach ($academicYears as $academicYear)
+                                        <flux:select.option value="{{ $academicYear['value'] }}">{{ $academicYear['label'] }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            @else
+                                <flux:select wire:model.lazy="selectedAcademicYear" variant="listbox" searchable
+                                    :placeholder="__('Select...')">
+                                    <flux:select.option value="">{{ __('All academic years') }}</flux:select.option>
+                                    @foreach ($academicYears as $academicYear)
+                                        <flux:select.option value="{{ $academicYear['value'] }}">{{ $academicYear['label'] }}</flux:select.option>
                                     @endforeach
                                 </flux:select>
                             @endif
@@ -146,7 +169,7 @@
     @if (trim((string) $slot) !== '')
         <div
             @class([
-                'mt-6' => $showSearch || count($types) > 1 || count($categories) > 1 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData,
+                'mt-6' => $showSearch || count($types) > 1 || count($categories) > 1 || count($academicYears) > 0 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData,
             ])>
             {{ $slot }}
         </div>

@@ -2,7 +2,9 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
+use App\Models\Program;
 use App\Repositories\BaseRepository;
 use App\Repositories\Contracts\AcademicYearRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -49,7 +51,7 @@ class AcademicYearRepository extends BaseRepository implements AcademicYearRepos
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function save(array $attributes, ?int $editingAcademicYearId = null): AcademicYear
+    public function save(array $attributes, ?int $editingAcademicYearId = null, bool $syncAcademicCourses = false): AcademicYear
     {
         /** @var AcademicYear|null $subject */
         $subject = $editingAcademicYearId ? $this->find($editingAcademicYearId) : null;
@@ -59,7 +61,7 @@ class AcademicYearRepository extends BaseRepository implements AcademicYearRepos
             action: $editingAcademicYearId ? 'update' : 'create',
             subject: $subject,
             properties: $attributes,
-            callback: function () use ($attributes, $editingAcademicYearId): AcademicYear {
+            callback: function () use ($attributes, $editingAcademicYearId, $syncAcademicCourses): AcademicYear {
                 $payload = $this->normalizeAttributes($attributes);
 
                 /** @var AcademicYear $academicYear */
@@ -70,6 +72,10 @@ class AcademicYearRepository extends BaseRepository implements AcademicYearRepos
                 if ($editingAcademicYearId) {
                     /** @var AcademicYear $academicYear */
                     $academicYear = $this->update($academicYear, $payload);
+                }
+
+                if ($syncAcademicCourses) {
+                    $this->syncAcademicCoursesForAcademicYear($academicYear);
                 }
 
                 return $academicYear;
@@ -108,5 +114,80 @@ class AcademicYearRepository extends BaseRepository implements AcademicYearRepos
         }
 
         return $attributes;
+    }
+
+    protected function syncAcademicCoursesForAcademicYear(AcademicYear $academicYear): void
+    {
+        $programs = Program::query()
+            ->orderBy('ordering')
+            ->orderBy('id')
+            ->get();
+
+        $existingAcademicCourses = AcademicCourse::query()
+            ->where('academic_year_id', $academicYear->id)
+            ->orderBy('id')
+            ->get()
+            ->groupBy('program_id');
+
+        $retainedAcademicCourseIds = $programs
+            ->map(function (Program $program) use ($existingAcademicCourses): ?int {
+                /** @var AcademicCourse|null $academicCourse */
+                $academicCourse = $existingAcademicCourses->get($program->id)?->first();
+
+                return $academicCourse?->id;
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        AcademicCourse::query()
+            ->where('academic_year_id', $academicYear->id)
+            ->when($retainedAcademicCourseIds !== [], function ($query) use ($retainedAcademicCourseIds): void {
+                $query->whereNotIn('id', $retainedAcademicCourseIds);
+            })
+            ->when($retainedAcademicCourseIds === [], function ($query): void {
+                $query->whereNotNull('id');
+            })
+            ->get()
+            ->each(fn (AcademicCourse $academicCourse): ?bool => $academicCourse->forceDelete());
+
+        $programs->each(function (Program $program) use ($academicYear, $existingAcademicCourses, &$retainedAcademicCourseIds): void {
+            $academicCourse = $existingAcademicCourses->get($program->id)?->first();
+
+            if ($academicCourse instanceof AcademicCourse) {
+                $academicCourse->update([
+                    'ordering' => $program->ordering,
+                    'course_name' => $program->course,
+                    'sector_name' => $program->sector,
+                    'catechism_avg_score' => $academicYear->catechism_avg_score,
+                    'catechism_training_score' => $academicYear->catechism_training_score,
+                    'activity_score' => $academicYear->activity_score,
+                    'is_active' => true,
+                ]);
+
+                $retainedAcademicCourseIds[] = $academicCourse->id;
+
+                return;
+            }
+
+            $createdAcademicCourse = AcademicCourse::query()->create([
+                'academic_year_id' => $academicYear->id,
+                'program_id' => $program->id,
+                'ordering' => $program->ordering,
+                'course_name' => $program->course,
+                'sector_name' => $program->sector,
+                'catechism_avg_score' => $academicYear->catechism_avg_score,
+                'catechism_training_score' => $academicYear->catechism_training_score,
+                'activity_score' => $academicYear->activity_score,
+                'is_active' => true,
+            ]);
+
+            $retainedAcademicCourseIds[] = $createdAcademicCourse->id;
+        });
+
+        AcademicCourse::query()
+            ->where('academic_year_id', $academicYear->id)
+            ->whereNotIn('id', $retainedAcademicCourseIds)
+            ->delete();
     }
 }

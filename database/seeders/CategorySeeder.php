@@ -20,7 +20,7 @@ class CategorySeeder extends Seeder
             'Tết Nguyên Đán',
             'Tĩnh Tâm',
             'Ngày của Cha & Mẹ',
-            'Trại Ấi',
+            'Trại Ấu',
             'Trại Thiếu',
             'Đá bóng',
             'Du lịch',

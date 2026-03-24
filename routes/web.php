@@ -5,6 +5,7 @@ use App\Livewire\Admin\Access\Roles\RoleIndex;
 use App\Livewire\Admin\Finance\Categories\CategoryAnalytics;
 use App\Livewire\Admin\Finance\Categories\CategoryIndex;
 use App\Livewire\Admin\Finance\Transactions\TransactionIndex;
+use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
 use App\Livewire\Admin\Management\Regulations\RegulationIndex;
@@ -32,6 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('academic-years', AcademicYearIndex::class)
                 ->middleware('permission:management.academic-year.view')
                 ->name('academic-years');
+
+            Route::livewire('academic-courses', AcademicCourseIndex::class)
+                ->middleware('permission:management.academic-course.view')
+                ->name('academic-courses');
 
             Route::livewire('programs', ProgramIndex::class)
                 ->middleware('permission:management.program.view')

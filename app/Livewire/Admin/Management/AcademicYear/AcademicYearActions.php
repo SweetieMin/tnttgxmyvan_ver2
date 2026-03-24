@@ -18,6 +18,8 @@ class AcademicYearActions extends Component
 {
     public bool $showAcademicYearModal = false;
 
+    public bool $showSyncAcademicCoursesConfirmModal = false;
+
     public bool $showAcademicYearDetails = false;
 
     public bool $showDeleteModal = false;
@@ -58,6 +60,10 @@ class AcademicYearActions extends Component
     #[Validate]
     public string $status_academic = 'upcoming';
 
+    public bool $should_create_academic_courses = false;
+
+    public bool $hasConfirmedAcademicCourseSync = false;
+
     #[Locked]
     public array $originalAcademicYearState = [];
 
@@ -92,6 +98,8 @@ class AcademicYearActions extends Component
         $this->activity_end_date = $academicYear->formatted_activity_end_date;
         $this->activity_score = (int) $academicYear->activity_score;
         $this->status_academic = $academicYear->status_academic;
+        $this->should_create_academic_courses = false;
+        $this->hasConfirmedAcademicCourseSync = false;
         $this->syncGeneratedAcademicYearName();
         $this->syncOriginalAcademicYearState();
         $this->showAcademicYearDetails = true;
@@ -149,8 +157,18 @@ class AcademicYearActions extends Component
 
         $validated = $this->validate();
 
+        if ($this->shouldConfirmAcademicCourseSync()) {
+            $this->showSyncAcademicCoursesConfirmModal = true;
+
+            return;
+        }
+
         try {
-            $this->academicYearRepository()->save($validated, $this->editingAcademicYearId);
+            $this->academicYearRepository()->save(
+                $validated,
+                $this->editingAcademicYearId,
+                $this->should_create_academic_courses,
+            );
         } catch (Throwable $exception) {
             $this->addError('start_year', __('Academic year save failed.'));
 
@@ -171,6 +189,14 @@ class AcademicYearActions extends Component
 
         $this->dispatch('academic-year-saved');
         $this->closeAcademicYearModal();
+    }
+
+    public function confirmSyncAcademicCoursesAndSave(): void
+    {
+        $this->hasConfirmedAcademicCourseSync = true;
+        $this->showSyncAcademicCoursesConfirmModal = false;
+
+        $this->saveAcademicYear();
     }
 
     #[On('confirm-delete-academic-year')]
@@ -214,7 +240,14 @@ class AcademicYearActions extends Component
     public function closeAcademicYearModal(): void
     {
         $this->showAcademicYearModal = false;
+        $this->showSyncAcademicCoursesConfirmModal = false;
         $this->resetForm();
+    }
+
+    public function closeSyncAcademicCoursesConfirmModal(): void
+    {
+        $this->showSyncAcademicCoursesConfirmModal = false;
+        $this->hasConfirmedAcademicCourseSync = false;
     }
 
     public function closeDeleteModal(): void
@@ -272,6 +305,8 @@ class AcademicYearActions extends Component
             'activity_end_date',
             'activity_score',
             'status_academic',
+            'should_create_academic_courses',
+            'hasConfirmedAcademicCourseSync',
         ]);
 
         $this->start_year = now()->year;
@@ -280,10 +315,13 @@ class AcademicYearActions extends Component
         $this->catechism_training_score = '5.00';
         $this->activity_score = 150;
         $this->status_academic = 'upcoming';
+        $this->should_create_academic_courses = false;
+        $this->hasConfirmedAcademicCourseSync = false;
         $this->syncGeneratedAcademicYearName();
         $this->applyDefaultScheduleDates();
         $this->syncOriginalAcademicYearState();
         $this->showAcademicYearDetails = false;
+        $this->showSyncAcademicCoursesConfirmModal = false;
         $this->resetErrorBag();
     }
 
@@ -309,6 +347,7 @@ class AcademicYearActions extends Component
             'activity_end_date' => $this->activity_end_date,
             'activity_score' => $this->activity_score,
             'status_academic' => $this->status_academic,
+            'should_create_academic_courses' => $this->should_create_academic_courses,
         ];
     }
 
@@ -345,6 +384,18 @@ class AcademicYearActions extends Component
     protected function academicYearRepository(): AcademicYearRepositoryInterface
     {
         return app(AcademicYearRepositoryInterface::class);
+    }
+
+    protected function shouldConfirmAcademicCourseSync(): bool
+    {
+        if (! $this->should_create_academic_courses || $this->editingAcademicYearId === null || $this->hasConfirmedAcademicCourseSync) {
+            return false;
+        }
+
+        return $this->academicYearRepository()
+            ->find($this->editingAcademicYearId)
+            ->academicCourses()
+            ->exists();
     }
 
     /**

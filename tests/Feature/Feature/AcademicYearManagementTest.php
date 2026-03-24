@@ -1,8 +1,10 @@
 <?php
 
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearActions;
+use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
 use App\Models\Permission;
+use App\Models\Program;
 use App\Models\User;
 use App\Repositories\Contracts\AcademicYearRepositoryInterface;
 use Livewire\Livewire;
@@ -70,6 +72,161 @@ test('academic years can be created updated and deleted from the livewire screen
         ->assertHasNoErrors();
 
     expect(AcademicYear::query()->where('name', 'NK27-28')->exists())->toBeFalse();
+});
+
+test('creating an academic year can automatically create catechism sector classes from programs', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-year.view',
+        'management.academic-year.create',
+    ]);
+
+    $firstProgram = Program::factory()->create([
+        'ordering' => 1,
+        'course' => 'Khai Tam 1',
+        'sector' => 'Au 1',
+    ]);
+
+    $secondProgram = Program::factory()->create([
+        'ordering' => 2,
+        'course' => 'Khai Tam 2',
+        'sector' => 'Au 2',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicYearActions::class)
+        ->set('start_year', 2028)
+        ->set('end_year', 2029)
+        ->call('continueToAcademicYearDetails')
+        ->set('catechism_start_date', '2028-09-01')
+        ->set('catechism_end_date', '2029-05-31')
+        ->set('catechism_avg_score', '6.50')
+        ->set('catechism_training_score', '7.00')
+        ->set('activity_start_date', '2028-09-05')
+        ->set('activity_end_date', '2029-05-28')
+        ->set('activity_score', 180)
+        ->set('status_academic', 'upcoming')
+        ->set('should_create_academic_courses', true)
+        ->call('saveAcademicYear')
+        ->assertHasNoErrors();
+
+    $academicYear = AcademicYear::query()->where('name', 'NK28-29')->firstOrFail();
+
+    $academicCourses = AcademicCourse::query()
+        ->where('academic_year_id', $academicYear->id)
+        ->orderBy('ordering')
+        ->get();
+
+    expect($academicCourses)->toHaveCount(2)
+        ->and($academicCourses[0]->program_id)->toBe($firstProgram->id)
+        ->and($academicCourses[0]->course_name)->toBe('Khai Tam 1')
+        ->and($academicCourses[0]->sector_name)->toBe('Au 1')
+        ->and($academicCourses[0]->catechism_avg_score)->toBe('6.50')
+        ->and($academicCourses[0]->catechism_training_score)->toBe('7.00')
+        ->and($academicCourses[0]->activity_score)->toBe(180)
+        ->and($academicCourses[1]->program_id)->toBe($secondProgram->id)
+        ->and($academicCourses[1]->course_name)->toBe('Khai Tam 2')
+        ->and($academicCourses[1]->sector_name)->toBe('Au 2');
+});
+
+test('creating an academic year without opting in does not create catechism sector classes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-year.view',
+        'management.academic-year.create',
+    ]);
+
+    Program::factory()->create([
+        'ordering' => 1,
+        'course' => 'Xung Toi 1',
+        'sector' => 'Au 1',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicYearActions::class)
+        ->set('start_year', 2030)
+        ->set('end_year', 2031)
+        ->call('continueToAcademicYearDetails')
+        ->set('catechism_start_date', '2030-09-01')
+        ->set('catechism_end_date', '2031-05-31')
+        ->set('activity_start_date', '2030-09-05')
+        ->set('activity_end_date', '2031-05-28')
+        ->set('status_academic', 'upcoming')
+        ->assertSet('should_create_academic_courses', false)
+        ->call('saveAcademicYear')
+        ->assertHasNoErrors();
+
+    $academicYear = AcademicYear::query()->where('name', 'NK30-31')->firstOrFail();
+
+    expect(AcademicCourse::query()->where('academic_year_id', $academicYear->id)->count())->toBe(0);
+});
+
+test('editing an academic year asks for confirmation before syncing existing catechism sector classes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-year.view',
+        'management.academic-year.update',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create([
+        'catechism_avg_score' => 5.00,
+        'catechism_training_score' => 5.00,
+        'activity_score' => 150,
+    ]);
+
+    $firstProgram = Program::factory()->create([
+        'ordering' => 1,
+        'course' => 'Them Suc 1',
+        'sector' => 'Thieu 1',
+    ]);
+
+    $secondProgram = Program::factory()->create([
+        'ordering' => 2,
+        'course' => 'Them Suc 2',
+        'sector' => 'Thieu 2',
+    ]);
+
+    $existingAcademicCourse = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $firstProgram->id,
+        'ordering' => 9,
+        'course_name' => 'Custom Them Suc 1',
+        'sector_name' => 'Custom Thieu 1',
+        'catechism_avg_score' => 4.00,
+        'catechism_training_score' => 4.50,
+        'activity_score' => 120,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicYearActions::class)
+        ->call('openEditModal', $academicYear->id)
+        ->set('catechism_avg_score', '6.50')
+        ->set('catechism_training_score', '7.00')
+        ->set('activity_score', 180)
+        ->set('should_create_academic_courses', true)
+        ->call('saveAcademicYear')
+        ->assertSet('showSyncAcademicCoursesConfirmModal', true)
+        ->call('confirmSyncAcademicCoursesAndSave')
+        ->assertHasNoErrors();
+
+    $syncedAcademicCourses = AcademicCourse::query()
+        ->where('academic_year_id', $academicYear->id)
+        ->orderBy('ordering')
+        ->get();
+
+    expect($syncedAcademicCourses)->toHaveCount(2)
+        ->and($syncedAcademicCourses[0]->id)->toBe($existingAcademicCourse->id)
+        ->and($syncedAcademicCourses[0]->course_name)->toBe('Them Suc 1')
+        ->and($syncedAcademicCourses[0]->sector_name)->toBe('Thieu 1')
+        ->and($syncedAcademicCourses[0]->catechism_avg_score)->toBe('6.50')
+        ->and($syncedAcademicCourses[0]->catechism_training_score)->toBe('7.00')
+        ->and($syncedAcademicCourses[0]->activity_score)->toBe(180)
+        ->and($syncedAcademicCourses[1]->program_id)->toBe($secondProgram->id)
+        ->and($syncedAcademicCourses[1]->course_name)->toBe('Them Suc 2')
+        ->and($syncedAcademicCourses[1]->sector_name)->toBe('Thieu 2');
 });
 
 test('academic year save button only appears after the form changes', function () {

@@ -6,6 +6,7 @@ use App\Concerns\LogsModelActivity;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AcademicYear extends Model
 {
@@ -102,5 +103,10 @@ class AcademicYear extends Model
         return Carbon::parse($this->activity_start_date)->format('d/m/Y').
             ' - '.
             Carbon::parse($this->activity_end_date)->format('d/m/Y');
+    }
+
+    public function academicCourses(): HasMany
+    {
+        return $this->hasMany(AcademicCourse::class);
     }
 }

@@ -76,6 +76,11 @@
                         </div>
                         <div class="xl:col-span-1"></div>
                     </div>
+
+                    <flux:field variant="inline">
+                        <flux:checkbox wire:model.live="should_create_academic_courses" />
+                        <flux:label>{{ __('Automatically create or sync catechism - sector classes from programs') }}</flux:label>
+                    </flux:field>
                 </div>
 
                 <div class="flex justify-end gap-3">
@@ -109,6 +114,22 @@
             <div class="flex justify-end gap-3">
                 <flux:button variant="ghost" wire:click="closeDeleteModal">{{ __('Cancel') }}</flux:button>
                 <flux:button variant="danger" wire:click="deleteAcademicYear">{{ __('Delete') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showSyncAcademicCoursesConfirmModal" class="max-w-lg">
+        <div class="space-y-5">
+            <div class="space-y-2">
+                <flux:heading size="lg">{{ __('Sync catechism - sector classes') }}</flux:heading>
+                <flux:text>{{ __('This academic year already has catechism - sector classes. If you continue, they will be updated to match the current programs and score settings.') }}</flux:text>
+            </div>
+
+            <flux:callout variant="warning" icon="exclamation-triangle" :heading="__('Existing manual adjustments will be replaced by the current program structure.')" />
+
+            <div class="flex justify-end gap-3">
+                <flux:button variant="ghost" wire:click="closeSyncAcademicCoursesConfirmModal">{{ __('Cancel') }}</flux:button>
+                <flux:button variant="primary" wire:click="confirmSyncAcademicCoursesAndSave">{{ __('Agree and sync') }}</flux:button>
             </div>
         </div>
     </flux:modal>

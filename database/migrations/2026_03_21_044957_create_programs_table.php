@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('ordering')->default(1000);
             $table->string('course')->unique();
             $table->string('sector')->unique();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
