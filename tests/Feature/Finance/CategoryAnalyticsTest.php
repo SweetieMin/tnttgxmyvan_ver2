@@ -5,6 +5,7 @@ use App\Models\Category;
 use App\Models\Permission;
 use App\Models\Transaction;
 use App\Models\User;
+use Flux\DateRange;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
@@ -120,4 +121,40 @@ test('category analytics applies the selected filters to overview data', functio
         ->assertDontSeeText('500.000 đ');
 
     Carbon::setTestNow();
+});
+
+test('category analytics memoizes category summaries per component instance', function () {
+    $category = Category::factory()->create([
+        'ordering' => 1,
+        'name' => 'Trung Thu',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-03-10',
+        'type' => 'income',
+        'amount' => 1000000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Trung Thu',
+    ]);
+
+    Cache::shouldReceive('remember')
+        ->once()
+        ->withArgs(function (string $key, mixed $ttl, callable $resolver): bool {
+            return str_contains($key, 'finance.category-analytics.summaries.');
+        })
+        ->andReturnUsing(function (string $key, mixed $ttl, callable $resolver): mixed {
+            return $resolver();
+        });
+
+    $component = new CategoryAnalytics;
+    $component->dateRange = DateRange::yearToDate();
+
+    $first = $component->categorySummaries();
+    $second = $component->categorySummaries();
+
+    expect($first)->toHaveCount(1)
+        ->and($second)->toHaveCount(1)
+        ->and($first->first()['name'])->toBe('Trung Thu')
+        ->and($second->first()['name'])->toBe('Trung Thu');
 });

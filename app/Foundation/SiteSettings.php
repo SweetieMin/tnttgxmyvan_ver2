@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Schema;
 class SiteSettings
 {
     /**
+     * @var array<string, string>|null
+     */
+    protected ?array $resolvedSettings = null;
+
+    protected ?bool $settingsTableExists = null;
+
+    /**
      * @var array<string, string>
      */
     protected array $defaults = [
@@ -60,12 +67,20 @@ class SiteSettings
      */
     public function all(): array
     {
+        if ($this->resolvedSettings !== null) {
+            return $this->resolvedSettings;
+        }
+
         try {
-            if (! Schema::hasTable('settings')) {
-                return $this->defaults;
+            if (! $this->hasSettingsTable()) {
+                $this->resolvedSettings = $this->defaults;
+
+                return $this->resolvedSettings;
             }
         } catch (QueryException) {
-            return $this->defaults;
+            $this->resolvedSettings = $this->defaults;
+
+            return $this->resolvedSettings;
         }
 
         /** @var array<string, string> $settings */
@@ -80,7 +95,9 @@ class SiteSettings
             return array_replace($this->defaults, $autoloadedSettings);
         });
 
-        return $settings;
+        $this->resolvedSettings = $settings;
+
+        return $this->resolvedSettings;
     }
 
     public function get(string $key, ?string $default = null): ?string
@@ -150,6 +167,20 @@ class SiteSettings
 
     public function forget(): void
     {
+        $this->resolvedSettings = null;
+        $this->settingsTableExists = null;
+
         Cache::forget('site-settings.autoload');
+    }
+
+    protected function hasSettingsTable(): bool
+    {
+        if ($this->settingsTableExists !== null) {
+            return $this->settingsTableExists;
+        }
+
+        $this->settingsTableExists = Schema::hasTable('settings');
+
+        return $this->settingsTableExists;
     }
 }

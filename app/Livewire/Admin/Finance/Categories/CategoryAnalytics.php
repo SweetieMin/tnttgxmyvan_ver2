@@ -20,6 +20,28 @@ class CategoryAnalytics extends Component
 
     public ?DateRange $dateRange = null;
 
+    /**
+     * @var Collection<int, array{value: string, label: string}>|null
+     */
+    protected ?Collection $resolvedCategoryOptions = null;
+
+    /**
+     * @var array<string, Collection<int, array{
+     *     id: int,
+     *     name: string,
+     *     transactions_count: int,
+     *     total_income: int,
+     *     total_expense: int,
+     *     balance: int
+     * }>>
+     */
+    protected array $resolvedCategorySummaries = [];
+
+    /**
+     * @var array<string, array<int, array{date: string, income: int, expense: int}>>
+     */
+    protected array $resolvedTimeTrendCharts = [];
+
     public function mount(): void
     {
         $this->dateRange = DateRange::yearToDate();
@@ -38,7 +60,11 @@ class CategoryAnalytics extends Component
      */
     public function categoryOptions(): Collection
     {
-        return Category::query()
+        if ($this->resolvedCategoryOptions !== null) {
+            return $this->resolvedCategoryOptions;
+        }
+
+        $this->resolvedCategoryOptions = Category::query()
             ->where('is_active', true)
             ->orderBy('ordering')
             ->orderBy('name')
@@ -47,26 +73,18 @@ class CategoryAnalytics extends Component
                 'value' => (string) $category->id,
                 'label' => $category->name,
             ]);
+
+        return $this->resolvedCategoryOptions;
     }
 
     public function render(): View
     {
         $categoryOptions = $this->categoryOptions();
-        $categorySummaries = $this->categorySummaries();
         $overviewCards = $this->overviewCards();
-        $categoryBarChart = $this->categoryBarChart($categorySummaries);
-        $expenseShareBreakdown = $this->expenseShareBreakdown($categorySummaries);
-        $timeTrendChart = $this->timeTrendChart();
 
         return view('livewire.admin.finance.categories.category-analytics', [
             'categoryOptions' => $categoryOptions,
-            'categorySummaries' => $categorySummaries,
             'overviewCards' => $overviewCards,
-            'categoryBarChart' => $categoryBarChart,
-            'expenseShareBreakdown' => $expenseShareBreakdown,
-            'timeTrendChart' => $timeTrendChart,
-            'appliedCategoriesLabel' => $this->appliedCategoriesLabel(),
-            'appliedDateRangeLabel' => $this->appliedDateRangeLabel(),
         ]);
     }
 
@@ -82,41 +100,66 @@ class CategoryAnalytics extends Component
      */
     public function categorySummaries(): Collection
     {
-        return Category::query()
-            ->where('is_active', true)
-            ->when(
-                $this->selectedCategory !== '',
-                fn (Builder $query) => $query->whereKey($this->selectedCategory),
-            )
-            ->orderBy('ordering')
-            ->orderBy('name')
-            ->withCount([
-                'transactions as transactions_count' => fn (Builder $query): Builder => $this->applyDateRangeFilter($query, $this->dateRange),
-            ])
-            ->withSum([
-                'transactions as total_income' => fn (Builder $query): Builder => $this->applyDateRangeFilter($query, $this->dateRange)
-                    ->where('type', 'income'),
-            ], 'amount')
-            ->withSum([
-                'transactions as total_expense' => fn (Builder $query): Builder => $this->applyDateRangeFilter($query, $this->dateRange)
-                    ->where('type', 'expense'),
-            ], 'amount')
-            ->get()
-            ->map(function (Category $category): array {
-                $totalIncome = (int) ($category->getAttribute('total_income') ?? 0);
-                $totalExpense = (int) ($category->getAttribute('total_expense') ?? 0);
+        $cacheKey = $this->categoryAnalyticsCacheKey('summaries');
 
-                return [
-                    'id' => (int) $category->id,
-                    'name' => $category->name,
-                    'transactions_count' => (int) ($category->getAttribute('transactions_count') ?? 0),
-                    'total_income' => $totalIncome,
-                    'total_expense' => $totalExpense,
-                    'balance' => $totalIncome - $totalExpense,
-                ];
-            })
-            ->sortByDesc('balance')
-            ->values();
+        if (array_key_exists($cacheKey, $this->resolvedCategorySummaries)) {
+            return $this->resolvedCategorySummaries[$cacheKey];
+        }
+
+        /** @var Collection<int, array{
+         *     id: int,
+         *     name: string,
+         *     transactions_count: int,
+         *     total_income: int,
+         *     total_expense: int,
+         *     balance: int
+         * }> $categorySummaries
+         */
+        $categorySummaries = Cache::remember(
+            $cacheKey,
+            now()->addMinutes(10),
+            function (): Collection {
+                return Category::query()
+                    ->where('is_active', true)
+                    ->when(
+                        $this->selectedCategory !== '',
+                        fn (Builder $query) => $query->whereKey($this->selectedCategory),
+                    )
+                    ->orderBy('ordering')
+                    ->orderBy('name')
+                    ->withCount([
+                        'transactions as transactions_count' => fn (Builder $query): Builder => $this->applyDateRangeFilter($query, $this->dateRange),
+                    ])
+                    ->withSum([
+                        'transactions as total_income' => fn (Builder $query): Builder => $this->applyDateRangeFilter($query, $this->dateRange)
+                            ->where('type', 'income'),
+                    ], 'amount')
+                    ->withSum([
+                        'transactions as total_expense' => fn (Builder $query): Builder => $this->applyDateRangeFilter($query, $this->dateRange)
+                            ->where('type', 'expense'),
+                    ], 'amount')
+                    ->get()
+                    ->map(function (Category $category): array {
+                        $totalIncome = (int) ($category->getAttribute('total_income') ?? 0);
+                        $totalExpense = (int) ($category->getAttribute('total_expense') ?? 0);
+
+                        return [
+                            'id' => (int) $category->id,
+                            'name' => $category->name,
+                            'transactions_count' => (int) ($category->getAttribute('transactions_count') ?? 0),
+                            'total_income' => $totalIncome,
+                            'total_expense' => $totalExpense,
+                            'balance' => $totalIncome - $totalExpense,
+                        ];
+                    })
+                    ->sortByDesc('balance')
+                    ->values();
+            },
+        );
+
+        $this->resolvedCategorySummaries[$cacheKey] = $categorySummaries;
+
+        return $categorySummaries;
     }
 
     /**
@@ -243,23 +286,40 @@ class CategoryAnalytics extends Component
      */
     public function timeTrendChart(): array
     {
-        return $this->transactionQuery()
-            ->selectRaw('DATE(transaction_date) as summary_date')
-            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income")
-            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense")
-            ->groupBy('summary_date')
-            ->orderBy('summary_date')
-            ->get()
-            ->map(function (Transaction $transaction): array {
-                $summaryDate = Carbon::parse($transaction->getAttribute('summary_date'));
+        $cacheKey = $this->categoryAnalyticsCacheKey('time-trend');
 
-                return [
-                    'date' => $summaryDate->format('d/m'),
-                    'income' => (int) ($transaction->getAttribute('total_income') ?? 0),
-                    'expense' => (int) ($transaction->getAttribute('total_expense') ?? 0),
-                ];
-            })
-            ->all();
+        if (array_key_exists($cacheKey, $this->resolvedTimeTrendCharts)) {
+            return $this->resolvedTimeTrendCharts[$cacheKey];
+        }
+
+        /** @var array<int, array{date: string, income: int, expense: int}> $timeTrendChart */
+        $timeTrendChart = Cache::remember(
+            $cacheKey,
+            now()->addMinutes(10),
+            function (): array {
+                return $this->transactionQuery()
+                    ->selectRaw('DATE(transaction_date) as summary_date')
+                    ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income")
+                    ->selectRaw("COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense")
+                    ->groupBy('summary_date')
+                    ->orderBy('summary_date')
+                    ->get()
+                    ->map(function (Transaction $transaction): array {
+                        $summaryDate = Carbon::parse($transaction->getAttribute('summary_date'));
+
+                        return [
+                            'date' => $summaryDate->format('d/m'),
+                            'income' => (int) ($transaction->getAttribute('total_income') ?? 0),
+                            'expense' => (int) ($transaction->getAttribute('total_expense') ?? 0),
+                        ];
+                    })
+                    ->all();
+            },
+        );
+
+        $this->resolvedTimeTrendCharts[$cacheKey] = $timeTrendChart;
+
+        return $timeTrendChart;
     }
 
     protected function transactionQuery(): Builder
@@ -319,5 +379,14 @@ class CategoryAnalytics extends Component
     protected function formatMoney(int $amount): string
     {
         return number_format($amount, 0, ',', '.').' đ';
+    }
+
+    protected function categoryAnalyticsCacheKey(string $segment): string
+    {
+        $categoryId = $this->selectedCategory !== '' ? $this->selectedCategory : 'all';
+        $start = $this->dateRange?->start()?->toDateString() ?? 'null';
+        $end = $this->dateRange?->end()?->toDateString() ?? 'null';
+
+        return "finance.category-analytics.{$segment}.{$categoryId}.{$start}.{$end}";
     }
 }

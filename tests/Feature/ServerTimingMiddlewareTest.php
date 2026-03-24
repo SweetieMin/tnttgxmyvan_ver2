@@ -15,11 +15,13 @@ test('server timing header is added when enabled', function () {
     $response = $this->get('/server-timing-test');
 
     $response->assertOk();
-    expect($response->headers->get('Server-Timing'))
-        ->toContain('total;dur=')
-        ->toContain('db;dur=')
-        ->toContain('app;dur=')
-        ->toContain('queries;desc=');
+    $serverTiming = $response->headers->get('Server-Timing');
+
+    expect($serverTiming)->not->toBeNull();
+    expect(str_contains($serverTiming, 'total;dur='))->toBeTrue()
+        ->and(str_contains($serverTiming, 'db;dur='))->toBeTrue()
+        ->and(str_contains($serverTiming, 'app;dur='))->toBeTrue()
+        ->and(str_contains($serverTiming, 'queries;desc='))->toBeTrue();
 });
 
 test('server timing header is omitted when disabled', function () {

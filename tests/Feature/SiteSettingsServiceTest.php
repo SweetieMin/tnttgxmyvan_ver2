@@ -4,6 +4,8 @@ use App\Foundation\SiteSettings;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 test('site settings service returns defaults when settings are missing', function () {
     $siteSettings = app(SiteSettings::class);
@@ -130,6 +132,32 @@ test('site settings cache is refreshed automatically when a setting changes', fu
     $setting->update(['value' => 'rose']);
 
     expect($siteSettings->get('theme.preset'))->toBe('rose');
+});
+
+test('site settings only resolve schema and cache once per service instance', function () {
+    Setting::factory()->create([
+        'key' => 'general.site_name',
+        'value' => 'Doan TNTT Gx My Van',
+        'autoload' => true,
+    ]);
+
+    Schema::shouldReceive('hasTable')
+        ->once()
+        ->with('settings')
+        ->andReturn(true);
+
+    Cache::shouldReceive('rememberForever')
+        ->once()
+        ->with('site-settings.autoload', Closure::class)
+        ->andReturnUsing(function (string $key, Closure $resolver): array {
+            return $resolver();
+        });
+
+    $siteSettings = new SiteSettings;
+
+    expect($siteSettings->get('general.site_name'))->toBe('Doan TNTT Gx My Van')
+        ->and($siteSettings->general()->siteName())->toBe('Doan TNTT Gx My Van')
+        ->and($siteSettings->shared()['siteTitle'])->toBe('Doan TNTT Gx My Van');
 });
 
 test('app service provider shares site settings with the dashboard layout', function () {
