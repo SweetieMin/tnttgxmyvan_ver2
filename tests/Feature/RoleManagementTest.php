@@ -5,6 +5,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function () {
     collect([
@@ -154,4 +155,43 @@ test('role list shows the managed roles count', function () {
     $response->assertOk()
         ->assertSeeText(__('Managed roles'))
         ->assertSeeText('2');
+});
+
+test('manageable role activity logs store role names instead of ids', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'access.role.view',
+        'access.role.create',
+        'access.role.update',
+    ]);
+
+    $staffRole = Role::findOrCreate('Staff', 'web');
+    $catechistRole = Role::findOrCreate('Catechist', 'web');
+
+    $this->actingAs($user);
+
+    Livewire::test(RoleActions::class)
+        ->set('roleName', 'Coordinator')
+        ->set('selectedManageableRoles', [$staffRole->id, $catechistRole->id])
+        ->call('saveRole')
+        ->assertHasNoErrors();
+
+    $role = Role::findByName('Coordinator', 'web');
+
+    /** @var Activity $activity */
+    $activity = Activity::query()
+        ->where('log_name', 'roles')
+        ->where('subject_type', Role::class)
+        ->where('subject_id', $role->id)
+        ->where('event', 'updated')
+        ->latest('id')
+        ->firstOrFail();
+
+    /** @var array<string, mixed> $attributes */
+    $attributes = $activity->properties->get('attributes', []);
+
+    expect($attributes['attached_manageable_roles'] ?? null)
+        ->toBe(['Staff', 'Catechist'])
+        ->and($attributes['attached_manageable_role_ids'] ?? null)
+        ->toBeNull();
 });

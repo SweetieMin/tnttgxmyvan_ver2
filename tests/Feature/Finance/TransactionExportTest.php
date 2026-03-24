@@ -29,7 +29,7 @@ test('transaction export modal can be opened with current filters', function () 
         ->assertSet('selectedTypes', ['income'])
         ->assertSet('selectedCategoryIds', [(string) $category->id])
         ->assertSet('selectedStatuses', ['completed'])
-        ->assertSet('fileName', fn (string $fileName): bool => str_starts_with($fileName, 'common-fund-transactions-'));
+        ->assertSet('fileName', fn (string $fileName): bool => str_starts_with($fileName, 'Báo cáo thu chi-'));
 });
 
 test('transaction export modal defaults to all selectable filters and columns', function () {
@@ -52,7 +52,7 @@ test('transaction export modal defaults to all selectable filters and columns', 
         ->assertSet('selectedStatuses', ['pending', 'completed'])
         ->assertSet('selectedCategoryIds', $expectedCategoryIds)
         ->assertSet('selectedColumns', ['transaction_date', 'category', 'transaction_item', 'amount', 'in_charge', 'status'])
-        ->assertSet('fileName', fn (string $fileName): bool => str_starts_with($fileName, 'common-fund-transactions-'))
+        ->assertSet('fileName', fn (string $fileName): bool => str_starts_with($fileName, 'Báo cáo thu chi-'))
         ->assertSee(__('Leave the filters empty to export all transactions.'));
 });
 
@@ -67,6 +67,21 @@ test('transaction export modal keeps the export note visible when filters are se
     Livewire::test(TransactionExportComponent::class)
         ->dispatch('open-transaction-export-modal', selectedType: 'income', selectedCategory: (string) $category->id, selectedStatus: 'completed')
         ->assertSee(__('Leave the filters empty to export all transactions.'));
+});
+
+test('transaction export modal can clear selected categories only', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.view');
+
+    Category::factory()->count(2)->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionExportComponent::class)
+        ->dispatch('open-transaction-export-modal')
+        ->assertSet('selectedCategoryIds', fn (array $categoryIds): bool => count($categoryIds) === 2)
+        ->call('clearSelectedCategories')
+        ->assertSet('selectedCategoryIds', []);
 });
 
 test('transactions can be exported to excel with split amount columns and summary rows', function () {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\LogsModelActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role as SpatieRole;
 
@@ -110,10 +111,27 @@ class Role extends SpatieRole
             ->event('updated')
             ->withProperties([
                 'attributes' => [
-                    'attached_manageable_role_ids' => $attachedManageableRoleIds,
-                    'detached_manageable_role_ids' => $detachedManageableRoleIds,
+                    'attached_manageable_roles' => $this->manageableRoleNames($attachedManageableRoleIds),
+                    'detached_manageable_roles' => $this->manageableRoleNames($detachedManageableRoleIds),
                 ],
             ])
             ->log(class_basename($this).' updated');
+    }
+
+    /**
+     * @param  array<int, int>  $roleIds
+     * @return array<int, string>
+     */
+    protected function manageableRoleNames(array $roleIds): array
+    {
+        /** @var Collection<int, string> $manageableRoleNames */
+        $manageableRoleNames = self::query()
+            ->whereKey($roleIds)
+            ->pluck('name', 'id');
+
+        return collect($roleIds)
+            ->map(fn (int $roleId): string => (string) $manageableRoleNames->get($roleId, (string) $roleId))
+            ->values()
+            ->all();
     }
 }

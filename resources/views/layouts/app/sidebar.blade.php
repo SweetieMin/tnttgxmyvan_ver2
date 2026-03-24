@@ -48,8 +48,8 @@
             @endforeach
         </div>
 
-        <div class="shrink-0">
-            <x-desktop-user-menu class="hidden lg:block" :name="$sidebarUserName" :email="$sidebarUserEmail"
+        <div class="shrink-0 hidden lg:block">
+            <x-desktop-user-menu :name="$sidebarUserName" :email="$sidebarUserEmail"
                 :user-picture="$sidebarUserPicture" />
         </div>
     </flux:sidebar>

@@ -6,7 +6,7 @@
 
         <flux:tab.group>
 
-            <flux:tabs>
+            <flux:tabs scrollable scrollable:fade>
 
                 <flux:tab wire:click="selectTab('general')" name="general" icon="cog-6-tooth"
                     :selected="$tab == 'general'">{{ __('General') }}</flux:tab>

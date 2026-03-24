@@ -40,6 +40,9 @@
                                 <flux:button size="sm" variant="ghost" wire:click="selectAllCategories">
                                     {{ __('Select all') }}
                                 </flux:button>
+                                <flux:button size="sm" variant="danger" wire:click="clearSelectedCategories">
+                                    {{ __('Clear all') }}
+                                </flux:button>
                             </div>
                         </div>
 

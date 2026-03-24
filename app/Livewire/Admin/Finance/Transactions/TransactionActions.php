@@ -12,6 +12,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
@@ -37,6 +39,8 @@ class TransactionActions extends Component
 
     #[Validate]
     public int|string $category_id = '';
+
+    public string $categorySearch = '';
 
     #[Validate]
     public string $transaction_item = '';
@@ -92,8 +96,39 @@ class TransactionActions extends Component
         $this->status = $transaction->status;
         $this->existingAttachment = $transaction->file_name;
         $this->removeCurrentAttachment = false;
+        $this->categorySearch = '';
         $this->syncOriginalTransactionState();
         $this->showTransactionModal = true;
+    }
+
+    public function createCategory(): void
+    {
+        $this->ensureCan('finance.category.create');
+
+        $validated = $this->validate([
+            'categorySearch' => ['required', 'string', 'max:255', Rule::unique(Category::class, 'name')],
+        ], [
+            'categorySearch.required' => __('Category name is required.'),
+            'categorySearch.max' => __('Category name must not be greater than 255 characters.'),
+            'categorySearch.unique' => __('Category already exists.'),
+        ]);
+
+        $category = Category::query()->create([
+            'ordering' => (int) (Category::query()->max('ordering') ?? 0) + 1,
+            'name' => trim($validated['categorySearch']),
+            'description' => null,
+            'is_active' => true,
+        ]);
+
+        $this->category_id = (string) $category->id;
+        $this->categorySearch = $category->name;
+        $this->resetErrorBag('categorySearch');
+
+        Flux::toast(
+            text: __('Category created successfully.'),
+            heading: __('Success'),
+            variant: 'success',
+        );
     }
 
     public function saveTransaction(): void
@@ -246,16 +281,35 @@ class TransactionActions extends Component
             ->all();
     }
 
-    /**
-     * @return Collection<int, Category>
-     */
+    #[Computed]
     public function categories(): Collection
     {
         return Category::query()
-            ->where('is_active', true)
+            ->where(function ($query): void {
+                $query->where('is_active', true);
+
+                if ($this->category_id !== '' && $this->category_id !== null) {
+                    $query->orWhere((new Category)->getQualifiedKeyName(), (int) $this->category_id);
+                }
+            })
+            ->when(
+                trim($this->categorySearch) !== '',
+                fn ($query) => $query->where('name', 'like', '%'.trim($this->categorySearch).'%'),
+            )
             ->orderBy('ordering')
             ->orderBy('name')
+            ->limit(20)
             ->get();
+    }
+
+    public function updatedCategorySearch(): void
+    {
+        $this->resetErrorBag('categorySearch');
+    }
+
+    public function canCreateCategories(): bool
+    {
+        return (bool) Auth::user()?->can('finance.category.create');
     }
 
     /**
@@ -280,6 +334,7 @@ class TransactionActions extends Component
             'editingTransactionId',
             'transaction_date',
             'category_id',
+            'categorySearch',
             'transaction_item',
             'description',
             'type',

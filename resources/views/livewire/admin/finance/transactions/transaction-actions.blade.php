@@ -10,14 +10,28 @@
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="md:col-span-1">
-                    <flux:date-picker wire:model.live="transaction_date" :label="__('Transaction date')" locale="vi-VN" />
+                    <flux:date-picker wire:model.live="transaction_date" :label="__('Transaction date')" locale="vi-VN" selectable-header/>
                 </div>
                 <div class="md:col-span-1">
-                    <flux:select wire:model.live="category_id" variant="listbox" :label="__('Category')">
+                    <flux:select wire:model="category_id" variant="combobox" :filter="false"
+                        :label="__('Category')">
+                        <x-slot name="input">
+                            <flux:select.input wire:model.live="categorySearch"
+                                :placeholder="__('Typing...')" />
+                        </x-slot>
+
                         @foreach ($this->categories() as $category)
                             <flux:select.option :value="$category->id">{{ $category->name }}</flux:select.option>
                         @endforeach
+
+                        @if ($this->canCreateCategories())
+                            <flux:select.option.create wire:click="createCategory" min-length="2">
+                                {{ __('Create') }} "<span wire:text="categorySearch"></span>"
+                            </flux:select.option.create>
+                        @endif
                     </flux:select>
+
+                    <flux:error name="categorySearch" />
                 </div>
                 <div class="md:col-span-2">
                     <flux:autocomplete wire:model="transaction_item" :label="__('Fund item')">

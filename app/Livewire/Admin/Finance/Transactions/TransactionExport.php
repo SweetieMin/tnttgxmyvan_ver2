@@ -72,6 +72,11 @@ class TransactionExport extends Component
         $this->selectedCategoryIds = $this->allCategoryValues();
     }
 
+    public function clearSelectedCategories(): void
+    {
+        $this->selectedCategoryIds = [];
+    }
+
     public function selectAllStatuses(): void
     {
         $this->selectedStatuses = $this->allStatusValues();

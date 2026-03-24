@@ -18,6 +18,7 @@ beforeEach(function () {
         'finance.transaction.create',
         'finance.transaction.update',
         'finance.transaction.delete',
+        'finance.category.create',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
 
@@ -153,6 +154,29 @@ test('transaction form shows active categories and requires category selection',
         ->set('status', 'completed')
         ->call('saveTransaction')
         ->assertHasErrors(['category_id' => 'required']);
+});
+
+test('transaction form can create a category inline from the combobox', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'finance.transaction.create',
+        'finance.category.create',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionActions::class)
+        ->call('openCreateModal')
+        ->set('categorySearch', 'Hạng mục tạo nhanh')
+        ->call('createCategory')
+        ->assertHasNoErrors(['categorySearch'])
+        ->assertSet('categorySearch', 'Hạng mục tạo nhanh')
+        ->assertSet('category_id', fn ($categoryId): bool => (int) $categoryId > 0)
+        ->assertSeeText('Hạng mục tạo nhanh');
+
+    $category = Category::query()->where('name', 'Hạng mục tạo nhanh')->firstOrFail();
+
+    expect($category->is_active)->toBeTrue();
 });
 
 test('transaction amount accepts masked thousands separators', function () {
