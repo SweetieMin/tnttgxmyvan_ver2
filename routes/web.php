@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\Access\Permissions\PermissionIndex;
 use App\Livewire\Admin\Access\Roles\RoleIndex;
+use App\Livewire\Admin\Finance\Categories\CategoryAnalytics;
 use App\Livewire\Admin\Finance\Categories\CategoryIndex;
 use App\Livewire\Admin\Finance\Transactions\TransactionIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
@@ -42,6 +43,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::prefix('finance')->name('finance.')->group(function () {
+            Route::livewire('categories/analytics', CategoryAnalytics::class)
+                ->middleware('permission:finance.category.view')
+                ->name('categories.analytics');
+
             Route::livewire('categories', CategoryIndex::class)
                 ->middleware('permission:finance.category.view')
                 ->name('categories');

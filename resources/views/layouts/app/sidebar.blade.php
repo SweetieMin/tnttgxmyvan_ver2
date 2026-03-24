@@ -59,8 +59,13 @@
 
                     @can('finance.category.view')
                         <flux:sidebar.item icon="tag" :href="route('admin.finance.categories')"
-                            :current="request()->routeIs('admin.finance.categories*')" wire:navigate>
+                            :current="request()->routeIs('admin.finance.categories')" wire:navigate>
                             {{ __('Categories') }}
+                        </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="presentation-chart-line" :href="route('admin.finance.categories.analytics')"
+                            :current="request()->routeIs('admin.finance.categories.analytics')" wire:navigate>
+                            {{ __('Category analytics') }}
                         </flux:sidebar.item>
                     @endcan
 
