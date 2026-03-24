@@ -1,9 +1,20 @@
-@php($userPicture = data_get(auth()->user()->details, 'picture'))
+@props([
+    'name' => '',
+    'email' => '',
+    'userPicture' => null,
+])
+
+@php
+    $resolvedUser = auth()->user();
+    $resolvedName = $name !== '' ? $name : ($resolvedUser?->full_name ?? $resolvedUser?->name ?? '');
+    $resolvedEmail = $email !== '' ? $email : ($resolvedUser?->email ?? '');
+    $resolvedUserPicture = $userPicture ?? data_get($resolvedUser?->loadMissing('details'), 'details.picture');
+@endphp
 
 <flux:dropdown position="bottom" align="start">
     <flux:sidebar.profile circle
-        :name="auth()->user()->full_name"
-        :avatar="$userPicture"
+        :name="$resolvedName"
+        :avatar="$resolvedUserPicture"
         icon:trailing="chevrons-up-down"
         class="[&>span]:max-lg:hidden"
         data-test="sidebar-menu-button"
@@ -12,11 +23,11 @@
     <flux:menu>
         <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
             <flux:avatar circle
-                :src="$userPicture"
+                :src="$resolvedUserPicture"
             />
             <div class="grid flex-1 text-start text-sm leading-tight">
-                <flux:heading class="truncate">{{ auth()->user()->full_name }}</flux:heading>
-                <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
+                <flux:heading class="truncate">{{ $resolvedName }}</flux:heading>
+                <flux:text class="truncate">{{ $resolvedEmail }}</flux:text>
             </div>
         </div>
         <flux:menu.separator />

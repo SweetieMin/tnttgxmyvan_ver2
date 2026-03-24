@@ -21,108 +21,36 @@
         </flux:sidebar.header>
 
         <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-            <flux:separator :text="__('General')" />
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
-                    wire:navigate>
-                    {{ __('Dashboard') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
-
-            @canany(['management.academic-year.view', 'management.program.view', 'management.regulation.view'])
-                <flux:separator :text="__('Management')" />
+            @foreach (($sidebarNavigation['primary'] ?? []) as $section)
+                <flux:separator :text="$section['label']" />
                 <flux:sidebar.nav>
-                    @can('management.academic-year.view')
-                        <flux:sidebar.item icon="calendar-days" :href="route('admin.management.academic-years')"
-                            :current="request()->routeIs('admin.management.academic-years')" wire:navigate>
-                            {{ __('Academic years') }}
+                    @foreach ($section['items'] as $item)
+                        <flux:sidebar.item :icon="$item['icon']" :href="$item['href']"
+                            :current="request()->routeIs($item['current'])" wire:navigate>
+                            {{ $item['label'] }}
                         </flux:sidebar.item>
-                    @endcan
-                    @can('management.program.view')
-                        <flux:sidebar.item icon="academic-cap" :href="route('admin.management.programs')"
-                            :current="request()->routeIs('admin.management.programs')" wire:navigate>
-                            {{ __('Programs') }}
-                        </flux:sidebar.item>
-                    @endcan
-                    @can('management.regulation.view')
-                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.management.regulations')"
-                            :current="request()->routeIs('admin.management.regulations')" wire:navigate>
-                            {{ __('Regulations') }}
-                        </flux:sidebar.item>
-                    @endcan
+                    @endforeach
                 </flux:sidebar.nav>
-            @endcanany
-
-            @canany(['finance.transaction.view', 'finance.category.view'])
-                <flux:sidebar.nav>
-                    <flux:separator :text="__('Finance')" />
-
-                    @can('finance.category.view')
-                        <flux:sidebar.item icon="tag" :href="route('admin.finance.categories')"
-                            :current="request()->routeIs('admin.finance.categories')" wire:navigate>
-                            {{ __('Categories') }}
-                        </flux:sidebar.item>
-
-                        <flux:sidebar.item icon="presentation-chart-line" :href="route('admin.finance.categories.analytics')"
-                            :current="request()->routeIs('admin.finance.categories.analytics')" wire:navigate>
-                            {{ __('Category analytics') }}
-                        </flux:sidebar.item>
-                    @endcan
-
-                    @can('finance.transaction.view')
-                        <flux:sidebar.item icon="banknotes" :href="route('admin.finance.transactions')"
-                            :current="request()->routeIs('admin.finance.transactions*')" wire:navigate>
-                            {{ __('Common fund') }}
-                        </flux:sidebar.item>
-                    @endcan
-                </flux:sidebar.nav>
-            @endcanany
-
-            @canany(['access.role.view', 'access.permission.view'])
-                <flux:separator :text="__('Access')" />
-                <flux:sidebar.nav>
-                    @can('access.role.view')
-                        <flux:sidebar.item icon="shield-check" :href="route('admin.access.roles')"
-                            :current="request()->routeIs('admin.access.roles')" wire:navigate>
-                            {{ __('Roles') }}
-                        </flux:sidebar.item>
-                    @endcan
-
-                    @can('access.permission.view')
-                        <flux:sidebar.item icon="key" :href="route('admin.access.permissions')"
-                            :current="request()->routeIs('admin.access.permissions')" wire:navigate>
-                            {{ __('Permissions') }}
-                        </flux:sidebar.item>
-                    @endcan
-                </flux:sidebar.nav>
-            @endcanany
+            @endforeach
 
             <flux:spacer />
 
-            @canany(['settings.site.general.view', 'settings.site.theme.view', 'settings.log.activity.view',
-                'settings.log.activity-failed.view', 'settings.site.email.view', 'settings.site.maintenance.view',
-                'settings.log.system.view'])
-                <flux:separator :text="__('Advance')" />
+            @foreach (($sidebarNavigation['secondary'] ?? []) as $section)
+                <flux:separator :text="$section['label']" />
                 <flux:sidebar.nav>
-                    @can('settings.site.general.view')
-                        <flux:sidebar.item icon="cog" :href="route('admin.settings.site.general')"
-                            :current="request()->routeIs('admin.settings.site.*')" wire:navigate>
-                            {{ __('System configuration') }}
+                    @foreach ($section['items'] as $item)
+                        <flux:sidebar.item :icon="$item['icon']" :href="$item['href']"
+                            :current="request()->routeIs($item['current'])" wire:navigate>
+                            {{ $item['label'] }}
                         </flux:sidebar.item>
-                    @endcan
-
-                    @canany(['settings.log.activity.view', 'settings.log.activity-failed.view'])
-                        <flux:sidebar.item icon="notebook-pen" :href="route('admin.settings.log.activity')"
-                            :current="request()->routeIs('admin.settings.log.*')" wire:navigate>
-                            {{ __('System logs') }}
-                        </flux:sidebar.item>
-                    @endcan
+                    @endforeach
                 </flux:sidebar.nav>
-            @endcanany
+            @endforeach
         </div>
 
         <div class="shrink-0">
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+            <x-desktop-user-menu class="hidden lg:block" :name="$sidebarUserName" :email="$sidebarUserEmail"
+                :user-picture="$sidebarUserPicture" />
         </div>
     </flux:sidebar>
 
@@ -137,7 +65,8 @@
                 aria-label="Toggle dark mode" />
             <flux:separator vertical class="my-2" />
 
-            <x-desktop-user-menu :name="auth()->user()->name" />
+            <x-desktop-user-menu :name="$sidebarUserName" :email="$sidebarUserEmail"
+                :user-picture="$sidebarUserPicture" />
 
         </flux:navbar>
         <flux:navbar scrollable class="hidden lg:flex h-full items-center gap-2">

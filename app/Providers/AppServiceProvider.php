@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Foundation\SidebarNavigation;
 use App\Foundation\SiteSettings;
 use App\Models\Permission;
 use App\Models\Role;
@@ -66,7 +67,22 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Permission::class, PermissionPolicy::class);
 
         View::composer('*', function (ViewInstance $view): void {
-            $view->with(app(SiteSettings::class)->shared());
+            /** @var array<string, mixed> $sharedSiteSettings */
+            $sharedSiteSettings = once(fn (): array => app(SiteSettings::class)->shared());
+
+            /** @var array<string, mixed> $sharedSidebarData */
+            $sharedSidebarData = once(function (): array {
+                $currentUser = auth()->user()?->loadMissing('details');
+
+                return [
+                    'sidebarNavigation' => app(SidebarNavigation::class)->for($currentUser),
+                    'sidebarUserName' => $currentUser?->full_name ?? $currentUser?->name ?? '',
+                    'sidebarUserEmail' => $currentUser?->email ?? '',
+                    'sidebarUserPicture' => data_get($currentUser, 'details.picture'),
+                ];
+            });
+
+            $view->with(array_merge($sharedSiteSettings, $sharedSidebarData));
         });
 
         Date::use(CarbonImmutable::class);
