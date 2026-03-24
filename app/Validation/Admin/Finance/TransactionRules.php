@@ -2,6 +2,8 @@
 
 namespace App\Validation\Admin\Finance;
 
+use Closure;
+
 class TransactionRules
 {
     /**
@@ -15,7 +17,23 @@ class TransactionRules
             'transaction_item' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', 'in:income,expense'],
-            'amount' => ['required', 'integer', 'min:1'],
+            'amount' => [
+                'required',
+                'string',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    $normalizedAmount = preg_replace('/[^\d]/', '', (string) $value) ?? '';
+
+                    if ($normalizedAmount === '') {
+                        $fail(__('Amount must be a valid number.'));
+
+                        return;
+                    }
+
+                    if ((int) $normalizedAmount < 1) {
+                        $fail(__('Amount must be at least 1.'));
+                    }
+                },
+            ],
             'attachment' => ['nullable', 'file', 'max:10240', 'mimes:pdf'],
             'in_charge' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'in:pending,completed'],
@@ -34,7 +52,6 @@ class TransactionRules
             'transaction_item.required' => __('Fund item is required.'),
             'type.required' => __('Transaction type is required.'),
             'amount.required' => __('Amount is required.'),
-            'amount.integer' => __('Amount must be an integer.'),
             'amount.min' => __('Amount must be at least 1.'),
             'attachment.file' => __('Attachment must be a valid file.'),
             'attachment.max' => __('Attachment must not be greater than 10MB.'),

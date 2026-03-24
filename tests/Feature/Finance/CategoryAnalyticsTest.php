@@ -141,7 +141,7 @@ test('category analytics memoizes category summaries per component instance', fu
     Cache::shouldReceive('remember')
         ->once()
         ->withArgs(function (string $key, mixed $ttl, callable $resolver): bool {
-            return str_contains($key, 'finance.category-analytics.summaries.');
+            return str_contains($key, 'finance.category-analytics.v2.summaries.');
         })
         ->andReturnUsing(function (string $key, mixed $ttl, callable $resolver): mixed {
             return $resolver();
@@ -157,4 +157,148 @@ test('category analytics memoizes category summaries per component instance', fu
         ->and($second)->toHaveCount(1)
         ->and($first->first()['name'])->toBe('Trung Thu')
         ->and($second->first()['name'])->toBe('Trung Thu');
+});
+
+test('category analytics compares the selected category by year across all data when no date range is applied', function () {
+    $category = Category::factory()->create([
+        'ordering' => 1,
+        'name' => 'Trung Thu',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2025-09-10',
+        'type' => 'income',
+        'amount' => 800000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Trung Thu 2025',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2025-09-12',
+        'type' => 'expense',
+        'amount' => 300000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi Trung Thu 2025',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-09-10',
+        'type' => 'income',
+        'amount' => 1200000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Trung Thu 2026',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-09-12',
+        'type' => 'expense',
+        'amount' => 500000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi Trung Thu 2026',
+    ]);
+
+    $component = new CategoryAnalytics;
+    $component->selectedCategory = (string) $category->id;
+    $component->dateRange = null;
+
+    $comparisonChart = $component->categoryComparisonChart();
+
+    expect($comparisonChart['title'])->toBe(__('Income vs expense by year'))
+        ->and($comparisonChart['description'])->toContain('Trung Thu')
+        ->and($comparisonChart['points'])->toBe([
+            [
+                'category' => '2025',
+                'income' => 800000,
+                'expense' => 300000,
+            ],
+            [
+                'category' => '2026',
+                'income' => 1200000,
+                'expense' => 500000,
+            ],
+        ]);
+});
+
+test('category analytics compares the selected category by year within the selected date range', function () {
+    Carbon::setTestNow('2026-03-24 10:00:00');
+
+    $category = Category::factory()->create([
+        'ordering' => 1,
+        'name' => 'Tet Nguyen Dan',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2025-02-10',
+        'type' => 'income',
+        'amount' => 800000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Tet 2025',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-02-10',
+        'type' => 'expense',
+        'amount' => 500000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi Tet 2026',
+    ]);
+
+    $component = new CategoryAnalytics;
+    $component->selectedCategory = (string) $category->id;
+    $component->dateRange = DateRange::yearToDate();
+
+    $comparisonChart = $component->categoryComparisonChart();
+
+    expect($comparisonChart['title'])->toBe(__('Income vs expense by year'))
+        ->and($comparisonChart['description'])->toBe(__('Review yearly income and expense totals for :category within the selected date range.', [
+            'category' => 'Tet Nguyen Dan',
+        ]))
+        ->and($comparisonChart['points'])->toBe([
+            [
+                'category' => '2026',
+                'income' => 0,
+                'expense' => 500000,
+            ],
+        ]);
+
+    Carbon::setTestNow();
+});
+
+test('category analytics treats an empty date range as all time', function () {
+    $category = Category::factory()->create([
+        'ordering' => 1,
+        'name' => 'Trung Thu',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2025-09-10',
+        'type' => 'income',
+        'amount' => 800000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Trung Thu 2025',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-09-10',
+        'type' => 'income',
+        'amount' => 1200000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Trung Thu 2026',
+    ]);
+
+    $component = new CategoryAnalytics;
+    $component->selectedCategory = (string) $category->id;
+    $component->dateRange = DateRange::yearToDate();
+    $component->resetFilters();
+
+    expect($component->dateRange)->toBeNull()
+        ->and($component->categorySummaries()->sum('total_income'))->toBe(2000000);
 });

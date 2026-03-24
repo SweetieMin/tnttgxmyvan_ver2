@@ -173,12 +173,36 @@ test('transaction amount accepts masked thousands separators', function () {
         ->set('transaction_item', 'Thu quy tu mask')
         ->set('type', 'income')
         ->set('amount', '1,231,231,111')
+        ->assertHasNoErrors(['amount'])
         ->set('status', 'completed')
         ->call('saveTransaction')
         ->assertHasNoErrors();
 
     expect(Transaction::query()->where('transaction_item', 'Thu quy tu mask')->value('amount'))
         ->toBe(1231231111);
+});
+
+test('transaction amount shows an error when the masked value has no digits', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.create');
+
+    $category = Category::factory()->create([
+        'name' => 'Tet',
+        'ordering' => 1,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionActions::class)
+        ->call('openCreateModal')
+        ->set('transaction_date', '2026-03-21')
+        ->set('category_id', $category->id)
+        ->set('transaction_item', 'Chi quy tu mask loi')
+        ->set('type', 'expense')
+        ->set('amount', ',,,')
+        ->set('status', 'completed')
+        ->call('saveTransaction')
+        ->assertHasErrors(['amount']);
 });
 
 test('transactions can be filtered by category', function () {

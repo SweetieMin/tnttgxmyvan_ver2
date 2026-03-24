@@ -25,7 +25,7 @@
                         </div>
                     </flux:card>
                 @endplaceholder
-                <x-finance.analytics.category-bar-chart :category-bar-chart="$this->categoryBarChart($this->categorySummaries())" />
+                <x-finance.analytics.category-bar-chart :comparison-chart="$this->categoryComparisonChart()" />
             @endisland
         </div>
 

@@ -42,6 +42,15 @@ class CategoryAnalytics extends Component
      */
     protected array $resolvedTimeTrendCharts = [];
 
+    /**
+     * @var array<string, array{
+     *     title: string,
+     *     description: string,
+     *     points: array<int, array{category: string, income: int, expense: int}>
+     * }>
+     */
+    protected array $resolvedComparisonCharts = [];
+
     public function mount(): void
     {
         $this->dateRange = DateRange::yearToDate();
@@ -52,7 +61,14 @@ class CategoryAnalytics extends Component
     public function resetFilters(): void
     {
         $this->selectedCategory = '';
-        $this->dateRange = DateRange::yearToDate();
+        $this->dateRange = null;
+    }
+
+    public function updatedDateRange(): void
+    {
+        if ($this->dateRange !== null && ! $this->dateRange->hasStart() && ! $this->dateRange->hasEnd()) {
+            $this->dateRange = null;
+        }
     }
 
     /**
@@ -230,27 +246,78 @@ class CategoryAnalytics extends Component
     }
 
     /**
-     * @param  Collection<int, array{
-     *     id: int,
-     *     name: string,
-     *     transactions_count: int,
-     *     total_income: int,
-     *     total_expense: int,
-     *     balance: int
-     * }>  $categorySummaries
-     * @return array<int, array{category: string, income: int, expense: int}>
+     * @return array{
+     *     title: string,
+     *     description: string,
+     *     points: array<int, array{category: string, income: int, expense: int}>
+     * }
      */
-    public function categoryBarChart(Collection $categorySummaries): array
+    public function categoryComparisonChart(): array
     {
-        return $categorySummaries
-            ->filter(fn (array $summary): bool => $summary['total_income'] > 0 || $summary['total_expense'] > 0)
-            ->map(fn (array $summary): array => [
-                'category' => $summary['name'],
-                'income' => $summary['total_income'],
-                'expense' => $summary['total_expense'],
-            ])
-            ->values()
-            ->all();
+        $cacheKey = $this->categoryAnalyticsCacheKey('comparison-chart');
+
+        if (array_key_exists($cacheKey, $this->resolvedComparisonCharts)) {
+            return $this->resolvedComparisonCharts[$cacheKey];
+        }
+
+        if ($this->selectedCategory !== '') {
+            $selectedCategoryName = Category::query()->whereKey($this->selectedCategory)->value('name');
+
+            /** @var array<int, array{category: string, income: int, expense: int}> $points */
+            $points = Cache::remember(
+                $cacheKey,
+                now()->addMinutes(10),
+                function (): array {
+                    $yearExpression = $this->yearExpression('transaction_date');
+
+                    return $this->transactionQuery()
+                        ->selectRaw("{$yearExpression} as summary_year")
+                        ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income")
+                        ->selectRaw("COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense")
+                        ->groupBy('summary_year')
+                        ->orderBy('summary_year')
+                        ->get()
+                        ->map(fn (Transaction $transaction): array => [
+                            'category' => (string) $transaction->getAttribute('summary_year'),
+                            'income' => (int) ($transaction->getAttribute('total_income') ?? 0),
+                            'expense' => (int) ($transaction->getAttribute('total_expense') ?? 0),
+                        ])
+                        ->all();
+                },
+            );
+
+            $this->resolvedComparisonCharts[$cacheKey] = [
+                'title' => __('Income vs expense by year'),
+                'description' => $this->dateRange !== null && ($this->dateRange->hasStart() || $this->dateRange->hasEnd())
+                    ? __('Review yearly income and expense totals for :category within the selected date range.', [
+                        'category' => $selectedCategoryName ?? __('the selected category'),
+                    ])
+                    : __('Review yearly income and expense totals for :category across all recorded years.', [
+                        'category' => $selectedCategoryName ?? __('the selected category'),
+                    ]),
+                'points' => $points,
+            ];
+
+            return $this->resolvedComparisonCharts[$cacheKey];
+        }
+
+        $categorySummaries = $this->categorySummaries();
+
+        $this->resolvedComparisonCharts[$cacheKey] = [
+            'title' => __('Income vs expense by category'),
+            'description' => __('Compare how each category contributes to cash inflow and outflow.'),
+            'points' => $categorySummaries
+                ->filter(fn (array $summary): bool => $summary['total_income'] > 0 || $summary['total_expense'] > 0)
+                ->map(fn (array $summary): array => [
+                    'category' => $summary['name'],
+                    'income' => $summary['total_income'],
+                    'expense' => $summary['total_expense'],
+                ])
+                ->values()
+                ->all(),
+        ];
+
+        return $this->resolvedComparisonCharts[$cacheKey];
     }
 
     /**
@@ -383,10 +450,22 @@ class CategoryAnalytics extends Component
 
     protected function categoryAnalyticsCacheKey(string $segment): string
     {
+        $version = 'v2';
         $categoryId = $this->selectedCategory !== '' ? $this->selectedCategory : 'all';
         $start = $this->dateRange?->start()?->toDateString() ?? 'null';
         $end = $this->dateRange?->end()?->toDateString() ?? 'null';
 
-        return "finance.category-analytics.{$segment}.{$categoryId}.{$start}.{$end}";
+        return "finance.category-analytics.{$version}.{$segment}.{$categoryId}.{$start}.{$end}";
+    }
+
+    protected function yearExpression(string $column): string
+    {
+        $driver = Transaction::query()->getQuery()->getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return "strftime('%Y', {$column})";
+        }
+
+        return "YEAR({$column})";
     }
 }

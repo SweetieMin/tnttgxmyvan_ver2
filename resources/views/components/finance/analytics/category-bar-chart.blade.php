@@ -1,11 +1,15 @@
 @props([
-    'categoryBarChart' => [],
+    'comparisonChart' => [
+        'title' => '',
+        'description' => '',
+        'points' => [],
+    ],
 ])
 
 <flux:card class="rounded-2xl p-6">
     <div class="flex flex-col gap-2">
-        <flux:heading size="lg">{{ __('Income vs expense by category') }}</flux:heading>
-        <flux:text>{{ __('Compare how each category contributes to cash inflow and outflow.') }}</flux:text>
+        <flux:heading size="lg">{{ $comparisonChart['title'] }}</flux:heading>
+        <flux:text>{{ $comparisonChart['description'] }}</flux:text>
     </div>
 
     <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
@@ -19,9 +23,9 @@
         </div>
     </div>
 
-    @if (count($categoryBarChart) > 1)
+    @if (count($comparisonChart['points']) > 1)
         <div class="mt-4">
-            <flux:chart class="h-80 w-full min-w-0" :value="$categoryBarChart">
+            <flux:chart class="h-80 w-full min-w-0" :value="$comparisonChart['points']">
                 <flux:chart.svg gutter="14 18 38 58">
                     <flux:chart.axis axis="x" field="category">
                         <flux:chart.axis.tick class="[:where(&)]:text-[11px]" />
@@ -44,6 +48,6 @@
         </div>
     @else
         <flux:callout class="mt-4" color="sky" icon="information-circle"
-            :heading="__('Need at least two category data points to render this chart.')" />
+            :heading="__('Need at least two data points to render this chart.')" />
     @endif
 </flux:card>
