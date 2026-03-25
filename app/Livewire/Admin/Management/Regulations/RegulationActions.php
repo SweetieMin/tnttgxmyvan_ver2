@@ -33,7 +33,7 @@ class RegulationActions extends Component
     public string $status = 'pending';
 
     #[Validate]
-    public int|string $point_value = 0;
+    public string $point_value = '0';
 
     #[Locked]
     public array $originalRegulationState = [];
@@ -57,7 +57,7 @@ class RegulationActions extends Component
         $this->description = $regulation->description;
         $this->type = $regulation->type;
         $this->status = $regulation->status;
-        $this->point_value = (int) $regulation->points;
+        $this->point_value = (string) $regulation->points;
         $this->syncOriginalRegulationState();
         $this->showRegulationModal = true;
     }
@@ -190,7 +190,7 @@ class RegulationActions extends Component
 
         $this->type = 'plus';
         $this->status = 'pending';
-        $this->point_value = 0;
+        $this->point_value = '0';
         $this->syncOriginalRegulationState();
         $this->resetErrorBag();
     }
