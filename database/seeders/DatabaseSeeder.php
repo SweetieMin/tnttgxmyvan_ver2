@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             TransactionSeeder::class,
             ProgramSeeder::class,
             AcademicYearSeeder::class,
+            AcademicCourseSeeder::class,
             RegulationSeeder::class,
             UserDetailSeeder::class,
             UserParentSeeder::class,
