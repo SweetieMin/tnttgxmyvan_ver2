@@ -33,7 +33,7 @@ class RegulationActions extends Component
     public string $status = 'pending';
 
     #[Validate]
-    public int|string $points = 0;
+    public int|string $point_value = 0;
 
     #[Locked]
     public array $originalRegulationState = [];
@@ -57,7 +57,7 @@ class RegulationActions extends Component
         $this->description = $regulation->description;
         $this->type = $regulation->type;
         $this->status = $regulation->status;
-        $this->points = (int) $regulation->points;
+        $this->point_value = (int) $regulation->points;
         $this->syncOriginalRegulationState();
         $this->showRegulationModal = true;
     }
@@ -69,7 +69,12 @@ class RegulationActions extends Component
         $validated = $this->validate();
 
         try {
-            $this->regulationRepository()->save($validated, $this->editingRegulationId);
+            $this->regulationRepository()->save([
+                'description' => $validated['description'],
+                'type' => $validated['type'],
+                'status' => $validated['status'],
+                'points' => (int) $validated['point_value'],
+            ], $this->editingRegulationId);
         } catch (Throwable $exception) {
             $this->addError('description', __('Regulation save failed.'));
 
@@ -162,7 +167,7 @@ class RegulationActions extends Component
      */
     protected function rules(): array
     {
-        return RegulationRules::rules();
+        return RegulationRules::rules('point_value');
     }
 
     /**
@@ -170,7 +175,7 @@ class RegulationActions extends Component
      */
     protected function messages(): array
     {
-        return RegulationRules::messages();
+        return RegulationRules::messages('point_value');
     }
 
     protected function resetForm(): void
@@ -180,12 +185,12 @@ class RegulationActions extends Component
             'description',
             'type',
             'status',
-            'points',
+            'point_value',
         ]);
 
         $this->type = 'plus';
         $this->status = 'pending';
-        $this->points = 0;
+        $this->point_value = 0;
         $this->syncOriginalRegulationState();
         $this->resetErrorBag();
     }
@@ -204,7 +209,7 @@ class RegulationActions extends Component
             'description' => $this->description,
             'type' => $this->type,
             'status' => $this->status,
-            'points' => (int) $this->points,
+            'point_value' => (string) $this->point_value,
         ];
     }
 

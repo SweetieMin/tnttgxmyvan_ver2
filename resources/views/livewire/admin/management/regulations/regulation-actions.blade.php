@@ -13,7 +13,8 @@
                     <flux:textarea wire:model.live.debounce.500ms="description" :label="__('Description')" class="min-h-28" />
                 </div>
                 <div class="md:col-span-1">
-                    <flux:input wire:model.live.debounce.500ms="points" :label="__('Points')" type="number" min="0" />
+                    <flux:input wire:model.live.debounce.500ms="point_value" :label="__('Points')" type="text"
+                        inputmode="numeric" />
                 </div>
                 <div class="md:col-span-1">
                     <flux:select wire:model.live="type" variant="listbox" :label="__('Type')">

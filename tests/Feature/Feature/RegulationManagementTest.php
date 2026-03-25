@@ -42,7 +42,7 @@ test('regulations can be created updated and deleted from the livewire screen', 
         ->set('description', 'Đi học đúng giờ')
         ->set('type', 'plus')
         ->set('status', 'applied')
-        ->set('points', 10)
+        ->set('point_value', 10)
         ->call('saveRegulation')
         ->assertHasNoErrors();
 
@@ -84,9 +84,27 @@ test('regulation save button only appears after the form changes on edit', funct
         ->call('openEditModal', $regulation->id)
         ->call('shouldShowSaveRegulationButton')
         ->assertReturned(false)
-        ->set('points', $regulation->points + 5)
+        ->set('point_value', $regulation->points + 5)
         ->call('shouldShowSaveRegulationButton')
         ->assertReturned(true);
+});
+
+test('regulation points show a validation error when the value is not an integer', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.regulation.create',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(RegulationActions::class)
+        ->call('openCreateModal')
+        ->set('description', 'Đi học đúng giờ')
+        ->set('type', 'plus')
+        ->set('status', 'applied')
+        ->set('point_value', 'h')
+        ->call('saveRegulation')
+        ->assertHasErrors(['point_value' => 'integer']);
 });
 
 test('regulations can be reordered from the list', function () {
