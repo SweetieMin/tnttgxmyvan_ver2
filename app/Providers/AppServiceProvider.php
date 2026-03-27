@@ -58,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Blaze::debug();
+        // Blaze::debug();
 
         $this->configureDefaults();
     }

@@ -2,6 +2,7 @@
 
 namespace App\Validation\Admin\Access;
 
+use App\Foundation\PersonnelDirectory;
 use App\Models\Permission;
 use App\Models\Role;
 use Closure;
@@ -43,6 +44,11 @@ class RoleRules
                     }
                 },
             ],
+            'selectedPersonnelGroups' => ['array'],
+            'selectedPersonnelGroups.*' => [
+                'string',
+                Rule::in(array_keys(app(PersonnelDirectory::class)->groups())),
+            ],
         ];
     }
 
@@ -55,6 +61,7 @@ class RoleRules
             'roleName.required' => __('Role name is required.'),
             'roleName.unique' => __('This role name already exists.'),
             'selectedManageableRoles.*.exists' => __('Selected managed role is invalid.'),
+            'selectedPersonnelGroups.*.in' => __('Selected personnel group is invalid.'),
         ];
     }
 }

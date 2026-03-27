@@ -9,6 +9,7 @@ beforeEach(function () {
         'management.academic-year.view',
         'finance.transaction.view',
         'settings.log.activity.view',
+        'personnel.child.view',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
 
@@ -37,4 +38,16 @@ test('sidebar navigation includes secondary advance items when the user has sett
     expect($navigation['secondary'])->toHaveCount(1)
         ->and($navigation['secondary'][0]['label'])->toBe(__('Advance'))
         ->and(collect($navigation['secondary'][0]['items'])->pluck('label')->all())->toBe([__('System logs')]);
+});
+
+test('sidebar navigation includes only the personnel groups the user can access', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('personnel.child.view');
+
+    $navigation = app(SidebarNavigation::class)->for($user);
+    $personnelSection = collect($navigation['primary'])
+        ->firstWhere('label', __('Personnel'));
+
+    expect($personnelSection)->not->toBeNull()
+        ->and(collect($personnelSection['items'])->pluck('label')->all())->toBe([__('Children')]);
 });

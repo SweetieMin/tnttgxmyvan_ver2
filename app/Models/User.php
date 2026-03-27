@@ -162,4 +162,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserReligiousProfile::class);
     }
+
+    /**
+     * Relationship with User Setting
+     *
+     * @return HasOne
+     */
+    public function settings()
+    {
+        return $this->hasOne(UserSetting::class);
+    }
 }

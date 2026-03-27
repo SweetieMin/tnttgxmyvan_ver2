@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\Access\Roles\RoleActions;
 use App\Models\Permission;
+use App\Models\PersonnelRoleGroup;
 use App\Models\Role;
 use App\Models\User;
 use Livewire\Livewire;
@@ -42,7 +43,7 @@ test('roles can be created and updated from the livewire screen', function () {
         'access.role.update',
     ]);
 
-    Permission::findOrCreate('access.users.view', 'web');
+    Permission::findOrCreate('personnel.director.view', 'web');
     $manageableRole = Role::findOrCreate('Catechist', 'web');
     $secondaryManageableRole = Role::findOrCreate('Assistant Catechist', 'web');
 
@@ -50,27 +51,31 @@ test('roles can be created and updated from the livewire screen', function () {
 
     Livewire::test(RoleActions::class)
         ->set('roleName', 'Content Manager')
-        ->set('selectedPermissions', ['access.users.view'])
+        ->set('selectedPermissions', ['personnel.director.view'])
         ->set('selectedManageableRoles', [$manageableRole->id])
+        ->set('selectedPersonnelGroups', ['catechists'])
         ->call('saveRole')
         ->assertHasNoErrors();
 
     $role = Role::findByName('Content Manager', 'web');
 
-    expect($role->hasPermissionTo('access.users.view'))->toBeTrue()
-        ->and($role->manageableRoles()->pluck('roles.id')->all())->toBe([$manageableRole->id]);
+    expect($role->hasPermissionTo('personnel.director.view'))->toBeTrue()
+        ->and($role->manageableRoles()->pluck('roles.id')->all())->toBe([$manageableRole->id])
+        ->and($role->personnelRoleGroups()->pluck('group_key')->all())->toBe(['catechists']);
 
     Livewire::test(RoleActions::class)
         ->call('openEditModal', $role->id)
         ->set('roleName', 'Content Editor')
         ->set('selectedManageableRoles', [$secondaryManageableRole->id])
+        ->set('selectedPersonnelGroups', ['leaders', 'children'])
         ->call('saveRole')
         ->assertHasNoErrors();
 
     $updatedRole = Role::findByName('Content Editor', 'web');
 
     expect($updatedRole)->not->toBeNull()
-        ->and($updatedRole->manageableRoles()->pluck('roles.id')->all())->toBe([$secondaryManageableRole->id]);
+        ->and($updatedRole->manageableRoles()->pluck('roles.id')->all())->toBe([$secondaryManageableRole->id])
+        ->and($updatedRole->personnelRoleGroups()->pluck('group_key')->sort()->values()->all())->toBe(['children', 'leaders']);
 });
 
 test('roles assigned to users cannot be deleted', function () {
@@ -194,4 +199,47 @@ test('manageable role activity logs store role names instead of ids', function (
         ->toBe(['Staff', 'Catechist'])
         ->and($attributes['attached_manageable_role_ids'] ?? null)
         ->toBeNull();
+});
+
+test('role personnel group assignment is saved and logged with labels', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'access.role.view',
+        'access.role.create',
+        'access.role.update',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(RoleActions::class)
+        ->set('roleName', 'Youth Coordinator')
+        ->set('selectedPersonnelGroups', ['leaders', 'children'])
+        ->call('saveRole')
+        ->assertHasNoErrors();
+
+    $role = Role::findByName('Youth Coordinator', 'web');
+
+    expect($role->personnelRoleGroups()->pluck('group_key')->sort()->values()->all())
+        ->toBe(['children', 'leaders']);
+
+    /** @var Activity $activity */
+    $activity = Activity::query()
+        ->where('log_name', 'roles')
+        ->where('subject_type', Role::class)
+        ->where('subject_id', $role->id)
+        ->where('event', 'updated')
+        ->latest('id')
+        ->firstOrFail();
+
+    /** @var array<string, mixed> $attributes */
+    $attributes = $activity->properties->get('attributes', []);
+
+    expect($attributes['attached_personnel_groups'] ?? null)
+        ->toBe([__('Children'), __('Leaders')])
+        ->and($attributes['detached_personnel_groups'] ?? null)
+        ->toBe([]);
+
+    $role->personnelRoleGroups()->delete();
+
+    expect(PersonnelRoleGroup::query()->where('role_id', $role->id)->exists())->toBeFalse();
 });

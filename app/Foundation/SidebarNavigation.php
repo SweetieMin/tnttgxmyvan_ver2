@@ -9,8 +9,8 @@ class SidebarNavigation
 {
     /**
      * @return array{
-     *     primary: list<array{label: string, items: list<array{icon: string, href: string, current: string, label: string}>}>,
-     *     secondary: list<array{label: string, items: list<array{icon: string, href: string, current: string, label: string}>}>
+     *     primary: list<array{label: string, items: list<array{icon: string, href: string, label: string, active: bool}>}>,
+     *     secondary: list<array{label: string, items: list<array{icon: string, href: string, label: string, active: bool}>}>
      * }
      */
     public function for(?User $user): array
@@ -35,6 +35,26 @@ class SidebarNavigation
                         : null,
                     $permissions->contains('management.academic-course.view')
                         ? $this->item('rectangle-stack', route('admin.management.academic-courses'), 'admin.management.academic-courses', __('Catechism - sector classes'))
+                        : null,
+                ]),
+                $this->section(__('Personnel'), [
+                    $permissions->contains('personnel.user.view')
+                        ? $this->item('user-group', route('admin.personnel.users'), 'admin.personnel.users*', __('All users'), 'users')
+                        : null,
+                    $permissions->contains('personnel.director.view')
+                        ? $this->item('sparkles', route('admin.personnel.directors'), 'admin.personnel.directors*', __('Directors'), 'directors')
+                        : null,
+                    $permissions->contains('personnel.catechist.view')
+                        ? $this->item('book-open', route('admin.personnel.catechists'), 'admin.personnel.catechists*', __('Catechists'), 'catechists')
+                        : null,
+                    $permissions->contains('personnel.leader.view')
+                        ? $this->item('flag', route('admin.personnel.leaders'), 'admin.personnel.leaders*', __('Leaders'), 'leaders')
+                        : null,
+                    $permissions->contains('personnel.child.view')
+                        ? $this->item('users', route('admin.personnel.children'), 'admin.personnel.children*', __('Children'), 'children')
+                        : null,
+                    $permissions->contains('personnel.deleted.view')
+                        ? $this->item('archive-box-x-mark', route('admin.personnel.deleted-users'), 'admin.personnel.deleted-users*', __('Deleted users'))
                         : null,
                 ]),
                 $this->section(__('Finance'), [
@@ -86,8 +106,8 @@ class SidebarNavigation
     }
 
     /**
-     * @param  list<array{icon: string, href: string, current: string, label: string}|null>  $items
-     * @return array{label: string, items: list<array{icon: string, href: string, current: string, label: string}>}
+     * @param  list<array{icon: string, href: string, label: string, active: bool}|null>  $items
+     * @return array{label: string, items: list<array{icon: string, href: string, label: string, active: bool}>}
      */
     protected function section(string $label, array $items): array
     {
@@ -98,21 +118,22 @@ class SidebarNavigation
     }
 
     /**
-     * @return array{icon: string, href: string, current: string, label: string}
+     * @param  string|array<int, string>  $current
+     * @return array{icon: string, href: string, label: string, active: bool}
      */
-    protected function item(string $icon, string $href, string $current, string $label): array
+    protected function item(string $icon, string $href, string|array $current, string $label, ?string $personnelGroup = null): array
     {
         return [
             'icon' => $icon,
             'href' => $href,
-            'current' => $current,
             'label' => $label,
+            'active' => $this->isActiveItem($current, $personnelGroup),
         ];
     }
 
     /**
-     * @param  list<array{label: string, items: list<array{icon: string, href: string, current: string, label: string}>}>  $sections
-     * @return list<array{label: string, items: list<array{icon: string, href: string, current: string, label: string}>}>
+     * @param  list<array{label: string, items: list<array{icon: string, href: string, label: string, active: bool}>}>  $sections
+     * @return list<array{label: string, items: list<array{icon: string, href: string, label: string, active: bool}>}>
      */
     protected function filteredSections(array $sections): array
     {
@@ -120,5 +141,25 @@ class SidebarNavigation
             $sections,
             fn (array $section): bool => $section['items'] !== [],
         ));
+    }
+
+    /**
+     * @param  string|array<int, string>  $current
+     */
+    protected function isActiveItem(string|array $current, ?string $personnelGroup = null): bool
+    {
+        if ($personnelGroup === null) {
+            return request()->routeIs($current);
+        }
+
+        $routeName = request()->route()?->getName();
+        $currentGroup = request()->route('group');
+
+        if (request()->routeIs($current)) {
+            return true;
+        }
+
+        return in_array($routeName, ['admin.personnel.create', 'admin.personnel.users.edit'], true)
+            && $currentGroup === $personnelGroup;
     }
 }

@@ -34,7 +34,7 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
     {
         /** @var Role */
         return $this->query()
-            ->with(['permissions:id,name', 'manageableRoles:id,name'])
+            ->with(['permissions:id,name', 'manageableRoles:id,name', 'personnelRoleGroups:id,role_id,group_key'])
             ->findOrFail($roleId);
     }
 
@@ -49,9 +49,15 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
     /**
      * @param  array<int, string>  $selectedPermissions
      * @param  array<int, int|string>  $selectedManageableRoles
+     * @param  array<int, string>  $selectedPersonnelGroups
      */
-    public function save(string $roleName, array $selectedPermissions, array $selectedManageableRoles = [], ?int $editingRoleId = null): Role
-    {
+    public function save(
+        string $roleName,
+        array $selectedPermissions,
+        array $selectedManageableRoles = [],
+        array $selectedPersonnelGroups = [],
+        ?int $editingRoleId = null,
+    ): Role {
         /** @var Role|null $subject */
         $subject = $editingRoleId ? $this->findOrFail($editingRoleId) : null;
 
@@ -63,8 +69,9 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
                 'role_name' => $roleName,
                 'selected_permissions' => $selectedPermissions,
                 'selected_manageable_roles' => $selectedManageableRoles,
+                'selected_personnel_groups' => $selectedPersonnelGroups,
             ],
-            callback: function () use ($roleName, $selectedPermissions, $selectedManageableRoles, $editingRoleId): Role {
+            callback: function () use ($roleName, $selectedPermissions, $selectedManageableRoles, $selectedPersonnelGroups, $editingRoleId): Role {
                 /** @var Role $role */
                 $role = $editingRoleId
                     ? $this->findOrFail($editingRoleId)
@@ -85,6 +92,7 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
                 $role->syncManageableRolesWithActivityLog(
                     collect($selectedManageableRoles)->map(fn (mixed $roleId): int => (int) $roleId)->all(),
                 );
+                $role->syncPersonnelRoleGroupsWithActivityLog($selectedPersonnelGroups);
 
                 return $role;
             },

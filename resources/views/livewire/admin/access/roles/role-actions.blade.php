@@ -10,6 +10,18 @@
 
             <flux:input wire:model.live.debounce.500ms="roleName" :label="__('Role name')" :placeholder="__('Enter role name')" />
 
+            <flux:select
+                wire:model.live="selectedPersonnelGroups"
+                variant="listbox"
+                :label="__('Personnel group')"
+                :placeholder="__('Not assigned to personnel')"
+                multiple
+            >
+                @foreach ($personnelGroups as $personnelGroup)
+                    <flux:select.option :value="$personnelGroup['value']">{{ $personnelGroup['label'] }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-4">
                     <flux:heading size="sm">{{ __('Managed roles') }}</flux:heading>

@@ -21,12 +21,15 @@
         </flux:sidebar.header>
 
         <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-            @foreach (($sidebarNavigation['primary'] ?? []) as $section)
-                <flux:separator :text="$section['label']" />
+            @foreach ($sidebarNavigation['primary'] ?? [] as $section)
+                <div class="my-2">
+                    <flux:separator :text="$section['label']" />
+                </div>
+
                 <flux:sidebar.nav>
                     @foreach ($section['items'] as $item)
-                        <flux:sidebar.item :icon="$item['icon']" :href="$item['href']"
-                            :current="request()->routeIs($item['current'])" wire:navigate>
+                        <flux:sidebar.item :icon="$item['icon']" :href="$item['href']" :current="$item['active']"
+                            wire:navigate>
                             {{ $item['label'] }}
                         </flux:sidebar.item>
                     @endforeach
@@ -35,12 +38,12 @@
 
             <flux:spacer />
 
-            @foreach (($sidebarNavigation['secondary'] ?? []) as $section)
+            @foreach ($sidebarNavigation['secondary'] ?? [] as $section)
                 <flux:separator :text="$section['label']" />
                 <flux:sidebar.nav>
                     @foreach ($section['items'] as $item)
-                        <flux:sidebar.item :icon="$item['icon']" :href="$item['href']"
-                            :current="request()->routeIs($item['current'])" wire:navigate>
+                        <flux:sidebar.item :icon="$item['icon']" :href="$item['href']" :current="$item['active']"
+                            wire:navigate>
                             {{ $item['label'] }}
                         </flux:sidebar.item>
                     @endforeach
@@ -49,8 +52,7 @@
         </div>
 
         <div class="shrink-0 hidden lg:block">
-            <x-desktop-user-menu :name="$sidebarUserName" :email="$sidebarUserEmail"
-                :user-picture="$sidebarUserPicture" />
+            <x-desktop-user-menu :name="$sidebarUserName" :email="$sidebarUserEmail" :user-picture="$sidebarUserPicture" />
         </div>
     </flux:sidebar>
 
@@ -65,8 +67,7 @@
                 aria-label="Toggle dark mode" />
             <flux:separator vertical class="my-2" />
 
-            <x-desktop-user-menu :name="$sidebarUserName" :email="$sidebarUserEmail"
-                :user-picture="$sidebarUserPicture" />
+            <x-desktop-user-menu :name="$sidebarUserName" :email="$sidebarUserEmail" :user-picture="$sidebarUserPicture" />
 
         </flux:navbar>
         <flux:navbar scrollable class="hidden lg:flex h-full items-center gap-2">

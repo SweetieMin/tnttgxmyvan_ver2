@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\PersonnelRoleGroup;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 
@@ -14,38 +15,51 @@ class RoleSeeder extends Seeder
     {
         $roles = [
 
-            ['name' => 'Cha Tuyên Úy'],
-            ['name' => 'Thầy Phó Tế'],
+            ['name' => 'Cha Tuyên Úy', 'group_keys' => ['directors']],
+            ['name' => 'Thầy Phó Tế', 'group_keys' => ['directors']],
 
-            ['name' => 'Trưởng Giáo Lý'],
-            ['name' => 'Phó Giáo Lý'],
-            ['name' => 'Giáo Lý Viên'],
+            ['name' => 'Trưởng Giáo Lý', 'group_keys' => ['catechists']],
+            ['name' => 'Phó Giáo Lý', 'group_keys' => ['catechists']],
+            ['name' => 'Giáo Lý Viên', 'group_keys' => ['catechists']],
 
-            ['name' => 'Xứ Đoàn Trưởng'],
-            ['name' => 'Xứ Đoàn Phó'],
-            ['name' => 'Thủ Quỹ'],
+            ['name' => 'Xứ Đoàn Trưởng', 'group_keys' => ['leaders']],
+            ['name' => 'Xứ Đoàn Phó', 'group_keys' => ['leaders']],
+            ['name' => 'Thủ Quỹ', 'group_keys' => ['leaders']],
 
-            ['name' => 'Trưởng Ngành Nghĩa'],
-            ['name' => 'Phó Ngành Nghĩa'],
+            ['name' => 'Trưởng Ngành Nghĩa', 'group_keys' => ['leaders']],
+            ['name' => 'Phó Ngành Nghĩa', 'group_keys' => ['leaders']],
 
-            ['name' => 'Trưởng Ngành Thiếu'],
-            ['name' => 'Phó Ngành Thiếu'],
+            ['name' => 'Trưởng Ngành Thiếu', 'group_keys' => ['leaders']],
+            ['name' => 'Phó Ngành Thiếu', 'group_keys' => ['leaders']],
 
-            ['name' => 'Trưởng Ngành Ấu'],
-            ['name' => 'Phó Ngành Ấu'],
+            ['name' => 'Trưởng Ngành Ấu', 'group_keys' => ['leaders']],
+            ['name' => 'Phó Ngành Ấu', 'group_keys' => ['leaders']],
 
-            ['name' => 'Trưởng Ngành Tiền Ấu'],
-            ['name' => 'Phó Ngành Tiền Ấu'],
+            ['name' => 'Trưởng Ngành Tiền Ấu', 'group_keys' => ['leaders']],
+            ['name' => 'Phó Ngành Tiền Ấu', 'group_keys' => ['leaders']],
 
-            ['name' => 'Huynh Trưởng'],
-            ['name' => 'Dự Trưởng'],
+            ['name' => 'Huynh Trưởng', 'group_keys' => ['leaders']],
+            ['name' => 'Dự Trưởng', 'group_keys' => ['leaders']],
 
-            ['name' => 'Đội Trưởng'],
-            ['name' => 'Thiếu Nhi'],
+            ['name' => 'Đội Trưởng', 'group_keys' => ['leaders', 'children']],
+            ['name' => 'Thiếu Nhi', 'group_keys' => ['children']],
         ];
 
         foreach ($roles as $role) {
-            Role::findOrCreate($role['name'], 'web');
+            $model = Role::findOrCreate($role['name'], 'web');
+
+            PersonnelRoleGroup::query()->where('role_id', $model->id)->delete();
+
+            PersonnelRoleGroup::query()->insert(
+                collect($role['group_keys'])
+                    ->map(fn (string $groupKey): array => [
+                        'role_id' => $model->id,
+                        'group_key' => $groupKey,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ])
+                    ->all(),
+            );
         }
     }
 }

@@ -32,6 +32,33 @@ class RolePermissionSeeder extends Seeder
             'access.permission.update',
             'access.permission.delete',
 
+            'personnel.director.view',
+            'personnel.director.create',
+            'personnel.director.update',
+            'personnel.director.delete',
+
+            'personnel.catechist.view',
+            'personnel.catechist.create',
+            'personnel.catechist.update',
+            'personnel.catechist.delete',
+
+            'personnel.leader.view',
+            'personnel.leader.create',
+            'personnel.leader.update',
+            'personnel.leader.delete',
+
+            'personnel.child.view',
+            'personnel.child.create',
+            'personnel.child.update',
+            'personnel.child.delete',
+
+            'personnel.user.view',
+            'personnel.user.create',
+            'personnel.user.update',
+            'personnel.user.delete',
+
+            'personnel.deleted.view',
+
             'management.academic-year.view',
             'management.academic-year.create',
             'management.academic-year.update',
@@ -109,7 +136,7 @@ class RolePermissionSeeder extends Seeder
             'email' => 'tntt.myvan@gmail.com',
             'password' => '12345',
             'status_login' => 'active',
-            'token' => $admin->token ?: Str::random(60),
+            'token' => $admin->token ?: Str::random(64),
         ]);
 
         $admin->deleted_at = null;

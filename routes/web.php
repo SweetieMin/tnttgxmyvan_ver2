@@ -9,8 +9,16 @@ use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
 use App\Livewire\Admin\Management\Regulations\RegulationIndex;
+use App\Livewire\Admin\Personnel\Catechists\CatechistIndex;
+use App\Livewire\Admin\Personnel\Children\ChildIndex;
+use App\Livewire\Admin\Personnel\DeletedUsers\DeletedUserIndex;
+use App\Livewire\Admin\Personnel\Directors\DirectorIndex;
+use App\Livewire\Admin\Personnel\Leaders\LeaderIndex;
+use App\Livewire\Admin\Personnel\UserProfileEditor;
+use App\Livewire\Admin\Personnel\Users\UserIndex;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -60,6 +68,48 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:finance.transaction.view')
                 ->name('transactions');
 
+        });
+
+        Route::prefix('personnel')->name('personnel.')->group(function () {
+            Route::livewire('users', UserIndex::class)
+                ->middleware('permission:personnel.user.view')
+                ->name('users');
+
+            Route::livewire('directors', DirectorIndex::class)
+                ->middleware('permission:personnel.director.view')
+                ->name('directors');
+
+            Route::livewire('catechists', CatechistIndex::class)
+                ->middleware('permission:personnel.catechist.view')
+                ->name('catechists');
+
+            Route::livewire('leaders', LeaderIndex::class)
+                ->middleware('permission:personnel.leader.view')
+                ->name('leaders');
+
+            Route::livewire('children', ChildIndex::class)
+                ->middleware('permission:personnel.child.view')
+                ->name('children');
+
+            Route::livewire('deleted-users', DeletedUserIndex::class)
+                ->middleware('permission:personnel.deleted.view')
+                ->name('deleted-users');
+
+            Route::livewire('{group}/create', UserProfileEditor::class)
+                ->middleware('permission:personnel.user.create|personnel.director.create|personnel.catechist.create|personnel.leader.create|personnel.child.create')
+                ->name('create');
+
+            Route::livewire('{group}/users/{user}/edit', UserProfileEditor::class)
+                ->middleware('permission:personnel.user.update|personnel.director.update|personnel.catechist.update|personnel.leader.update|personnel.child.update')
+                ->name('users.edit');
+
+            Route::get('{group}/users/{user}', function (string $group, User $user) {
+                return redirect()->route('admin.personnel.users.edit', [
+                    'group' => $group,
+                    'user' => $user,
+                ]);
+            })
+                ->middleware('permission:personnel.user.update|personnel.director.update|personnel.catechist.update|personnel.leader.update|personnel.child.update');
         });
 
     });
