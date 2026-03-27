@@ -2,13 +2,17 @@
 
 use App\Foundation\SidebarNavigation;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 beforeEach(function () {
     collect([
         'management.academic-year.view',
         'finance.transaction.view',
         'settings.log.activity.view',
+        'personnel.user.view',
+        'personnel.catechist.view',
         'personnel.child.view',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
@@ -50,4 +54,35 @@ test('sidebar navigation includes only the personnel groups the user can access'
 
     expect($personnelSection)->not->toBeNull()
         ->and(collect($personnelSection['items'])->pluck('label')->all())->toBe([__('Children')]);
+});
+
+test('personnel edit routes only mark the current group as active in the sidebar', function () {
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo([
+        'personnel.user.view',
+        'personnel.catechist.view',
+    ]);
+
+    $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate('Giáo Lý Viên', 'web'));
+
+    $request = Request::create(route('admin.personnel.users.edit', [
+        'group' => 'catechists',
+        'user' => $user,
+    ]));
+
+    $route = app('router')->getRoutes()->match($request);
+    $request->setRouteResolver(fn () => $route);
+    app()->instance('request', $request);
+
+    $navigation = app(SidebarNavigation::class)->for($viewer);
+    $personnelSection = collect($navigation['primary'])
+        ->firstWhere('label', __('Personnel'));
+
+    expect($personnelSection)->not->toBeNull();
+
+    $items = collect($personnelSection['items'])->keyBy('label');
+
+    expect($items[__('All users')]['active'])->toBeFalse()
+        ->and($items[__('Catechists')]['active'])->toBeTrue();
 });

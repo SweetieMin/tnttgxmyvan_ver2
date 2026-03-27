@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Personnel\UpsertPersonnelProfile;
+use App\Foundation\PersonnelDirectory;
 use App\Livewire\Admin\Personnel\PersonnelList;
 use App\Livewire\Admin\Personnel\UserProfileEditor;
 use App\Models\Permission;
@@ -39,6 +40,11 @@ beforeEach(function () {
         'personnel.child.update',
         'personnel.child.delete',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
+});
+
+test('personnel directory is resolved as a singleton', function () {
+    expect(app(PersonnelDirectory::class))
+        ->toBe(app(PersonnelDirectory::class));
 });
 
 function createManagerWithManageableRoles(array $manageableRoles, array $permissions): User

@@ -38,9 +38,7 @@ class SidebarNavigation
                         : null,
                 ]),
                 $this->section(__('Personnel'), [
-                    $permissions->contains('personnel.user.view')
-                        ? $this->item('user-group', route('admin.personnel.users'), 'admin.personnel.users*', __('All users'), 'users')
-                        : null,
+
                     $permissions->contains('personnel.director.view')
                         ? $this->item('sparkles', route('admin.personnel.directors'), 'admin.personnel.directors*', __('Directors'), 'directors')
                         : null,
@@ -52,6 +50,9 @@ class SidebarNavigation
                         : null,
                     $permissions->contains('personnel.child.view')
                         ? $this->item('users', route('admin.personnel.children'), 'admin.personnel.children*', __('Children'), 'children')
+                        : null,
+                    $permissions->contains('personnel.user.view')
+                        ? $this->item('user-group', route('admin.personnel.users'), 'admin.personnel.users*', __('All users'), 'users')
                         : null,
                     $permissions->contains('personnel.deleted.view')
                         ? $this->item('archive-box-x-mark', route('admin.personnel.deleted-users'), 'admin.personnel.deleted-users*', __('Deleted users'))
@@ -155,11 +156,10 @@ class SidebarNavigation
         $routeName = request()->route()?->getName();
         $currentGroup = request()->route('group');
 
-        if (request()->routeIs($current)) {
-            return true;
+        if (in_array($routeName, ['admin.personnel.create', 'admin.personnel.users.edit'], true)) {
+            return $currentGroup === $personnelGroup;
         }
 
-        return in_array($routeName, ['admin.personnel.create', 'admin.personnel.users.edit'], true)
-            && $currentGroup === $personnelGroup;
+        return request()->routeIs($current);
     }
 }

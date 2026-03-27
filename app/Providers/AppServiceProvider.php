@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Foundation\PersonnelDirectory;
 use App\Foundation\SidebarNavigation;
 use App\Foundation\SiteSettings;
 use App\Models\Permission;
@@ -41,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(PersonnelDirectory::class);
         $this->app->singleton(SiteSettings::class);
 
         $this->app->bind(AcademicYearRepositoryInterface::class, AcademicYearRepository::class);
