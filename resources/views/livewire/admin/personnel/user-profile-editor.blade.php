@@ -1,7 +1,7 @@
 <section class="flex flex-col gap-4">
     <x-app-heading :title="$this->title()" :sub-title="$this->subtitle()" icon="user-circle" />
 
-    <form wire:submit="saveUserProfile" class="space-y-4">
+    <form wire:submit="saveUserProfile" class="space-y-4 pb-28 md:pb-0">
         <div class="grid gap-4 xl:grid-cols-[450px_minmax(0,1fr)]">
             <div class="space-y-4 xl:sticky xl:top-6 xl:self-start">
                 <flux:card class="rounded-3xl p-8">
@@ -131,13 +131,25 @@
             </flux:card>
         </div>
 
-        <div class="flex justify-end gap-3">
+        <div class="hidden justify-end gap-3 md:flex">
             <flux:button variant="ghost" :href="$this->cancelRoute()" wire:navigate>
                 {{ __('Cancel') }}
             </flux:button>
             <flux:button variant="primary" type="submit">
                 {{ $this->submitLabel() }}
             </flux:button>
+        </div>
+
+        <div
+            class="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
+            <div class="mx-auto grid max-w-screen-sm grid-cols-2 gap-3">
+                <flux:button variant="ghost" :href="$this->cancelRoute()" wire:navigate>
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="primary" type="submit">
+                    {{ $this->submitLabel() }}
+                </flux:button>
+            </div>
         </div>
     </form>
 </section>
