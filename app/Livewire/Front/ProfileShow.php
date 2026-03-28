@@ -6,12 +6,14 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class ProfileShow extends Component
 {
     public User $user;
 
+    #[Url(except: 'personal')]
     public string $tab = 'personal';
 
     public function mount(string $token): void
@@ -20,6 +22,10 @@ class ProfileShow extends Component
             ->with(['details', 'parents', 'roles'])
             ->where('token', $token)
             ->firstOrFail();
+
+        if (! in_array($this->tab, ['personal', 'parents'], true)) {
+            $this->tab = 'personal';
+        }
     }
 
     public function selectTab(string $tab): void

@@ -23,6 +23,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+
 Route::livewire('profile/{token}', ProfileShow::class)->name('front.profile.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {

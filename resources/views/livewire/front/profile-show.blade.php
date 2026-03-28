@@ -1,26 +1,23 @@
 <section class="space-y-6">
-    <div class="overflow-hidden rounded-[2rem] border border-amber-200/80 bg-white/90 shadow-sm shadow-amber-100 backdrop-blur">
+    <flux:card class="overflow-hidden rounded-4xl border border-amber-200/80 bg-white/90 p-0 shadow-sm shadow-amber-100 backdrop-blur">
         <div class="bg-gradient-to-r from-amber-100 via-amber-50 to-white px-6 py-8 md:px-10">
             <div class="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:text-left">
-                <img
-                    src="{{ $this->avatarUrl() }}"
-                    alt="{{ $user->full_name }}"
-                    class="size-32 rounded-full border-4 border-white object-cover shadow-sm shadow-amber-200 md:size-36"
-                />
+                <img src="{{ $this->avatarUrl() }}" alt="{{ $user->full_name }}"
+                    class="size-32 rounded-full border-4 border-white object-cover shadow-sm shadow-amber-200 md:size-36" />
 
                 <div class="min-w-0 flex-1 space-y-3">
                     <div class="space-y-1">
-                        <div class="text-sm font-medium uppercase tracking-[0.25em] text-amber-700">
-                            {{ __('Public profile') }}
-                        </div>
-                        <h1 class="text-3xl font-bold tracking-tight text-zinc-900">
-                            {{ $user->full_name }}
-                        </h1>
+
                         @if (filled($user->christian_name))
                             <p class="text-base font-medium text-amber-800">
                                 {{ $user->christian_name }}
                             </p>
                         @endif
+
+                        <h1 class="text-3xl font-bold tracking-tight text-zinc-900">
+                            {{ $user->full_name }}
+                        </h1>
+
                     </div>
 
                     @if ($this->roleNames()->isNotEmpty())
@@ -35,7 +32,8 @@
         </div>
 
         <div class="px-4 py-4 md:px-8 md:py-6">
-            <flux:tab.group>
+            <flux:card >
+                <flux:tab.group>
                 <flux:tabs scrollable scrollable:fade class="border-b border-zinc-200 pb-2 dark:border-zinc-800">
                     <flux:tab wire:click="selectTab('personal')" name="personal" icon="user"
                         :selected="$tab === 'personal'">
@@ -48,10 +46,11 @@
                 </flux:tabs>
 
                 <flux:tab.panel name="personal">
-                    <div class="grid gap-4 pt-6 md:grid-cols-2">
+                    <div class="grid gap-2  md:grid-cols-2">
                         <flux:card class="rounded-2xl p-5">
                             <div class="text-sm text-zinc-500">{{ __('Christian name') }}</div>
-                            <div class="mt-2 text-lg font-semibold text-zinc-900">{{ $user->christian_name ?: '—' }}</div>
+                            <div class="mt-2 text-lg font-semibold text-zinc-900">{{ $user->christian_name ?: '—' }}
+                            </div>
                         </flux:card>
 
                         <flux:card class="rounded-2xl p-5">
@@ -88,7 +87,7 @@
                 </flux:tab.panel>
 
                 <flux:tab.panel name="parents">
-                    <div class="grid gap-4 pt-6 md:grid-cols-2">
+                    <div class="grid gap-2  md:grid-cols-2">
                         @forelse ($this->parentContacts() as $contact)
                             <flux:card class="rounded-2xl p-5">
                                 <div class="space-y-3">
@@ -118,7 +117,8 @@
                         @endforelse
                     </div>
                 </flux:tab.panel>
-            </flux:tab.group>
+                </flux:tab.group>
+            </flux:card>
         </div>
-    </div>
+    </flux:card>
 </section>
