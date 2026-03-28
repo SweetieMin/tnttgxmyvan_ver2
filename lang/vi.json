@@ -774,5 +774,12 @@
     "Zoom out": "Thu nhỏ",
     "Personnel group": "Nhóm nhân sự",
     "Not assigned to personnel": "Chưa gán vào nhóm nhân sự",
-    "Selected personnel group is invalid.": "Nhóm nhân sự đã chọn không hợp lệ."
+    "Selected personnel group is invalid.": "Nhóm nhân sự đã chọn không hợp lệ.",
+    "Restore": "Khôi phục",
+    "Delete permanently": "Xoá vĩnh viễn",
+    "Restore personnel profile": "Khôi phục hồ sơ nhân sự",
+    "This personnel profile will be restored to the active list.": "Hồ sơ nhân sự này sẽ được khôi phục về danh sách đang hoạt động.",
+    "Personnel profile restored successfully.": "Đã khôi phục hồ sơ nhân sự thành công.",
+    "Delete personnel profile permanently": "Xoá vĩnh viễn hồ sơ nhân sự",
+    "This personnel profile will be permanently removed and cannot be recovered.": "Hồ sơ nhân sự này sẽ bị xoá vĩnh viễn và không thể khôi phục."
 }

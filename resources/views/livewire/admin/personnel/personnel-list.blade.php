@@ -52,7 +52,31 @@
                             </flux:table.cell>
                             <flux:table.cell align="end">
                                 <div class="flex justify-end gap-2">
-                                    @if ($this->canUpdateUser($user) || $this->canDeleteUser($user))
+                                    @if ($group === 'deleted-users')
+                                        @if ($this->canRestoreUser($user) || $this->canForceDeleteUser($user))
+                                            <flux:dropdown position="bottom end">
+                                                <flux:button size="sm" variant="ghost" icon:trailing="chevron-down">
+                                                    {{ __('Options') }}
+                                                </flux:button>
+
+                                                <flux:menu>
+                                                    @if ($this->canRestoreUser($user))
+                                                        <flux:menu.item icon="arrow-path" wire:click="confirmRestoreUser({{ $user->id }})">
+                                                            {{ __('Restore') }}
+                                                        </flux:menu.item>
+                                                    @endif
+
+                                                    @if ($this->canForceDeleteUser($user))
+                                                        <flux:menu.separator />
+                                                        <flux:menu.item variant="danger" icon="trash"
+                                                            wire:click="confirmForceDeleteUser({{ $user->id }})">
+                                                            {{ __('Delete permanently') }}
+                                                        </flux:menu.item>
+                                                    @endif
+                                                </flux:menu>
+                                            </flux:dropdown>
+                                        @endif
+                                    @elseif ($this->canUpdateUser($user) || $this->canDeleteUser($user))
                                         <flux:dropdown position="bottom end">
                                             <flux:button size="sm" variant="ghost" icon:trailing="chevron-down">
                                                 {{ __('Options') }}
@@ -149,7 +173,31 @@
 
                                         <div class="flex justify-end">
                                             <div class="flex gap-2">
-                                                @if ($this->canUpdateUser($user) || $this->canDeleteUser($user))
+                                                @if ($group === 'deleted-users')
+                                                    @if ($this->canRestoreUser($user) || $this->canForceDeleteUser($user))
+                                                        <flux:dropdown position="bottom end">
+                                                            <flux:button size="sm" variant="ghost" icon:trailing="chevron-down">
+                                                                {{ __('Options') }}
+                                                            </flux:button>
+
+                                                            <flux:menu>
+                                                                @if ($this->canRestoreUser($user))
+                                                                    <flux:menu.item icon="arrow-path" wire:click="confirmRestoreUser({{ $user->id }})">
+                                                                        {{ __('Restore') }}
+                                                                    </flux:menu.item>
+                                                                @endif
+
+                                                                @if ($this->canForceDeleteUser($user))
+                                                                    <flux:menu.separator />
+                                                                    <flux:menu.item variant="danger" icon="trash"
+                                                                        wire:click="confirmForceDeleteUser({{ $user->id }})">
+                                                                        {{ __('Delete permanently') }}
+                                                                    </flux:menu.item>
+                                                                @endif
+                                                            </flux:menu>
+                                                        </flux:dropdown>
+                                                    @endif
+                                                @elseif ($this->canUpdateUser($user) || $this->canDeleteUser($user))
                                                     <flux:dropdown position="bottom end">
                                                         <flux:button size="sm" variant="ghost" icon:trailing="chevron-down">
                                                             {{ __('Options') }}
@@ -198,6 +246,34 @@
             <div class="flex justify-end gap-3">
                 <flux:button variant="ghost" wire:click="$set('showDeleteModal', false)">{{ __('Cancel') }}</flux:button>
                 <flux:button variant="danger" wire:click="deleteUser">{{ __('Delete') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showRestoreModal" class="max-w-lg">
+        <div class="space-y-5">
+            <div class="space-y-2">
+                <flux:heading size="lg">{{ __('Restore personnel profile') }}</flux:heading>
+                <flux:text>{{ __('This personnel profile will be restored to the active list.') }}</flux:text>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <flux:button variant="ghost" wire:click="$set('showRestoreModal', false)">{{ __('Cancel') }}</flux:button>
+                <flux:button variant="primary" wire:click="restoreUser">{{ __('Restore') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showForceDeleteModal" class="max-w-lg">
+        <div class="space-y-5">
+            <div class="space-y-2">
+                <flux:heading size="lg">{{ __('Delete personnel profile permanently') }}</flux:heading>
+                <flux:text>{{ __('This personnel profile will be permanently removed and cannot be recovered.') }}</flux:text>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <flux:button variant="ghost" wire:click="$set('showForceDeleteModal', false)">{{ __('Cancel') }}</flux:button>
+                <flux:button variant="danger" wire:click="forceDeleteUser">{{ __('Delete permanently') }}</flux:button>
             </div>
         </div>
     </flux:modal>

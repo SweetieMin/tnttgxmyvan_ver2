@@ -29,6 +29,14 @@ class PersonnelList extends Component
 
     public ?int $deletingUserId = null;
 
+    public bool $showRestoreModal = false;
+
+    public ?int $restoringUserId = null;
+
+    public bool $showForceDeleteModal = false;
+
+    public ?int $forceDeletingUserId = null;
+
     public function mount(string $group = 'users', string $search = '', int $perPage = 15, string $selectedStatus = ''): void
     {
         abort_unless($this->directory()->hasGroup($group), 404);
@@ -65,6 +73,24 @@ class PersonnelList extends Component
         $this->showDeleteModal = true;
     }
 
+    public function confirmRestoreUser(int $userId): void
+    {
+        $user = User::onlyTrashed()->with('roles')->findOrFail($userId);
+        abort_unless($this->canRestoreUser($user), 403);
+
+        $this->restoringUserId = $user->id;
+        $this->showRestoreModal = true;
+    }
+
+    public function confirmForceDeleteUser(int $userId): void
+    {
+        $user = User::onlyTrashed()->with('roles')->findOrFail($userId);
+        abort_unless($this->canForceDeleteUser($user), 403);
+
+        $this->forceDeletingUserId = $user->id;
+        $this->showForceDeleteModal = true;
+    }
+
     public function deleteUser(): void
     {
         $user = User::query()->with('roles')->findOrFail($this->deletingUserId);
@@ -80,6 +106,42 @@ class PersonnelList extends Component
 
         $this->showDeleteModal = false;
         $this->deletingUserId = null;
+        $this->resetPage();
+    }
+
+    public function restoreUser(): void
+    {
+        $user = User::onlyTrashed()->with('roles')->findOrFail($this->restoringUserId);
+        abort_unless($this->canRestoreUser($user), 403);
+
+        $user->restore();
+
+        Flux::toast(
+            text: __('Personnel profile restored successfully.'),
+            heading: __('Success'),
+            variant: 'success',
+        );
+
+        $this->showRestoreModal = false;
+        $this->restoringUserId = null;
+        $this->resetPage();
+    }
+
+    public function forceDeleteUser(): void
+    {
+        $user = User::onlyTrashed()->with('roles')->findOrFail($this->forceDeletingUserId);
+        abort_unless($this->canForceDeleteUser($user), 403);
+
+        $user->forceDelete();
+
+        Flux::toast(
+            text: __('Personnel profile permanently deleted successfully.'),
+            heading: __('Success'),
+            variant: 'success',
+        );
+
+        $this->showForceDeleteModal = false;
+        $this->forceDeletingUserId = null;
         $this->resetPage();
     }
 
@@ -111,6 +173,40 @@ class PersonnelList extends Component
             ));
     }
 
+    public function canRestoreUser(User $user): bool
+    {
+        if (! $this->directory()->isDeletedUsersPage($this->group) || ! $user->trashed()) {
+            return false;
+        }
+
+        if ($user->roles->isEmpty()) {
+            return (bool) auth()->user()?->can($this->directory()->updatePermissionForGroup('users') ?? '');
+        }
+
+        return $this->isVisibleUser($user)
+            && collect($this->groupKeysForUser($user))
+                ->every(fn (string $groupKey): bool => (bool) auth()->user()?->can(
+                    $this->directory()->updatePermissionForGroup($groupKey) ?? '',
+                ));
+    }
+
+    public function canForceDeleteUser(User $user): bool
+    {
+        if (! $this->directory()->isDeletedUsersPage($this->group) || ! $user->trashed()) {
+            return false;
+        }
+
+        if ($user->roles->isEmpty()) {
+            return (bool) auth()->user()?->can($this->directory()->deletePermissionForGroup('users') ?? '');
+        }
+
+        return $this->isVisibleUser($user)
+            && collect($this->groupKeysForUser($user))
+                ->every(fn (string $groupKey): bool => (bool) auth()->user()?->can(
+                    $this->directory()->deletePermissionForGroup($groupKey) ?? '',
+                ));
+    }
+
     public function editRoute(User $user): string
     {
         return route('admin.personnel.users.edit', [
@@ -134,9 +230,12 @@ class PersonnelList extends Component
                 'roles',
             ])
             ->where(function (Builder $query): void {
-                $query->when($this->directory()->isAllUsersPage($this->group), function (Builder $allUsersQuery): void {
-                    $allUsersQuery->doesntHave('roles');
-                });
+                $query->when(
+                    $this->directory()->isAllUsersPage($this->group) || $this->directory()->isDeletedUsersPage($this->group),
+                    function (Builder $allUsersQuery): void {
+                        $allUsersQuery->doesntHave('roles');
+                    },
+                );
 
                 $query->orWhereHas('roles', function (Builder $roleQuery): void {
                     $roleQuery->whereIn('name', $this->visibleRoleNames());

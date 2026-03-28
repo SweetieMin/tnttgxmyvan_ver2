@@ -587,6 +587,12 @@ test('deleted users page lists only soft deleted manageable users', function () 
     $deletedChild->assignRole(personnelRole('Thiếu Nhi'));
     $deletedChild->delete();
 
+    $deletedUnassigned = User::factory()->create([
+        'last_name' => 'Lê',
+        'name' => 'Chưa Phân Chức Vụ',
+    ]);
+    $deletedUnassigned->delete();
+
     $activeChild = User::factory()->create([
         'last_name' => 'Lê',
         'name' => 'Đang Hoạt Động',
@@ -597,7 +603,52 @@ test('deleted users page lists only soft deleted manageable users', function () 
 
     Livewire::test(PersonnelList::class, ['group' => 'deleted-users'])
         ->assertSeeText('Lê Đã Xoá')
+        ->assertSeeText('Lê Chưa Phân Chức Vụ')
         ->assertDontSeeText('Lê Đang Hoạt Động');
+});
+
+test('deleted users can be restored from the deleted users page', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.deleted.view', 'personnel.child.update']
+    );
+
+    $deletedChild = User::factory()->create([
+        'last_name' => 'Lê',
+        'name' => 'Khôi Phục',
+    ]);
+    $deletedChild->assignRole(personnelRole('Thiếu Nhi'));
+    $deletedChild->delete();
+
+    $this->actingAs($viewer);
+
+    Livewire::test(PersonnelList::class, ['group' => 'deleted-users'])
+        ->call('confirmRestoreUser', $deletedChild->id)
+        ->call('restoreUser');
+
+    expect($deletedChild->fresh()->trashed())->toBeFalse();
+});
+
+test('deleted users can be permanently deleted from the deleted users page', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.deleted.view', 'personnel.child.delete']
+    );
+
+    $deletedChild = User::factory()->create([
+        'last_name' => 'Lê',
+        'name' => 'Xoá Hẳn',
+    ]);
+    $deletedChild->assignRole(personnelRole('Thiếu Nhi'));
+    $deletedChild->delete();
+
+    $this->actingAs($viewer);
+
+    Livewire::test(PersonnelList::class, ['group' => 'deleted-users'])
+        ->call('confirmForceDeleteUser', $deletedChild->id)
+        ->call('forceDeleteUser');
+
+    expect(User::withTrashed()->find($deletedChild->id))->toBeNull();
 });
 
 test('legacy personnel show url redirects to edit page', function () {

@@ -71,7 +71,7 @@ class UserSeeder extends Seeder
                 'token' => Str::random(60),
             ],
             [
-                'christian_name' => 'Maria',
+                'christian_name' => 'inh Sơn',
                 'last_name' => 'Đoàn Trường',
                 'name' => 'Nam',
                 'username' => 'MV21099898',
