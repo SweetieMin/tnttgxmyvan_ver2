@@ -3,7 +3,7 @@ import Cropper from 'cropperjs';
 const cropperTemplate = `
     <cropper-canvas>
         <cropper-image initial-center-size="cover" translatable scalable></cropper-image>
-        <cropper-shade theme-color="rgba(24, 24, 27, 0.45)"></cropper-shade>
+        <cropper-shade theme-color="rgba(24, 24, 27, 0.18)"></cropper-shade>
         <cropper-handle action="move" plain></cropper-handle>
         <cropper-selection initial-coverage="0.62" aspect-ratio="1" movable precise>
             <cropper-handle action="move" plain></cropper-handle>

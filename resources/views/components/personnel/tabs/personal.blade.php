@@ -34,7 +34,6 @@
                         <flux:select.option :value="$roleName">{{ $roleName }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:error :name="$bindings['selectedRoleNames']" />
                 <flux:error :name="$bindings['selectedRoleNames'].'.*'" />
             </div>
 

@@ -127,6 +127,25 @@ function tinyPngDataUrl(): string
     return 'data:image/png;base64,'.base64_encode($png);
 }
 
+function largePngDataUrl(): string
+{
+    $canvas = imagecreatetruecolor(900, 900);
+
+    for ($y = 0; $y < 900; $y += 10) {
+        for ($x = 0; $x < 900; $x += 10) {
+            $color = imagecolorallocate($canvas, ($x * 3) % 255, ($y * 5) % 255, (($x + $y) * 7) % 255);
+            imagefilledrectangle($canvas, $x, $y, $x + 9, $y + 9, $color);
+        }
+    }
+
+    ob_start();
+    imagepng($canvas, null, 0);
+    $png = ob_get_clean() ?: '';
+    imagedestroy($canvas);
+
+    return 'data:image/png;base64,'.base64_encode($png);
+}
+
 test('authorized users can visit all personnel index pages', function () {
     $viewer = User::factory()->create();
     $viewer->assignRole(Role::findOrCreate('Admin', 'web'));
@@ -362,7 +381,7 @@ test('creating a user auto generates account code token and default password', f
         ->and(data_get($createdUser?->details, 'phone'))->toBe('0909000022');
 });
 
-test('editing a personnel profile stores the cropped avatar image', function () {
+test('confirming avatar crop saves the cropped avatar image immediately', function () {
     $viewer = createManagerWithManageableRoles(
         ['Thiếu Nhi'],
         ['personnel.user.update']
@@ -391,14 +410,65 @@ test('editing a personnel profile stores the cropped avatar image', function () 
         ->set('lang', 'vi')
         ->set('pictureUpload', UploadedFile::fake()->image('avatar.jpg'))
         ->set('croppedImageData', tinyPngDataUrl())
-        ->call('saveUserProfile')
-        ->assertHasNoErrors();
+        ->call('confirmAvatarCrop')
+        ->assertHasNoErrors()
+        ->assertSet('showAvatarCropModal', false)
+        ->assertSet('cropPreviewUrl', null)
+        ->assertSet('croppedImageData', '');
 
     $picture = $user->fresh()->details?->getRawOriginal('picture');
 
     expect($picture)->not->toBeNull()
         ->and($picture)->toEndWith('.png')
         ->and(file_exists(storage_path('app/public/images/users/'.$picture)))->toBeTrue();
+});
+
+test('personnel avatar upload accepts images up to 20MB', function () {
+    $validator = Validator::make([
+        'pictureUpload' => UploadedFile::fake()->image('large-avatar.jpg')->size(19000),
+    ], UserProfileRules::pictureRules());
+
+    expect($validator->fails())->toBeFalse();
+});
+
+test('editing a personnel profile optimizes the stored avatar size', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.user.update']
+    );
+
+    $user = User::factory()->create([
+        'username' => 'MV12051212',
+        'status_login' => 'active',
+        'birthday' => '2012-05-12',
+    ]);
+    $user->assignRole(personnelRole('Thiếu Nhi'));
+    UserDetail::query()->create([
+        'user_id' => $user->id,
+        'gender' => 'male',
+    ]);
+
+    $this->actingAs($viewer);
+
+    Livewire::test(UserProfileEditor::class, ['group' => 'users', 'user' => $user])
+        ->set('selectedRoleNames', ['Thiếu Nhi'])
+        ->set('fullName', $user->full_name)
+        ->set('birthday', $user->birthday->format('Y-m-d'))
+        ->set('statusLogin', 'active')
+        ->set('gender', 'male')
+        ->set('statusReligious', 'in_course')
+        ->set('lang', 'vi')
+        ->set('pictureUpload', UploadedFile::fake()->image('avatar.jpg')->size(12000))
+        ->set('croppedImageData', largePngDataUrl())
+        ->call('saveUserProfile')
+        ->assertHasNoErrors();
+
+    $picture = $user->fresh()->details?->getRawOriginal('picture');
+    $picturePath = storage_path('app/public/images/users/'.$picture);
+
+    expect($picture)->not->toBeNull()
+        ->and(file_exists($picturePath))->toBeTrue()
+        ->and(filesize($picturePath))->toBeLessThanOrEqual(204800);
 });
 
 test('editing a personnel profile does not redirect after saving', function () {

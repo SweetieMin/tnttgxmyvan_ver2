@@ -6,6 +6,7 @@ use App\Actions\Personnel\GeneratePersonnelAccountCode;
 use App\Actions\Personnel\UpsertPersonnelProfile;
 use App\Foundation\PersonnelDirectory;
 use App\Models\User;
+use App\Models\UserDetail;
 use App\Validation\Admin\Personnel\UserProfileRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -16,11 +17,15 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-#[Title('Personnel editor')]
+#[Title('Nhân sự')]
 class UserProfileEditor extends Component
 {
     use AuthorizesRequests;
     use WithFileUploads;
+
+    protected const AVATAR_MAX_BYTES = 204800;
+
+    protected const AVATAR_RENDER_SIZES = [600, 560, 520, 480, 440, 400, 360, 320, 280, 240, 200];
 
     public ?User $user = null;
 
@@ -163,6 +168,16 @@ class UserProfileEditor extends Component
             throw ValidationException::withMessages([
                 'pictureUpload' => __('Please crop the avatar before saving.'),
             ]);
+        }
+
+        if ($this->isEditing()) {
+            $this->persistAvatar();
+
+            Flux::toast(
+                text: __('Avatar updated successfully.'),
+                heading: __('Success'),
+                variant: 'success',
+            );
         }
 
         $this->showAvatarCropModal = false;
@@ -463,13 +478,10 @@ class UserProfileEditor extends Component
             ]);
         }
 
-        $canvas = imagecreatetruecolor(600, 600);
-        $white = imagecolorallocate($canvas, 255, 255, 255);
-        imagefill($canvas, 0, 0, $white);
-        imagecopyresampled($canvas, $sourceImage, 0, 0, 0, 0, 600, 600, imagesx($sourceImage), imagesy($sourceImage));
-        imagepng($canvas, $targetPath, 6);
-        imagedestroy($canvas);
+        $optimizedPng = $this->optimizedAvatarPng($sourceImage);
         imagedestroy($sourceImage);
+
+        file_put_contents($targetPath, $optimizedPng);
 
         if ($this->storedPicture !== null && $this->storedPicture !== '' && $this->storedPicture !== $filename) {
             $oldPath = $directory.'/'.$this->storedPicture;
@@ -480,6 +492,76 @@ class UserProfileEditor extends Component
         }
 
         return $filename;
+    }
+
+    protected function persistAvatar(): void
+    {
+        if (! $this->isEditing()) {
+            return;
+        }
+
+        $this->storedPicture = $this->storePicture($this->accountCode());
+
+        UserDetail::query()->updateOrCreate(
+            ['user_id' => $this->user->id],
+            ['picture' => $this->storedPicture],
+        );
+
+        $this->user->unsetRelation('details');
+        $this->user->load('details');
+
+        $this->pictureUpload = null;
+        $this->cropPreviewUrl = null;
+        $this->croppedImageData = '';
+    }
+
+    /**
+     * @param  \GdImage|resource  $sourceImage
+     */
+    protected function optimizedAvatarPng($sourceImage): string
+    {
+        $optimizedPng = '';
+
+        foreach (self::AVATAR_RENDER_SIZES as $renderSize) {
+            $canvas = imagecreatetruecolor($renderSize, $renderSize);
+            $white = imagecolorallocate($canvas, 255, 255, 255);
+            imagefill($canvas, 0, 0, $white);
+            imagecopyresampled(
+                $canvas,
+                $sourceImage,
+                0,
+                0,
+                0,
+                0,
+                $renderSize,
+                $renderSize,
+                imagesx($sourceImage),
+                imagesy($sourceImage),
+            );
+
+            ob_start();
+            imagepng($canvas, null, 9);
+            $candidate = ob_get_clean() ?: '';
+            imagedestroy($canvas);
+
+            if ($candidate === '') {
+                continue;
+            }
+
+            $optimizedPng = $candidate;
+
+            if (strlen($candidate) <= self::AVATAR_MAX_BYTES) {
+                break;
+            }
+        }
+
+        if ($optimizedPng === '') {
+            throw ValidationException::withMessages([
+                'pictureUpload' => __('The avatar could not be processed.'),
+            ]);
+        }
+
+        return $optimizedPng;
     }
 
     protected function croppedImageBinary(): string

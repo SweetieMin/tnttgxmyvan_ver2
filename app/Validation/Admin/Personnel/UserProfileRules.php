@@ -13,7 +13,7 @@ class UserProfileRules
     public static function pictureRules(): array
     {
         return [
-            'pictureUpload' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png'],
+            'pictureUpload' => ['nullable', 'image', 'max:20480', 'mimes:jpg,jpeg,png'],
         ];
     }
 
@@ -112,7 +112,7 @@ class UserProfileRules
             'email.unique' => __('This email address already exists.'),
             'statusLogin.required' => __('Status is required.'),
             'pictureUpload.image' => __('The avatar must be an image file.'),
-            'pictureUpload.max' => __('The avatar may not be greater than 2048 kilobytes.'),
+            'pictureUpload.max' => __('The avatar may not be greater than 20MB.'),
             'gender.required' => __('Gender is required.'),
             'statusReligious.required' => __('Study status is required.'),
             'lang.required' => __('Language is required.'),

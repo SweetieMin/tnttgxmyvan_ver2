@@ -50,8 +50,12 @@
                 <flux:text>{{ __('Drag and zoom the photo so the face fits inside the guide circle before saving.') }}</flux:text>
             </div>
 
-            <div class="relative overflow-hidden rounded-3xl bg-zinc-950/95 p-4">
-                <div wire:ignore x-ref="cropperHost" class="relative mx-auto aspect-square w-full max-w-2xl overflow-hidden rounded-2xl bg-zinc-950">
+            <div class="relative overflow-hidden rounded-3xl border border-zinc-200 p-4 dark:border-zinc-800">
+                <div
+                    wire:ignore
+                    x-ref="cropperHost"
+                    class="relative mx-auto aspect-square w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-[linear-gradient(45deg,#e4e4e7_25%,transparent_25%),linear-gradient(-45deg,#e4e4e7_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e4e4e7_75%),linear-gradient(-45deg,transparent_75%,#e4e4e7_75%)] bg-[size:24px_24px] bg-[position:0_0,0_12px,12px_-12px,-12px_0] dark:border-zinc-700 dark:bg-[linear-gradient(45deg,#27272a_25%,transparent_25%),linear-gradient(-45deg,#27272a_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#27272a_75%),linear-gradient(-45deg,transparent_75%,#27272a_75%)]"
+                >
                     <img x-ref="image" x-bind:src="imageUrl || ''" alt="{{ __('Avatar crop preview') }}" class="block max-h-[70vh] w-full object-contain" />
                 </div>
             </div>
