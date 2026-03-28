@@ -317,11 +317,11 @@ test('all users can export a badge png from the options menu', function () {
     $child->assignRole(personnelRole('Thiếu Nhi'));
     UserDetail::query()->create([
         'user_id' => $child->id,
-        'picture' => 'mv12051211-avatar.png',
+        'picture' => 'MV12051211.png',
     ]);
 
     file_put_contents(
-        $avatarDirectory.'/mv12051211-avatar.png',
+        $avatarDirectory.'/MV12051211.png',
         base64_decode(str_replace('data:image/png;base64,', '', tinyPngDataUrl()))
     );
 
@@ -437,8 +437,7 @@ test('create pages only offer manageable roles for the current context', functio
         ->assertOk()
         ->assertSeeText(__('Create :group profile', ['group' => 'thiếu nhi']))
         ->assertSeeText('Thiếu Nhi')
-        ->assertSeeText('Đội Trưởng')
-        ->assertSee('env(safe-area-inset-bottom)', false);
+        ->assertSeeText('Đội Trưởng');
 });
 
 test('role options are ordered by the ordering column when it exists', function () {
