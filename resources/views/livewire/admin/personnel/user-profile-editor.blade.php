@@ -141,7 +141,7 @@
         </div>
 
         <div
-            class="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
+            class="fixed inset-x-0 bottom-0 z-0 border-t border-zinc-200 bg-white/95 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
             <div class="mx-auto grid max-w-screen-sm grid-cols-2 gap-3">
                 <flux:button variant="ghost" :href="$this->cancelRoute()" wire:navigate>
                     {{ __('Cancel') }}

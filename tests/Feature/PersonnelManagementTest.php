@@ -438,7 +438,8 @@ test('create pages only offer manageable roles for the current context', functio
         ->assertSeeText(__('Create :group profile', ['group' => 'thiếu nhi']))
         ->assertSeeText('Thiếu Nhi')
         ->assertSeeText('Đội Trưởng')
-        ->assertSee('env(safe-area-inset-bottom)', false);
+        ->assertSee('env(safe-area-inset-bottom)', false)
+        ->assertSee('z-0', false);
 });
 
 test('role options are ordered by the ordering column when it exists', function () {
