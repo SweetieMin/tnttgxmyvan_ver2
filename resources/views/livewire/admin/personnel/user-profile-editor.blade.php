@@ -40,11 +40,6 @@
                             </div>
                         </div>
 
-                        @if (!$this->canUploadAvatar())
-                            <div class="text-center text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ __('Save the profile first to upload an avatar.') }}
-                            </div>
-                        @endif
 
                         @if ($this->profileQrCodeSvg() !== null)
                             <flux:card class="flex items-center justify-center">

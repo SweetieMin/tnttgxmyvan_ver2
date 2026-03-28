@@ -3,8 +3,10 @@
 namespace App\Foundation;
 
 use App\Models\PersonnelRoleGroup;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class PersonnelDirectory
 {
@@ -12,6 +14,8 @@ class PersonnelDirectory
      * @var array<string, array<int, string>>|null
      */
     protected ?array $roleNamesByGroup = null;
+
+    protected ?bool $rolesHaveOrderingColumn = null;
 
     /**
      * @return array<string, array{
@@ -260,10 +264,10 @@ class PersonnelDirectory
         $personnelRoleNames = collect($this->allPersonnelRoleNames());
 
         if ($user->hasRole('Admin')) {
-            return $this->filterRoleNamesByGroup(
+            return $this->orderedRoleNames($this->filterRoleNamesByGroup(
                 $personnelRoleNames->all(),
                 $group,
-            );
+            ));
         }
 
         /** @var Collection<int, string> $manageableRoleNames */
@@ -275,7 +279,7 @@ class PersonnelDirectory
             ->unique()
             ->values();
 
-        return $this->filterRoleNamesByGroup($manageableRoleNames->all(), $group);
+        return $this->orderedRoleNames($this->filterRoleNamesByGroup($manageableRoleNames->all(), $group));
     }
 
     /**
@@ -311,6 +315,10 @@ class PersonnelDirectory
             ->select('personnel_role_groups.group_key', 'roles.name')
             ->join('roles', 'roles.id', '=', 'personnel_role_groups.role_id')
             ->whereIn('personnel_role_groups.group_key', array_keys($this->groups()))
+            ->when(
+                $this->rolesHaveOrderingColumn(),
+                fn ($query) => $query->orderBy('roles.ordering'),
+            )
             ->orderBy('roles.name')
             ->get()
             ->groupBy('group_key')
@@ -320,6 +328,37 @@ class PersonnelDirectory
         $this->roleNamesByGroup = array_replace($emptyGroups, $mappedGroups);
 
         return $this->roleNamesByGroup;
+    }
+
+    /**
+     * @param  array<int, string>  $roleNames
+     * @return array<int, string>
+     */
+    protected function orderedRoleNames(array $roleNames): array
+    {
+        if ($roleNames === []) {
+            return [];
+        }
+
+        return Role::query()
+            ->whereIn('name', $roleNames)
+            ->when(
+                $this->rolesHaveOrderingColumn(),
+                fn ($query) => $query->orderBy('ordering'),
+            )
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+    }
+
+    protected function rolesHaveOrderingColumn(): bool
+    {
+        if ($this->rolesHaveOrderingColumn !== null) {
+            return $this->rolesHaveOrderingColumn;
+        }
+
+        return $this->rolesHaveOrderingColumn = Schema::hasColumn('roles', 'ordering');
     }
 
     /**

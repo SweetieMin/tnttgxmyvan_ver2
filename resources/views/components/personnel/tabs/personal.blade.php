@@ -7,7 +7,7 @@
 ])
 
 @if ($mode === 'form')
-    <div class="space-y-6 px-6 py-6">
+    <div class="space-y-6 px-6 pb-6">
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div class="md:col-span-1 xl:col-span-1">
                 <flux:input

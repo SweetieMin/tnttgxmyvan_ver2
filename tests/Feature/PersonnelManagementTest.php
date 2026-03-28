@@ -12,8 +12,10 @@ use App\Models\User;
 use App\Models\UserDetail;
 use App\Models\UserReligiousProfile;
 use App\Validation\Admin\Personnel\UserProfileRules;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Livewire;
@@ -436,6 +438,28 @@ test('create pages only offer manageable roles for the current context', functio
         ->assertSeeText(__('Create :group profile', ['group' => 'thiếu nhi']))
         ->assertSeeText('Thiếu Nhi')
         ->assertSeeText('Đội Trưởng');
+});
+
+test('role options are ordered by the ordering column when it exists', function () {
+    if (! Schema::hasColumn('roles', 'ordering')) {
+        Schema::table('roles', function (Blueprint $table): void {
+            $table->unsignedInteger('ordering')->default(0);
+        });
+    }
+
+    $viewer = createManagerWithManageableRoles(
+        ['Đội Trưởng', 'Thiếu Nhi'],
+        ['personnel.user.create']
+    );
+
+    personnelRole('Đội Trưởng')->update(['ordering' => 2]);
+    personnelRole('Thiếu Nhi')->update(['ordering' => 1]);
+
+    $this->actingAs($viewer);
+
+    $this->get(route('admin.personnel.create', ['group' => 'users']))
+        ->assertOk()
+        ->assertSeeTextInOrder(['Thiếu Nhi', 'Đội Trưởng']);
 });
 
 test('creating a user auto generates account code token and default password', function () {

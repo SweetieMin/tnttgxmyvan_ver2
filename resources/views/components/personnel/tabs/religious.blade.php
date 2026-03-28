@@ -14,7 +14,7 @@
 @endphp
 
 @if ($mode === 'form')
-    <div class="grid gap-4 px-6 py-6 md:grid-cols-2 xl:grid-cols-4">
+    <div class="grid gap-4 px-6 pb-6 md:grid-cols-2 xl:grid-cols-4">
         @foreach ($blocks as $block)
             <flux:card class="rounded-2xl p-5">
                 <flux:heading size="sm">{{ $block['title'] }}</flux:heading>

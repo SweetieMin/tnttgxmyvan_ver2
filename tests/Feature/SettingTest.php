@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Setting;
+use Database\Seeders\SettingSeeder;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Schema;
 
@@ -57,4 +58,14 @@ test('encrypted settings are stored encrypted and read back decrypted', function
     expect($rawValue)->not->toBe('secret-password')
         ->and(Crypt::decryptString($rawValue))->toBe('secret-password')
         ->and($setting->fresh()->value)->toBe('secret-password');
+});
+
+test('setting seeder includes badge configuration keys', function () {
+    $this->seed(SettingSeeder::class);
+
+    expect(Setting::query()->where('key', 'badge.title')->value('value'))->toBe('Đoàn TNTT Giáo Xứ Mỹ Vân')
+        ->and(Setting::query()->where('key', 'badge.subtitle')->value('value'))->toBe('Xứ đoàn Giuse Đặng Đình Viên')
+        ->and(Setting::query()->where('key', 'badge.background_color')->value('value'))->toBe('#ffeeb8')
+        ->and(Setting::query()->where('key', 'badge.name_panel_color')->value('value'))->toBe('#f0d493')
+        ->and(Setting::query()->where('key', 'badge.layout')->exists())->toBeTrue();
 });

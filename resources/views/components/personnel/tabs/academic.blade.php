@@ -6,7 +6,7 @@
 ])
 
 @if ($mode === 'form')
-    <div class="grid gap-4 px-6 py-6 md:grid-cols-2">
+    <div class="grid gap-4 px-6 pb-6 md:grid-cols-2">
         <flux:card class="rounded-2xl p-5">
             <flux:heading size="sm">{{ __('Study status') }}</flux:heading>
             <div class="mt-4 space-y-4">
