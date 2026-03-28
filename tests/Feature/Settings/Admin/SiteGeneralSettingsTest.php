@@ -4,6 +4,7 @@ use App\Livewire\Admin\Settings\Site\GeneralSettings;
 use App\Models\Permission;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\UserDetail;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -16,13 +17,23 @@ beforeEach(function () {
 });
 
 test('authorized users can visit the general settings page', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'christian_name' => 'Anna',
+        'last_name' => 'Nguyễn Kiều Khánh',
+        'name' => 'Thy',
+        'token' => str_repeat('a', 64),
+    ]);
     $user->givePermissionTo('settings.site.general.view');
 
     $response = $this->actingAs($user)->get(route('admin.settings.site.general'));
 
     $response->assertOk()
-        ->assertSeeText(__('System configuration'));
+        ->assertSeeText(__('System configuration'))
+        ->assertSeeText(__('Badge card configuration'))
+        ->assertSeeText(__('Preview badge'))
+        ->assertSeeText(__('Link width and height'))
+        ->assertSeeText('Anna')
+        ->assertSeeText('Nguyễn Kiều Khánh Thy');
 });
 
 test('general settings can be updated from the livewire screen', function () {
@@ -56,6 +67,41 @@ test('general settings can be updated from the livewire screen', function () {
     expect(Setting::query()->where('key', 'social.instagram_url')->value('value'))->toBe('https://instagram.com/myvan');
     expect(Setting::query()->where('key', 'social.youtube_url')->value('value'))->toBe('https://youtube.com/@myvan');
     expect(Setting::query()->where('key', 'social.tiktok_url')->value('value'))->toBe('https://www.tiktok.com/@myvan');
+});
+
+test('badge template settings can be updated from the livewire screen', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'settings.site.general.view',
+        'settings.site.general.update',
+    ]);
+
+    $this->actingAs($user);
+
+    $badgeLayout = json_encode([
+        'logo' => ['x' => 4, 'y' => 4, 'w' => 14, 'h' => 14],
+        'heading' => ['x' => 18, 'y' => 4, 'w' => 68, 'h' => 15],
+        'qr' => ['x' => 28, 'y' => 24, 'w' => 44, 'h' => 28],
+        'name_panel' => ['x' => 3, 'y' => 74, 'w' => 94, 'h' => 20],
+        'avatar' => ['x' => 24, 'y' => 54, 'w' => 52, 'h' => 27],
+        'christian_name' => ['x' => 22, 'y' => 84, 'w' => 56, 'h' => 6],
+        'full_name' => ['x' => 14, 'y' => 90, 'w' => 72, 'h' => 7],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    Livewire::test(GeneralSettings::class)
+        ->set('badge_title', 'Doan TNTT Giao Xu My Van')
+        ->set('badge_subtitle', 'Xu Doan Giuse Vien')
+        ->set('badge_background_color', '#fff0aa')
+        ->set('badge_name_panel_color', '#e6c46e')
+        ->set('badge_layout', $badgeLayout)
+        ->call('updateBadgeTemplateSettings')
+        ->assertHasNoErrors();
+
+    expect(Setting::query()->where('key', 'badge.title')->value('value'))->toBe('Doan TNTT Giao Xu My Van');
+    expect(Setting::query()->where('key', 'badge.subtitle')->value('value'))->toBe('Xu Doan Giuse Vien');
+    expect(Setting::query()->where('key', 'badge.background_color')->value('value'))->toBe('#fff0aa');
+    expect(Setting::query()->where('key', 'badge.name_panel_color')->value('value'))->toBe('#e6c46e');
+    expect(Setting::query()->where('key', 'badge.layout')->value('value'))->toBe($badgeLayout);
 });
 
 test('logo, favicon, and login image can be uploaded and removed', function () {
@@ -143,6 +189,74 @@ test('selected tab is restored from the query string', function () {
     Livewire::withQueryParams(['tab' => 'logo-favicon'])
         ->test(GeneralSettings::class)
         ->assertSet('tab', 'logo-favicon');
+});
+
+test('badge template save button only appears after the form changes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('settings.site.general.update');
+
+    $this->actingAs($user);
+
+    Livewire::test(GeneralSettings::class)
+        ->call('hasBadgeTemplateChanges')
+        ->assertReturned(false)
+        ->set('badge_title', 'Doan TNTT Giao Xu My Van')
+        ->call('hasBadgeTemplateChanges')
+        ->assertReturned(true);
+});
+
+test('badge preview can be exported as png', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create([
+        'christian_name' => 'Anna',
+        'last_name' => 'Nguyễn Ly',
+        'name' => 'Na',
+        'token' => str_repeat('b', 64),
+    ]);
+    $user->givePermissionTo([
+        'settings.site.general.view',
+        'settings.site.general.update',
+    ]);
+
+    $avatarFile = UploadedFile::fake()->image('anna.png', 300, 300);
+    $storedAvatarPath = $avatarFile->storeAs('images/users', 'anna-avatar.png', 'public');
+
+    UserDetail::query()->updateOrCreate(
+        ['user_id' => $user->id],
+        ['picture' => basename($storedAvatarPath)],
+    );
+
+    $this->actingAs($user);
+
+    Livewire::test(GeneralSettings::class)
+        ->call('exportBadgePreviewPng')
+        ->assertFileDownloaded('badge-preview.png', content: null, contentType: 'image/png');
+});
+
+test('badge preview favicon resolves from branding favicon setting', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('settings.site.general.view');
+
+    Setting::query()->updateOrCreate(
+        ['key' => 'branding.favicon'],
+        [
+            'group' => 'branding',
+            'type' => 'image',
+            'label' => 'Favicon',
+            'value' => 'images/sites/FAVICON-preview.png',
+            'description' => null,
+            'is_public' => true,
+            'is_encrypted' => false,
+            'autoload' => true,
+            'sort_order' => 120,
+        ],
+    );
+
+    $this->actingAs($user);
+
+    expect(Livewire::test(GeneralSettings::class)->instance()->previewSiteFaviconUrl())
+        ->toEndWith('/storage/images/sites/FAVICON-preview.png');
 });
 
 test('general settings save button only appears after the form changes', function () {

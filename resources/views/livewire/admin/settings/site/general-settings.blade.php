@@ -10,6 +10,8 @@
 
                 <flux:tab wire:click="selectTab('general')" name="general" icon="cog-6-tooth"
                     :selected="$tab == 'general'">{{ __('General') }}</flux:tab>
+                <flux:tab wire:click="selectTab('badge-template')" name="badge-template" icon="identification"
+                    :selected="$tab == 'badge-template'">{{ __('Badge card configuration') }}</flux:tab>
                 <flux:tab wire:click="selectTab('logo-favicon')" name="logo-favicon" icon="globe-alt"
                     :selected="$tab == 'logo-favicon'">{{ __('Logo & Favicon') }}</flux:tab>
                 <flux:tab wire:click="selectTab('login-image')" name="login-image" icon="photo"
@@ -63,6 +65,23 @@
                         @endcan
                     </div>
                 </form>
+            </flux:tab.panel>
+
+            <flux:tab.panel name="badge-template">
+                <x-settings.site.badge-template-editor
+                    :blocks="$this->badgeTemplateBlocks()"
+                    :background-color="$badge_background_color"
+                    :name-panel-color="$badge_name_panel_color"
+                    :title="$badge_title"
+                    :subtitle="$badge_subtitle"
+                    :preview-site-favicon-url="$this->previewSiteFaviconUrl()"
+                    :preview-avatar-url="$this->previewAvatarUrl()"
+                    :preview-christian-name="$this->previewChristianName()"
+                    :preview-full-name="$this->previewFullName()"
+                    :preview-qr-code-svg="$this->previewQrCodeSvg()"
+                    :can-update="auth()->user()?->can('settings.site.general.update') ?? false"
+                    :has-changes="$this->hasBadgeTemplateChanges()"
+                />
             </flux:tab.panel>
 
             <flux:tab.panel name="logo-favicon">

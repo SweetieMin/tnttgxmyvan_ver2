@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Settings\Site;
 
 use App\Models\Setting;
+use App\Support\BadgePreviewPngExporter;
 use App\Validation\Admin\Settings\Site\GeneralSettingsRules;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -16,6 +17,7 @@ use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Title('Cấu hình chung')]
 class GeneralSettings extends Component
@@ -39,6 +41,21 @@ class GeneralSettings extends Component
 
     #[Validate]
     public string $site_meta_description = '';
+
+    #[Validate]
+    public string $badge_title = '';
+
+    #[Validate]
+    public string $badge_subtitle = '';
+
+    #[Validate]
+    public string $badge_layout = '';
+
+    #[Validate]
+    public string $badge_background_color = '#fff3cb';
+
+    #[Validate]
+    public string $badge_name_panel_color = '#efd089';
 
     #[Validate]
     public string $facebook_url = '';
@@ -74,6 +91,12 @@ class GeneralSettings extends Component
     #[Locked]
     public array $originalGeneralSettings = [];
 
+    /**
+     * @var array<string, string>
+     */
+    #[Locked]
+    public array $originalBadgeTemplateSettings = [];
+
     public function mount(): void
     {
         $this->fillForm();
@@ -88,7 +111,10 @@ class GeneralSettings extends Component
     {
         $this->ensureCanUpdate();
 
-        $validated = $this->validate();
+        $validated = $this->validate(
+            GeneralSettingsRules::rules(),
+            GeneralSettingsRules::messages(),
+        );
 
         foreach ($this->generalSettingMap() as $property => $key) {
             $this->upsertSetting($key, $validated[$property] ?? null);
@@ -101,6 +127,55 @@ class GeneralSettings extends Component
         );
 
         $this->syncOriginalGeneralSettings();
+    }
+
+    public function updateBadgeTemplateSettings(): void
+    {
+        $this->ensureCanUpdate();
+
+        $validated = $this->validate(
+            GeneralSettingsRules::badgeRules(),
+            GeneralSettingsRules::badgeMessages(),
+        );
+
+        foreach ($this->badgeTemplateSettingMap() as $property => $key) {
+            $this->upsertSetting($key, $validated[$property] ?? null);
+        }
+
+        Flux::toast(
+            text: __('Badge template settings updated successfully.'),
+            heading: __('Success'),
+            variant: 'success',
+        );
+
+        $this->syncOriginalBadgeTemplateSettings();
+    }
+
+    public function exportBadgePreviewPng(): StreamedResponse
+    {
+        $user = Auth::user();
+
+        abort_if($user === null, 403);
+
+        $png = app(BadgePreviewPngExporter::class)->render(
+            user: $user,
+            blocks: $this->badgeTemplateBlocks(),
+            options: [
+                'title' => $this->badge_title,
+                'subtitle' => $this->badge_subtitle,
+                'background_color' => $this->badge_background_color,
+                'name_panel_color' => $this->badge_name_panel_color,
+                'favicon_path' => $this->existFavicon ?: $this->existLogo,
+            ],
+        );
+
+        return response()->streamDownload(
+            callback: static function () use ($png): void {
+                echo $png;
+            },
+            name: 'badge-preview.png',
+            headers: ['Content-Type' => 'image/png'],
+        );
     }
 
     public function saveLogo(): void
@@ -275,6 +350,20 @@ class GeneralSettings extends Component
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function badgeTemplateSettingMap(): array
+    {
+        return [
+            'badge_title' => 'badge.title',
+            'badge_subtitle' => 'badge.subtitle',
+            'badge_layout' => 'badge.layout',
+            'badge_background_color' => 'badge.background_color',
+            'badge_name_panel_color' => 'badge.name_panel_color',
+        ];
+    }
+
     protected function fillForm(): void
     {
         $this->site_title = (string) ($this->settingValue('general.site_name') ?? '');
@@ -282,6 +371,11 @@ class GeneralSettings extends Component
         $this->site_phone = (string) ($this->settingValue('general.site_phone') ?? '');
         $this->site_meta_keywords = (string) ($this->settingValue('general.meta_keywords') ?? '');
         $this->site_meta_description = (string) ($this->settingValue('general.meta_description') ?? '');
+        $this->badge_title = (string) ($this->settingValue('badge.title') ?? '');
+        $this->badge_subtitle = (string) ($this->settingValue('badge.subtitle') ?? '');
+        $this->badge_layout = $this->normalizeBadgeLayout($this->settingValue('badge.layout'));
+        $this->badge_background_color = (string) ($this->settingValue('badge.background_color') ?? '#fff3cb');
+        $this->badge_name_panel_color = (string) ($this->settingValue('badge.name_panel_color') ?? '#efd089');
         $this->facebook_url = (string) ($this->settingValue('social.facebook_url') ?? '');
         $this->instagram_url = (string) ($this->settingValue('social.instagram_url') ?? '');
         $this->youtube_url = (string) ($this->settingValue('social.youtube_url') ?? '');
@@ -290,11 +384,44 @@ class GeneralSettings extends Component
         $this->existFavicon = $this->settingValue('branding.favicon');
         $this->existLoginImage = $this->settingValue('branding.login_image');
         $this->syncOriginalGeneralSettings();
+        $this->syncOriginalBadgeTemplateSettings();
     }
 
     public function hasGeneralChanges(): bool
     {
         return $this->currentGeneralSettings() !== $this->originalGeneralSettings;
+    }
+
+    public function hasBadgeTemplateChanges(): bool
+    {
+        return $this->currentBadgeTemplateSettings() !== $this->originalBadgeTemplateSettings;
+    }
+
+    /**
+     * @return array<string, array<string, int>>
+     */
+    public function badgeTemplateBlocks(): array
+    {
+        $decoded = json_decode($this->badge_layout, true);
+
+        if (! is_array($decoded)) {
+            return $this->defaultBadgeTemplateBlocks();
+        }
+
+        $defaults = $this->defaultBadgeTemplateBlocks();
+
+        foreach ($defaults as $key => $defaultBlock) {
+            $currentBlock = is_array($decoded[$key] ?? null) ? $decoded[$key] : [];
+
+            $defaults[$key] = [
+                'x' => $this->normalizeBadgeCoordinate($currentBlock['x'] ?? $defaultBlock['x']),
+                'y' => $this->normalizeBadgeCoordinate($currentBlock['y'] ?? $defaultBlock['y']),
+                'w' => $this->normalizeBadgeDimension($currentBlock['w'] ?? $defaultBlock['w']),
+                'h' => $this->normalizeBadgeDimension($currentBlock['h'] ?? $defaultBlock['h']),
+            ];
+        }
+
+        return $defaults;
     }
 
     /**
@@ -333,6 +460,20 @@ class GeneralSettings extends Component
             'instagram_url' => $this->instagram_url,
             'youtube_url' => $this->youtube_url,
             'tikTok_url' => $this->tikTok_url,
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function currentBadgeTemplateSettings(): array
+    {
+        return [
+            'badge_title' => $this->badge_title,
+            'badge_subtitle' => $this->badge_subtitle,
+            'badge_layout' => $this->badge_layout,
+            'badge_background_color' => $this->badge_background_color,
+            'badge_name_panel_color' => $this->badge_name_panel_color,
         ];
     }
 
@@ -410,6 +551,56 @@ class GeneralSettings extends Component
                 'autoload' => true,
                 'sort_order' => 50,
             ],
+            'badge.title' => [
+                'group' => 'badge',
+                'type' => 'string',
+                'label' => 'Badge title',
+                'description' => 'Primary title shown at the top of the wearable badge.',
+                'is_public' => true,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 60,
+            ],
+            'badge.subtitle' => [
+                'group' => 'badge',
+                'type' => 'string',
+                'label' => 'Badge subtitle',
+                'description' => 'Secondary title shown below the badge title.',
+                'is_public' => true,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 70,
+            ],
+            'badge.layout' => [
+                'group' => 'badge',
+                'type' => 'json',
+                'label' => 'Badge layout',
+                'description' => 'Saved draggable block layout for the wearable badge template preview.',
+                'is_public' => false,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 75,
+            ],
+            'badge.background_color' => [
+                'group' => 'badge',
+                'type' => 'string',
+                'label' => 'Badge background color',
+                'description' => 'Background color used for the wearable badge preview and export template.',
+                'is_public' => true,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 76,
+            ],
+            'badge.name_panel_color' => [
+                'group' => 'badge',
+                'type' => 'string',
+                'label' => 'Badge name panel color',
+                'description' => 'Background color used for the name panel on the wearable badge preview.',
+                'is_public' => true,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 77,
+            ],
             'social.facebook_url' => [
                 'group' => 'social',
                 'type' => 'string',
@@ -418,7 +609,7 @@ class GeneralSettings extends Component
                 'is_public' => true,
                 'is_encrypted' => false,
                 'autoload' => true,
-                'sort_order' => 60,
+                'sort_order' => 80,
             ],
             'social.instagram_url' => [
                 'group' => 'social',
@@ -428,7 +619,7 @@ class GeneralSettings extends Component
                 'is_public' => true,
                 'is_encrypted' => false,
                 'autoload' => true,
-                'sort_order' => 70,
+                'sort_order' => 90,
             ],
             'social.youtube_url' => [
                 'group' => 'social',
@@ -438,7 +629,7 @@ class GeneralSettings extends Component
                 'is_public' => true,
                 'is_encrypted' => false,
                 'autoload' => true,
-                'sort_order' => 80,
+                'sort_order' => 100,
             ],
             'social.tiktok_url' => [
                 'group' => 'social',
@@ -448,7 +639,7 @@ class GeneralSettings extends Component
                 'is_public' => true,
                 'is_encrypted' => false,
                 'autoload' => true,
-                'sort_order' => 90,
+                'sort_order' => 110,
             ],
             'branding.logo' => [
                 'group' => 'branding',
@@ -458,7 +649,7 @@ class GeneralSettings extends Component
                 'is_public' => true,
                 'is_encrypted' => false,
                 'autoload' => true,
-                'sort_order' => 100,
+                'sort_order' => 120,
             ],
             'branding.favicon' => [
                 'group' => 'branding',
@@ -468,7 +659,7 @@ class GeneralSettings extends Component
                 'is_public' => true,
                 'is_encrypted' => false,
                 'autoload' => true,
-                'sort_order' => 110,
+                'sort_order' => 130,
             ],
             'branding.login_image' => [
                 'group' => 'branding',
@@ -478,7 +669,7 @@ class GeneralSettings extends Component
                 'is_public' => true,
                 'is_encrypted' => false,
                 'autoload' => true,
-                'sort_order' => 120,
+                'sort_order' => 140,
             ],
         ];
     }
@@ -512,6 +703,144 @@ class GeneralSettings extends Component
         if (Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
         }
+    }
+
+    protected function syncOriginalBadgeTemplateSettings(): void
+    {
+        $this->originalBadgeTemplateSettings = $this->currentBadgeTemplateSettings();
+    }
+
+    protected function normalizeBadgeLayout(?string $value): string
+    {
+        $decoded = json_decode((string) $value, true);
+
+        if (! is_array($decoded)) {
+            return json_encode($this->defaultBadgeTemplateBlocks(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';
+        }
+
+        return json_encode($this->badgeTemplateBlocksFromArray($decoded), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';
+    }
+
+    /**
+     * @param  array<string, mixed>  $decoded
+     * @return array<string, array<string, int>>
+     */
+    protected function badgeTemplateBlocksFromArray(array $decoded): array
+    {
+        $defaults = $this->defaultBadgeTemplateBlocks();
+
+        if (! isset($decoded['heading']) && (isset($decoded['title']) || isset($decoded['subtitle']))) {
+            $titleBlock = is_array($decoded['title'] ?? null) ? $decoded['title'] : [];
+            $subtitleBlock = is_array($decoded['subtitle'] ?? null) ? $decoded['subtitle'] : [];
+
+            $decoded['heading'] = [
+                'x' => $titleBlock['x'] ?? $subtitleBlock['x'] ?? $defaults['heading']['x'],
+                'y' => $titleBlock['y'] ?? $subtitleBlock['y'] ?? $defaults['heading']['y'],
+                'w' => max(
+                    (int) ($titleBlock['w'] ?? $defaults['heading']['w']),
+                    (int) ($subtitleBlock['w'] ?? $defaults['heading']['w']),
+                ),
+                'h' => max(
+                    (int) ($titleBlock['h'] ?? 0) + (int) ($subtitleBlock['h'] ?? 0),
+                    $defaults['heading']['h'],
+                ),
+            ];
+        }
+
+        foreach ($defaults as $key => $defaultBlock) {
+            $currentBlock = is_array($decoded[$key] ?? null) ? $decoded[$key] : [];
+
+            $defaults[$key] = [
+                'x' => $this->normalizeBadgeCoordinate($currentBlock['x'] ?? $defaultBlock['x']),
+                'y' => $this->normalizeBadgeCoordinate($currentBlock['y'] ?? $defaultBlock['y']),
+                'w' => $this->normalizeBadgeDimension($currentBlock['w'] ?? $defaultBlock['w']),
+                'h' => $this->normalizeBadgeDimension($currentBlock['h'] ?? $defaultBlock['h']),
+            ];
+        }
+
+        return $defaults;
+    }
+
+    protected function normalizeBadgeCoordinate(mixed $value): int
+    {
+        return max(0, min(100, (int) round((float) $value)));
+    }
+
+    protected function normalizeBadgeDimension(mixed $value): int
+    {
+        return max(6, min(100, (int) round((float) $value)));
+    }
+
+    /**
+     * @return array<string, array<string, int>>
+     */
+    protected function defaultBadgeTemplateBlocks(): array
+    {
+        return [
+            'logo' => ['x' => 4, 'y' => 4, 'w' => 12, 'h' => 12],
+            'heading' => ['x' => 16, 'y' => 3, 'w' => 72, 'h' => 15],
+            'qr' => ['x' => 25, 'y' => 16, 'w' => 50, 'h' => 28],
+            'name_panel' => ['x' => 3, 'y' => 74, 'w' => 94, 'h' => 20],
+            'avatar' => ['x' => 12, 'y' => 45, 'w' => 76, 'h' => 40],
+            'christian_name' => ['x' => 18, 'y' => 84, 'w' => 64, 'h' => 6],
+            'full_name' => ['x' => 8, 'y' => 89, 'w' => 84, 'h' => 9],
+        ];
+    }
+
+    public function previewAvatarUrl(): string
+    {
+        $user = Auth::user()?->loadMissing('details');
+
+        if ($user === null) {
+            return asset('/storage/images/users/default-avatar.png');
+        }
+
+        return (string) data_get($user, 'details.picture', asset('/storage/images/users/default-avatar.png'));
+    }
+
+    public function previewSiteFaviconUrl(): string
+    {
+        if ($this->existFavicon !== null && $this->existFavicon !== '') {
+            return $this->resolveBrandingImageUrl($this->existFavicon);
+        }
+
+        if ($this->existLogo !== null && $this->existLogo !== '') {
+            return $this->resolveBrandingImageUrl($this->existLogo);
+        }
+
+        return asset('/storage/images/users/default-avatar.png');
+    }
+
+    protected function resolveBrandingImageUrl(string $path): string
+    {
+        if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, '/storage/')) {
+            return asset(ltrim($path, '/'));
+        }
+
+        if (Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+
+        return Storage::url($path);
+    }
+
+    public function previewChristianName(): string
+    {
+        return (string) (Auth::user()?->christian_name ?? __('Christian name'));
+    }
+
+    public function previewFullName(): string
+    {
+        return (string) (Auth::user()?->full_name ?? __('Full name'));
+    }
+
+    public function previewQrCodeSvg(): ?string
+    {
+        return Auth::user()?->getTokenQrCode();
     }
 
     public function render(): View

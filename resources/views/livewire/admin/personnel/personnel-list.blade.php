@@ -83,7 +83,16 @@
                                             </flux:button>
 
                                             <flux:menu>
+                                                @if ($this->canExportBadgeUser($user))
+                                                    <flux:menu.item icon="identification" wire:click="previewBadgeUser({{ $user->id }})">
+                                                        {{ __('Export badge') }}
+                                                    </flux:menu.item>
+                                                @endif
+
                                                 @if ($this->canUpdateUser($user))
+                                                    @if ($this->canExportBadgeUser($user))
+                                                        <flux:menu.separator />
+                                                    @endif
                                                     <flux:menu.item icon="pencil-square" :href="$this->editRoute($user)" wire:navigate>
                                                         {{ __('Edit') }}
                                                     </flux:menu.item>
@@ -204,7 +213,16 @@
                                                         </flux:button>
 
                                                         <flux:menu>
+                                                            @if ($this->canExportBadgeUser($user))
+                                                                <flux:menu.item icon="identification" wire:click="previewBadgeUser({{ $user->id }})">
+                                                                    {{ __('Export badge') }}
+                                                                </flux:menu.item>
+                                                            @endif
+
                                                             @if ($this->canUpdateUser($user))
+                                                                @if ($this->canExportBadgeUser($user))
+                                                                    <flux:menu.separator />
+                                                                @endif
                                                                 <flux:menu.item icon="pencil-square" :href="$this->editRoute($user)" wire:navigate>
                                                                     {{ __('Edit') }}
                                                                 </flux:menu.item>
@@ -276,5 +294,23 @@
                 <flux:button variant="danger" wire:click="forceDeleteUser">{{ __('Delete permanently') }}</flux:button>
             </div>
         </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showBadgePreviewModal" class="max-w-3xl">
+        <x-settings.site.badge-preview-modal-content
+            :blocks="$this->badgeTemplateBlocks()"
+            :background-color="$this->badgeBackgroundColor()"
+            :name-panel-color="$this->badgeNamePanelColor()"
+            :title="$this->badgeTemplateOptions()['title']"
+            :subtitle="$this->badgeTemplateOptions()['subtitle']"
+            :preview-site-favicon-url="$this->previewBadgeFaviconUrl()"
+            :preview-avatar-url="$this->previewBadgeAvatarUrl()"
+            :preview-christian-name="$this->previewBadgeChristianName()"
+            :preview-full-name="$this->previewBadgeFullName()"
+            :preview-qr-code-svg="$this->previewBadgeQrCodeSvg()"
+            :description="__('Review the current badge layout with the configured title and subtitle before saving.')"
+            export-action="exportPreviewBadgeUser"
+            close-action="\$set('showBadgePreviewModal', false)"
+        />
     </flux:modal>
 </div>

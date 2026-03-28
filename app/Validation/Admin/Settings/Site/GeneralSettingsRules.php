@@ -35,6 +35,32 @@ class GeneralSettingsRules
     /**
      * @return array<string, array<int, string>>
      */
+    public static function badgeRules(): array
+    {
+        return [
+            'badge_title' => ['nullable', 'string', 'max:255'],
+            'badge_subtitle' => ['nullable', 'string', 'max:255'],
+            'badge_layout' => ['required', 'string', 'json'],
+            'badge_background_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'badge_name_panel_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function badgeMessages(): array
+    {
+        return [
+            'badge_layout.json' => __('The badge layout configuration is invalid.'),
+            'badge_background_color.regex' => __('The badge background color must be a valid HEX color.'),
+            'badge_name_panel_color.regex' => __('The name panel background color must be a valid HEX color.'),
+        ];
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
     public static function logoRules(): array
     {
         return [

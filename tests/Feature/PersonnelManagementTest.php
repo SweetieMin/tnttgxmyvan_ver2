@@ -7,12 +7,14 @@ use App\Livewire\Admin\Personnel\UserProfileEditor;
 use App\Models\Permission;
 use App\Models\PersonnelRoleGroup;
 use App\Models\Role;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\UserDetail;
 use App\Models\UserReligiousProfile;
 use App\Validation\Admin\Personnel\UserProfileRules;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Livewire;
 
@@ -251,6 +253,120 @@ test('all users edit page is accessible for an unassigned user', function () {
         'group' => 'users',
         'user' => $unassignedUser,
     ]))->assertOk();
+});
+
+test('all users can export a badge png from the options menu', function () {
+    $avatarDirectory = storage_path('app/public/images/users');
+
+    if (! is_dir($avatarDirectory)) {
+        mkdir($avatarDirectory, 0755, true);
+    }
+
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.user.view']
+    );
+
+    collect([
+        'badge.layout' => [
+            'type' => 'json',
+            'label' => 'Badge layout',
+            'value' => json_encode([
+                'logo' => ['x' => 4, 'y' => 4, 'w' => 12, 'h' => 12],
+                'heading' => ['x' => 16, 'y' => 3, 'w' => 72, 'h' => 15],
+                'qr' => ['x' => 25, 'y' => 16, 'w' => 50, 'h' => 28],
+                'name_panel' => ['x' => 3, 'y' => 74, 'w' => 94, 'h' => 20],
+                'avatar' => ['x' => 12, 'y' => 45, 'w' => 76, 'h' => 40],
+                'christian_name' => ['x' => 18, 'y' => 84, 'w' => 64, 'h' => 6],
+                'full_name' => ['x' => 8, 'y' => 89, 'w' => 84, 'h' => 9],
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ],
+        'badge.title' => [
+            'type' => 'string',
+            'label' => 'Badge title',
+            'value' => 'Đoàn TNTT Giáo Xứ Mỹ Vân',
+        ],
+        'badge.subtitle' => [
+            'type' => 'string',
+            'label' => 'Badge subtitle',
+            'value' => 'Xứ đoàn Giuse Đặng Đình Viên',
+        ],
+    ])->each(function (array $attributes, string $key): void {
+        Setting::query()->updateOrCreate(
+            ['key' => $key],
+            array_merge([
+                'group' => 'badge',
+                'description' => null,
+                'is_public' => true,
+                'is_encrypted' => false,
+                'autoload' => true,
+                'sort_order' => 0,
+            ], $attributes),
+        );
+    });
+
+    $child = User::factory()->create([
+        'christian_name' => 'Giuse',
+        'last_name' => 'Nguyễn Khắc',
+        'name' => 'Huấn',
+        'token' => str_repeat('c', 64),
+        'username' => 'MV12051211',
+    ]);
+    $child->assignRole(personnelRole('Thiếu Nhi'));
+    UserDetail::query()->create([
+        'user_id' => $child->id,
+        'picture' => 'mv12051211-avatar.png',
+    ]);
+
+    file_put_contents(
+        $avatarDirectory.'/mv12051211-avatar.png',
+        base64_decode(str_replace('data:image/png;base64,', '', tinyPngDataUrl()))
+    );
+
+    $this->actingAs($viewer);
+
+    Livewire::test(PersonnelList::class, ['group' => 'users'])
+        ->call('previewBadgeUser', $child->id)
+        ->assertSet('showBadgePreviewModal', true)
+        ->assertSeeText(__('Badge preview'))
+        ->call('exportPreviewBadgeUser')
+        ->assertFileDownloaded('mv12051211-badge.png', contentType: 'image/png');
+});
+
+test('all users cannot export a badge when the avatar is missing in the database or storage', function () {
+    Storage::fake('public');
+
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.user.view']
+    );
+
+    $missingDatabaseAvatar = User::factory()->create([
+        'last_name' => 'Lê',
+        'name' => 'Không Ảnh',
+    ]);
+    $missingDatabaseAvatar->assignRole(personnelRole('Thiếu Nhi'));
+
+    $missingStorageAvatar = User::factory()->create([
+        'last_name' => 'Trần',
+        'name' => 'Mất File',
+    ]);
+    $missingStorageAvatar->assignRole(personnelRole('Thiếu Nhi'));
+    UserDetail::query()->create([
+        'user_id' => $missingStorageAvatar->id,
+        'picture' => 'missing-avatar.png',
+    ]);
+
+    $this->actingAs($viewer);
+
+    $component = app(PersonnelList::class);
+    $component->group = 'users';
+
+    Livewire::test(PersonnelList::class, ['group' => 'users'])
+        ->assertDontSeeText(__('Export badge'));
+
+    expect($component->canExportBadgeUser($missingDatabaseAvatar))->toBeFalse()
+        ->and($component->canExportBadgeUser($missingStorageAvatar))->toBeFalse();
 });
 
 test('all users list sorts by given name before last name', function () {

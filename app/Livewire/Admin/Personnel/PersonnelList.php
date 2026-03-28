@@ -3,14 +3,19 @@
 namespace App\Livewire\Admin\Personnel;
 
 use App\Foundation\PersonnelDirectory;
+use App\Models\Setting;
 use App\Models\User;
+use App\Support\BadgePreviewPngExporter;
 use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PersonnelList extends Component
 {
@@ -36,6 +41,10 @@ class PersonnelList extends Component
     public bool $showForceDeleteModal = false;
 
     public ?int $forceDeletingUserId = null;
+
+    public bool $showBadgePreviewModal = false;
+
+    public ?int $previewingBadgeUserId = null;
 
     public function mount(string $group = 'users', string $search = '', int $perPage = 15, string $selectedStatus = ''): void
     {
@@ -145,6 +154,15 @@ class PersonnelList extends Component
         $this->resetPage();
     }
 
+    public function previewBadgeUser(int $userId): void
+    {
+        $user = User::query()->with('details')->findOrFail($userId);
+        abort_unless($this->canExportBadgeUser($user), 403);
+
+        $this->previewingBadgeUserId = $user->id;
+        $this->showBadgePreviewModal = true;
+    }
+
     public function canUpdateUser(User $user): bool
     {
         $permission = $this->directory()->updatePermissionForGroup($this->group);
@@ -207,12 +225,50 @@ class PersonnelList extends Component
                 ));
     }
 
+    public function canExportBadgeUser(User $user): bool
+    {
+        if (! $this->directory()->isAllUsersPage($this->group) || $user->trashed()) {
+            return false;
+        }
+
+        return $this->isVisibleUser($user)
+            && $this->hasExportableBadgeAvatar($user)
+            && (bool) auth()->user()?->can($this->directory()->permissionForGroup('users'));
+    }
+
     public function editRoute(User $user): string
     {
         return route('admin.personnel.users.edit', [
             'group' => $this->group,
             'user' => $user,
         ]);
+    }
+
+    public function exportBadgeUser(int $userId): StreamedResponse
+    {
+        $user = User::query()->with('details')->findOrFail($userId);
+        abort_unless($this->canExportBadgeUser($user), 403);
+
+        $png = app(BadgePreviewPngExporter::class)->render(
+            user: $user,
+            blocks: $this->badgeTemplateBlocks(),
+            options: $this->badgeTemplateOptions(),
+        );
+
+        return response()->streamDownload(
+            callback: static function () use ($png): void {
+                echo $png;
+            },
+            name: Str::slug($user->username ?: $user->full_name, '-').'-badge.png',
+            headers: ['Content-Type' => 'image/png'],
+        );
+    }
+
+    public function exportPreviewBadgeUser(): StreamedResponse
+    {
+        abort_if($this->previewingBadgeUserId === null, 404);
+
+        return $this->exportBadgeUser($this->previewingBadgeUserId);
     }
 
     /**
@@ -338,6 +394,62 @@ class PersonnelList extends Component
         return view('components.placeholder.table')->render();
     }
 
+    public function previewBadgeUserModel(): ?User
+    {
+        if ($this->previewingBadgeUserId === null) {
+            return null;
+        }
+
+        return User::query()->with('details')->find($this->previewingBadgeUserId);
+    }
+
+    public function previewBadgeAvatarUrl(): string
+    {
+        return data_get($this->previewBadgeUserModel(), 'details.picture')
+            ?: asset('/storage/images/users/default-avatar.png');
+    }
+
+    public function previewBadgeChristianName(): string
+    {
+        return (string) data_get($this->previewBadgeUserModel(), 'christian_name', '');
+    }
+
+    public function previewBadgeFullName(): string
+    {
+        return (string) data_get($this->previewBadgeUserModel(), 'full_name', '');
+    }
+
+    public function previewBadgeQrCodeSvg(): ?string
+    {
+        $user = $this->previewBadgeUserModel();
+
+        if ($user === null || blank($user->token)) {
+            return null;
+        }
+
+        return $user->getTokenQrCode();
+    }
+
+    public function previewBadgeFaviconUrl(): string
+    {
+        $faviconPath = (string) $this->settingValue('branding.favicon');
+        $logoPath = (string) $this->settingValue('branding.logo');
+
+        return $faviconPath !== ''
+            ? $this->resolveBrandingImageUrl($faviconPath)
+            : ($logoPath !== '' ? $this->resolveBrandingImageUrl($logoPath) : asset('/storage/images/users/default-avatar.png'));
+    }
+
+    public function badgeBackgroundColor(): string
+    {
+        return (string) $this->settingValue('badge.background_color', '#fff3cb');
+    }
+
+    public function badgeNamePanelColor(): string
+    {
+        return (string) $this->settingValue('badge.name_panel_color', '#efd089');
+    }
+
     /**
      * @return array<int, string>
      */
@@ -356,6 +468,92 @@ class PersonnelList extends Component
             $user->roles->pluck('name')->all(),
             $this->visibleRoleNames(),
         ) !== [];
+    }
+
+    /**
+     * @return array<string, array{x:int,y:int,w:int,h:int}>
+     */
+    protected function badgeTemplateBlocks(): array
+    {
+        $defaults = [
+            'logo' => ['x' => 4, 'y' => 4, 'w' => 12, 'h' => 12],
+            'heading' => ['x' => 16, 'y' => 3, 'w' => 72, 'h' => 15],
+            'qr' => ['x' => 25, 'y' => 16, 'w' => 50, 'h' => 28],
+            'name_panel' => ['x' => 3, 'y' => 74, 'w' => 94, 'h' => 20],
+            'avatar' => ['x' => 12, 'y' => 45, 'w' => 76, 'h' => 40],
+            'christian_name' => ['x' => 18, 'y' => 84, 'w' => 64, 'h' => 6],
+            'full_name' => ['x' => 8, 'y' => 89, 'w' => 84, 'h' => 9],
+        ];
+
+        $decoded = json_decode((string) $this->settingValue('badge.layout'), true);
+
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        foreach ($defaults as $key => $defaultBlock) {
+            $block = is_array($decoded[$key] ?? null) ? $decoded[$key] : [];
+
+            $defaults[$key] = [
+                'x' => max(0, min(100, (int) round((float) ($block['x'] ?? $defaultBlock['x'])))),
+                'y' => max(0, min(100, (int) round((float) ($block['y'] ?? $defaultBlock['y'])))),
+                'w' => max(6, min(100, (int) round((float) ($block['w'] ?? $defaultBlock['w'])))),
+                'h' => max(6, min(100, (int) round((float) ($block['h'] ?? $defaultBlock['h'])))),
+            ];
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * @return array{title:string,subtitle:string,background_color:string,name_panel_color:string,favicon_path:?string}
+     */
+    protected function badgeTemplateOptions(): array
+    {
+        return [
+            'title' => (string) ($this->settingValue('badge.title') ?? ''),
+            'subtitle' => (string) ($this->settingValue('badge.subtitle') ?? ''),
+            'background_color' => (string) ($this->settingValue('badge.background_color') ?? '#fff3cb'),
+            'name_panel_color' => (string) ($this->settingValue('badge.name_panel_color') ?? '#efd089'),
+            'favicon_path' => $this->settingValue('branding.favicon') ?: $this->settingValue('branding.logo'),
+        ];
+    }
+
+    protected function settingValue(string $key, ?string $default = null): ?string
+    {
+        return Setting::query()
+            ->where('key', $key)
+            ->value('value') ?? $default;
+    }
+
+    protected function hasExportableBadgeAvatar(User $user): bool
+    {
+        $user->loadMissing('details');
+
+        $picture = (string) ($user->details?->getRawOriginal('picture') ?? '');
+
+        if ($picture === '') {
+            return false;
+        }
+
+        return Storage::disk('public')->exists('images/users/'.$picture);
+    }
+
+    protected function resolveBrandingImageUrl(string $path): string
+    {
+        if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, '/storage/')) {
+            return asset(ltrim($path, '/'));
+        }
+
+        if (Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
     protected function defaultSelectedStatus(): string
