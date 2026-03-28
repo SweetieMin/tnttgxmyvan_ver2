@@ -611,6 +611,56 @@ test('editing a personnel profile optimizes the stored avatar size', function ()
         ->and(filesize($picturePath))->toBeLessThanOrEqual(204800);
 });
 
+test('editing a personnel profile stores the avatar with a fixed account code filename and overwrites the previous file', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.user.update']
+    );
+
+    $user = User::factory()->create([
+        'username' => 'MV12051212',
+        'status_login' => 'active',
+        'birthday' => '2012-05-12',
+    ]);
+    $user->assignRole(personnelRole('Thiếu Nhi'));
+
+    $avatarDirectory = storage_path('app/public/images/users');
+
+    if (! is_dir($avatarDirectory)) {
+        mkdir($avatarDirectory, 0755, true);
+    }
+
+    file_put_contents($avatarDirectory.'/MV12051212-old.png', 'old-avatar');
+
+    UserDetail::query()->create([
+        'user_id' => $user->id,
+        'gender' => 'male',
+        'picture' => 'MV12051212-old.png',
+    ]);
+
+    $this->actingAs($viewer);
+
+    Livewire::test(UserProfileEditor::class, ['group' => 'users', 'user' => $user])
+        ->set('selectedRoleNames', ['Thiếu Nhi'])
+        ->set('fullName', $user->full_name)
+        ->set('birthday', $user->birthday->format('Y-m-d'))
+        ->set('statusLogin', 'active')
+        ->set('gender', 'male')
+        ->set('statusReligious', 'in_course')
+        ->set('lang', 'vi')
+        ->set('pictureUpload', UploadedFile::fake()->image('avatar.jpg'))
+        ->set('croppedImageData', tinyPngDataUrl())
+        ->call('confirmAvatarCrop')
+        ->assertHasNoErrors();
+
+    $picture = $user->fresh()->details?->getRawOriginal('picture');
+    $picturePath = $avatarDirectory.'/MV12051212.png';
+
+    expect($picture)->toBe('MV12051212.png')
+        ->and(file_exists($picturePath))->toBeTrue()
+        ->and(file_exists($avatarDirectory.'/MV12051212-old.png'))->toBeFalse();
+});
+
 test('editing a personnel profile does not redirect after saving', function () {
     $viewer = createManagerWithManageableRoles(
         ['Thiếu Nhi'],

@@ -461,7 +461,7 @@ class UserProfileEditor extends Component
 
     protected function storePicture(string $accountCode): string
     {
-        $filename = $accountCode.'-'.Str::lower(Str::random(8)).'.png';
+        $filename = $accountCode.'.png';
         $directory = storage_path('app/public/images/users');
         $targetPath = $directory.'/'.$filename;
 
