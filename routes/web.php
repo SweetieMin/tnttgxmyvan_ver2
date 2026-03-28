@@ -16,12 +16,14 @@ use App\Livewire\Admin\Personnel\Directors\DirectorIndex;
 use App\Livewire\Admin\Personnel\Leaders\LeaderIndex;
 use App\Livewire\Admin\Personnel\UserProfileEditor;
 use App\Livewire\Admin\Personnel\Users\UserIndex;
+use App\Livewire\Front\ProfileShow;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::livewire('profile/{token}', ProfileShow::class)->name('front.profile.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');

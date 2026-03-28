@@ -118,9 +118,9 @@ class SettingSeeder extends Seeder
                 'value' => json_encode([
                     'logo' => ['x' => 3, 'y' => 0, 'w' => 14, 'h' => 14],
                     'heading' => ['x' => 18, 'y' => 1, 'w' => 72, 'h' => 9],
-                    'qr' => ['x' => 27, 'y' => 11, 'w' => 52, 'h' => 30],
+                    'qr' => ['x' => 24, 'y' => 11, 'w' => 52, 'h' => 30],
                     'name_panel' => ['x' => 3, 'y' => 61, 'w' => 94, 'h' => 37],
-                    'avatar' => ['x' => 21, 'y' => 43, 'w' => 61, 'h' => 40],
+                    'avatar' => ['x' => 19, 'y' => 43, 'w' => 61, 'h' => 40],
                     'christian_name' => ['x' => 22, 'y' => 85, 'w' => 56, 'h' => 6],
                     'full_name' => ['x' => 14, 'y' => 90, 'w' => 72, 'h' => 7],
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
