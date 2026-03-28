@@ -14,7 +14,7 @@
     </div>
 
     @if ($paginator instanceof \Illuminate\Contracts\Pagination\Paginator && $paginator->hasPages())
-        <flux:card class="rounded-2xl p-4 md:hidden">
+        <flux:card class="rounded-2xl p-4 md:hidden mb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
             {{ $paginator->links(data: ['scrollTo' => false]) }}
         </flux:card>
     @endif

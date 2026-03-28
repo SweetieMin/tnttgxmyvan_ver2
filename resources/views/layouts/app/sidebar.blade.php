@@ -92,7 +92,8 @@
         </flux:navbar>
     </flux:header>
 
-    <flux:main class="h-[calc(100vh-57px)] overflow-y-auto p-4!">
+    <flux:main
+        class="h-[calc(100dvh-57px)] overflow-y-auto p-4! pb-[calc(env(safe-area-inset-bottom)+1rem)] md:pb-4">
         {{ $slot }}
     </flux:main>
 

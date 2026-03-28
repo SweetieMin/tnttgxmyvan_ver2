@@ -13,7 +13,9 @@ test('authenticated users can visit the dashboard', function () {
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSee('100dvh', false)
+        ->assertSee('env(safe-area-inset-bottom)', false);
 });
 
 test('authenticated users can visit the dashboard when they have a detail record', function () {
