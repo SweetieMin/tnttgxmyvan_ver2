@@ -259,6 +259,11 @@ class UserProfileEditor extends Component
         }
     }
 
+    public function cancelEditing(): void
+    {
+        $this->redirect($this->cancelRoute(), navigate: true);
+    }
+
     public function title(): string
     {
         if ($this->isEditing()) {

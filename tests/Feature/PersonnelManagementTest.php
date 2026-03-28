@@ -695,6 +695,30 @@ test('editing a personnel profile does not redirect after saving', function () {
         ->assertNoRedirect();
 });
 
+test('cancel editing redirects back to the current personnel list', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.user.update']
+    );
+
+    $user = User::factory()->create([
+        'username' => 'MV12051211',
+        'status_login' => 'active',
+        'birthday' => '2012-05-12',
+    ]);
+    $user->assignRole(personnelRole('Thiếu Nhi'));
+    UserDetail::query()->create([
+        'user_id' => $user->id,
+        'gender' => 'male',
+    ]);
+
+    $this->actingAs($viewer);
+
+    Livewire::test(UserProfileEditor::class, ['group' => 'users', 'user' => $user])
+        ->call('cancelEditing')
+        ->assertRedirect(route('admin.personnel.users'));
+});
+
 test('editor full name helper normalizes and splits the saved name parts', function () {
     $editor = new class extends UserProfileEditor
     {
