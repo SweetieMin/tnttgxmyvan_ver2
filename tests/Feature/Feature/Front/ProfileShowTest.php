@@ -35,6 +35,10 @@ test('public profile page is accessible by token without authentication', functi
     $response = $this->get('/profile/'.str_repeat('a', 64));
 
     $response->assertOk()
+        ->assertSee('flex min-h-screen flex-col', false)
+        ->assertSee('flex-1 px-4 py-4', false)
+        ->assertSeeText(config('app.name', 'Laravel'))
+        ->assertSeeText(__('Log in'))
         ->assertSeeText('Nguyễn Thị Kim Anh')
         ->assertSeeText('Maria Monica')
         ->assertSeeText(__('Personal information'))
