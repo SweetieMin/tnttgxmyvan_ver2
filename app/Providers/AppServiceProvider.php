@@ -26,6 +26,7 @@ use App\Repositories\Eloquent\RegulationRepository;
 use App\Repositories\Eloquent\RoleRepository;
 use App\Repositories\Eloquent\TransactionRepository;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -79,7 +80,7 @@ class AppServiceProvider extends ServiceProvider
 
             /** @var array<string, mixed> $sharedSidebarData */
             $sharedSidebarData = once(function (): array {
-                $currentUser = auth()->user()?->loadMissing('details');
+                $currentUser = Auth::user()?->loadMissing('details');
 
                 return [
                     'sidebarNavigation' => app(SidebarNavigation::class)->for($currentUser),
