@@ -9,12 +9,41 @@ use Illuminate\Http\Request;
 beforeEach(function () {
     collect([
         'management.academic-year.view',
+        'management.enrollment.view',
+        'management.gradebook.view',
+        'management.sector-assignment.view',
+        'management.attendance-schedule.view',
+        'management.attendance-checkin.view',
+        'management.activity-point.view',
+        'management.promotion.view',
         'finance.transaction.view',
         'settings.log.activity.view',
         'personnel.user.view',
         'personnel.catechist.view',
         'personnel.child.view',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
+});
+
+test('sidebar navigation includes newly scaffolded academic workflow items when the user can access them', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.enrollment.view',
+        'management.gradebook.view',
+        'management.attendance-schedule.view',
+        'management.promotion.view',
+    ]);
+
+    $navigation = app(SidebarNavigation::class)->for($user);
+    $managementSection = collect($navigation['primary'])
+        ->firstWhere('label', __('Management'));
+
+    expect($managementSection)->not->toBeNull()
+        ->and(collect($managementSection['items'])->pluck('label')->all())->toBe([
+            __('Enrollments'),
+            __('Gradebooks'),
+            __('Attendance schedules'),
+            __('Promotions'),
+        ]);
 });
 
 test('sidebar navigation only includes sections and items the user can access', function () {

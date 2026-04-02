@@ -18,9 +18,8 @@
                 alt="Login illustration" class="absolute inset-0 h-full w-full object-cover" />
             <div class="absolute inset-0 bg-linear-to-b from-black/35 via-black/5 to-black/75"></div>
 
-            <a href="{{ route('home') }}"
-                class="relative z-20 flex w-full items-center gap-4 rounded-[2rem] border border-white/20 bg-black/28 px-6 py-5 text-lg font-medium text-white shadow-2xl shadow-black/25 backdrop-blur-md"
-                wire:navigate>
+            <div
+                class="relative z-20 flex w-full items-center gap-4 rounded-[2rem] border border-white/20 bg-black/28 px-6 py-5 text-lg font-medium text-white shadow-2xl shadow-black/25 backdrop-blur-md">
                 <img
                     src="{{ asset('storage/' . ltrim($siteFavicon ?: $siteLogo ?: 'images/sites/FAVICON_default.png', '/')) }}"
                     alt="{{ filled($siteTitle) ? $siteTitle : config('app.name', 'Đoàn TNTT Gx Mỹ Vân') }}"
@@ -36,7 +35,7 @@
                         </div>
                     @endif
                 </div>
-            </a>
+            </div>
 
             @php
                 [$text, $ref] = str(App\Foundation\BibleVerseKids::verses()->random())->explode('-');
@@ -57,8 +56,7 @@
             <div
                 class="mx-auto flex w-[calc(100vw-5rem)] max-w-none flex-col justify-center space-y-5 sm:w-full lg:max-w-[480px]">
 
-                <a href="{{ route('home') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden"
-                    wire:navigate>
+                <div class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden">
                     <img
                         src="{{ asset('storage/' . ltrim($siteFavicon ?: $siteLogo ?: 'images/sites/FAVICON_default.png', '/')) }}"
                         alt="{{ filled($siteTitle) ? $siteTitle : config('app.name', 'Đoàn TNTT Gx Mỹ Vân') }}"
@@ -66,7 +64,7 @@
                     />
 
                     <span class="sr-only">{{ filled($siteTitle) ? $siteTitle : config('app.name', 'Đoàn TNTT Gx Mỹ Vân') }}</span>
-                </a>
+                </div>
                 <div class="w-full">
                     <flux:card class="block w-full space-y-6 p-5 sm:p-6">
                         {{ $slot }}

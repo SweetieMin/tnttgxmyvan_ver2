@@ -7,8 +7,15 @@ use App\Livewire\Admin\Finance\Categories\CategoryIndex;
 use App\Livewire\Admin\Finance\Transactions\TransactionIndex;
 use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
+use App\Livewire\Admin\Management\ActivityPoints\ActivityPointIndex;
+use App\Livewire\Admin\Management\AttendanceCheckins\AttendanceCheckinIndex;
+use App\Livewire\Admin\Management\AttendanceSchedules\AttendanceScheduleIndex;
+use App\Livewire\Admin\Management\Enrollments\EnrollmentIndex;
+use App\Livewire\Admin\Management\Gradebooks\GradebookIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
+use App\Livewire\Admin\Management\Promotions\PromotionIndex;
 use App\Livewire\Admin\Management\Regulations\RegulationIndex;
+use App\Livewire\Admin\Management\SectorAssignments\SectorAssignmentIndex;
 use App\Livewire\Admin\Personnel\Catechists\CatechistIndex;
 use App\Livewire\Admin\Personnel\Children\ChildIndex;
 use App\Livewire\Admin\Personnel\DeletedUsers\DeletedUserIndex;
@@ -48,6 +55,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('academic-courses', AcademicCourseIndex::class)
                 ->middleware('permission:management.academic-course.view')
                 ->name('academic-courses');
+
+            Route::livewire('enrollments', EnrollmentIndex::class)
+                ->middleware('permission:management.enrollment.view')
+                ->name('enrollments');
+
+            Route::livewire('gradebooks', GradebookIndex::class)
+                ->middleware('permission:management.gradebook.view')
+                ->name('gradebooks');
+
+            Route::livewire('sector-assignments', SectorAssignmentIndex::class)
+                ->middleware('permission:management.sector-assignment.view')
+                ->name('sector-assignments');
+
+            Route::livewire('attendance-schedules', AttendanceScheduleIndex::class)
+                ->middleware('permission:management.attendance-schedule.view')
+                ->name('attendance-schedules');
+
+            Route::livewire('attendance-checkins', AttendanceCheckinIndex::class)
+                ->middleware('permission:management.attendance-checkin.view')
+                ->name('attendance-checkins');
+
+            Route::livewire('activity-points', ActivityPointIndex::class)
+                ->middleware('permission:management.activity-point.view')
+                ->name('activity-points');
+
+            Route::livewire('promotions', PromotionIndex::class)
+                ->middleware('permission:management.promotion.view')
+                ->name('promotions');
 
             Route::livewire('programs', ProgramIndex::class)
                 ->middleware('permission:management.program.view')

@@ -10,6 +10,23 @@ test('login screen can be rendered', function () {
         ->assertSeeText(config('app.name', 'Laravel'));
 });
 
+test('login screen images are not wrapped in links', function () {
+    $response = $this->get(route('login'));
+
+    $response->assertOk();
+
+    $document = new DOMDocument;
+
+    libxml_use_internal_errors(true);
+    $document->loadHTML($response->getContent());
+    libxml_clear_errors();
+
+    $xpath = new DOMXPath($document);
+
+    expect((int) $xpath->evaluate('count(//img)'))->toBeGreaterThan(0)
+        ->and((int) $xpath->evaluate('count(//a//img)'))->toBe(0);
+});
+
 test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 

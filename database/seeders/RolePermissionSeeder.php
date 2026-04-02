@@ -69,6 +69,41 @@ class RolePermissionSeeder extends Seeder
             'management.academic-course.update',
             'management.academic-course.delete',
 
+            'management.enrollment.view',
+            'management.enrollment.create',
+            'management.enrollment.update',
+            'management.enrollment.delete',
+
+            'management.gradebook.view',
+            'management.gradebook.create',
+            'management.gradebook.update',
+            'management.gradebook.delete',
+
+            'management.sector-assignment.view',
+            'management.sector-assignment.create',
+            'management.sector-assignment.update',
+            'management.sector-assignment.delete',
+
+            'management.attendance-schedule.view',
+            'management.attendance-schedule.create',
+            'management.attendance-schedule.update',
+            'management.attendance-schedule.delete',
+
+            'management.attendance-checkin.view',
+            'management.attendance-checkin.create',
+            'management.attendance-checkin.update',
+            'management.attendance-checkin.delete',
+
+            'management.activity-point.view',
+            'management.activity-point.create',
+            'management.activity-point.update',
+            'management.activity-point.delete',
+
+            'management.promotion.view',
+            'management.promotion.create',
+            'management.promotion.update',
+            'management.promotion.delete',
+
             'management.program.view',
             'management.program.create',
             'management.program.update',

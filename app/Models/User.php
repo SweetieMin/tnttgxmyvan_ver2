@@ -12,6 +12,7 @@ use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -171,5 +172,40 @@ class User extends Authenticatable
     public function settings()
     {
         return $this->hasOne(UserSetting::class);
+    }
+
+    public function academicEnrollments(): HasMany
+    {
+        return $this->hasMany(AcademicEnrollment::class);
+    }
+
+    public function academicCourseAssignments(): HasMany
+    {
+        return $this->hasMany(AcademicCourseStaff::class);
+    }
+
+    public function academicYearSectorAssignments(): HasMany
+    {
+        return $this->hasMany(AcademicYearSectorStaff::class);
+    }
+
+    public function recordedAttendanceCheckins(): HasMany
+    {
+        return $this->hasMany(AttendanceCheckin::class, 'recorded_by');
+    }
+
+    public function approvedAttendanceCheckins(): HasMany
+    {
+        return $this->hasMany(AttendanceCheckin::class, 'approved_by');
+    }
+
+    public function reviewedEnrollments(): HasMany
+    {
+        return $this->hasMany(AcademicEnrollment::class, 'reviewed_by');
+    }
+
+    public function promotionReviews(): HasMany
+    {
+        return $this->hasMany(EnrollmentPromotionReview::class, 'reviewed_by');
     }
 }

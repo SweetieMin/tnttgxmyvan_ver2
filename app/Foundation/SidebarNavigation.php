@@ -36,6 +36,27 @@ class SidebarNavigation
                     $permissions->contains('management.academic-course.view')
                         ? $this->item('rectangle-stack', route('admin.management.academic-courses'), 'admin.management.academic-courses', __('Catechism - sector classes'))
                         : null,
+                    $permissions->contains('management.enrollment.view')
+                        ? $this->item('clipboard-document-check', route('admin.management.enrollments'), 'admin.management.enrollments', __('Enrollments'))
+                        : null,
+                    $permissions->contains('management.gradebook.view')
+                        ? $this->item('book-open', route('admin.management.gradebooks'), 'admin.management.gradebooks', __('Gradebooks'))
+                        : null,
+                    $permissions->contains('management.sector-assignment.view')
+                        ? $this->item('flag', route('admin.management.sector-assignments'), 'admin.management.sector-assignments', __('Sector assignments'))
+                        : null,
+                    $permissions->contains('management.attendance-schedule.view')
+                        ? $this->item('calendar-days', route('admin.management.attendance-schedules'), 'admin.management.attendance-schedules', __('Attendance schedules'))
+                        : null,
+                    $permissions->contains('management.attendance-checkin.view')
+                        ? $this->item('qr-code', route('admin.management.attendance-checkins'), 'admin.management.attendance-checkins', __('Attendance check-ins'))
+                        : null,
+                    $permissions->contains('management.activity-point.view')
+                        ? $this->item('sparkles', route('admin.management.activity-points'), 'admin.management.activity-points', __('Activity points'))
+                        : null,
+                    $permissions->contains('management.promotion.view')
+                        ? $this->item('arrow-trending-up', route('admin.management.promotions'), 'admin.management.promotions', __('Promotions'))
+                        : null,
                 ]),
                 $this->section(__('Personnel'), [
 
