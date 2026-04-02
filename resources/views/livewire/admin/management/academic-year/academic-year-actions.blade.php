@@ -51,16 +51,16 @@
 
                     <div class="grid grid-cols-1 gap-4 xl:grid-cols-4">
                         <div class="xl:col-span-1">
-                            <flux:date-picker wire:model.live="catechism_start_date" :label="__('Catechism start date')" type="input" locale="vi-VN" />
+                            <flux:date-picker wire:model.live="catechism_start_date" :label="__('Catechism start date')" locale="vi-VN" selectable-header />
                         </div>
                         <div class="xl:col-span-1">
-                            <flux:date-picker wire:model.live="catechism_end_date" :label="__('Catechism end date')" type="input" locale="vi-VN" />
+                            <flux:date-picker wire:model.live="catechism_end_date" :label="__('Catechism end date')" locale="vi-VN" selectable-header />
                         </div>
                         <div class="xl:col-span-1">
-                            <flux:date-picker wire:model.live="activity_start_date" :label="__('Activity start date')" type="input" locale="vi-VN" />
+                            <flux:date-picker wire:model.live="activity_start_date" :label="__('Activity start date')" locale="vi-VN" selectable-header />
                         </div>
                         <div class="xl:col-span-1">
-                            <flux:date-picker wire:model.live="activity_end_date" :label="__('Activity end date')" type="input" locale="vi-VN" />
+                            <flux:date-picker wire:model.live="activity_end_date" :label="__('Activity end date')" locale="vi-VN" selectable-header />
                         </div>
                     </div>
 

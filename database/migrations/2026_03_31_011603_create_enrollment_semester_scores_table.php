@@ -32,7 +32,10 @@ return new class extends Migration
             $table->boolean('is_locked')->default(false);
             $table->timestamps();
 
-            $table->unique(['academic_enrollment_id', 'semester']);
+            $table->unique(
+                ['academic_enrollment_id', 'semester'],
+                'ess_enrollment_semester_unique'
+            );
         });
     }
 

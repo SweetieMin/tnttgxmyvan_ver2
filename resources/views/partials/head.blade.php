@@ -19,7 +19,8 @@
     rel="stylesheet"
 >
 
-@vite(['resources/css/app.css', 'resources/js/app.js'])
+@filamentStyles
+@vite(['resources/css/app.css', 'resources/css/filament.css', 'resources/js/app.js'])
 
 <meta name="description" content="{{ $siteMetaDescription ?: $siteTagline ?: $siteTitle }}" />
 <meta name="keywords" content="{{ $siteMetaKeywords }}" />

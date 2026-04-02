@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearActions;
+use App\Livewire\Admin\Management\AcademicYear\AcademicYearList;
 use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
 use App\Models\Permission;
@@ -25,7 +26,10 @@ test('authorized users can visit the academic years page', function () {
     $response = $this->actingAs($user)->get(route('admin.management.academic-years'));
 
     $response->assertOk()
-        ->assertSeeText(__('Academic years'));
+        ->assertSeeText(__('Academic years'))
+        ->assertSeeLivewire('notifications')
+        ->assertSee('animate-pulse', false)
+        ->assertDontSee('fi-ta-table', false);
 });
 
 test('academic years can be created updated and deleted from the livewire screen', function () {
@@ -334,4 +338,74 @@ test('academic years are ordered by current status priority', function () {
         'NK26-27',
         'NK24-25',
     ]);
+});
+
+test('academic year filament table renders records in priority order and supports searching', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-year.view',
+        'management.academic-year.update',
+        'management.academic-year.delete',
+    ]);
+
+    $upcomingAcademicYear = AcademicYear::factory()->create([
+        'name' => 'NK27-28',
+        'status_academic' => 'upcoming',
+        'catechism_start_date' => '2027-09-01',
+    ]);
+
+    $ongoingAcademicYear = AcademicYear::factory()->create([
+        'name' => 'NK26-27',
+        'status_academic' => 'ongoing',
+        'catechism_start_date' => '2026-09-01',
+    ]);
+
+    $finishedAcademicYear = AcademicYear::factory()->create([
+        'name' => 'NK25-26',
+        'status_academic' => 'finished',
+        'catechism_start_date' => '2025-09-01',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicYearList::class)
+        ->assertCanSeeTableRecords([
+            $ongoingAcademicYear,
+            $upcomingAcademicYear,
+            $finishedAcademicYear,
+        ], inOrder: true)
+        ->assertTableActionExists('edit', record: $ongoingAcademicYear)
+        ->assertTableActionHasColor('edit', 'primary', record: $ongoingAcademicYear)
+        ->assertTableActionExists('delete', record: $ongoingAcademicYear)
+        ->sortTable('name', 'asc')
+        ->assertCanSeeTableRecords([
+            $finishedAcademicYear,
+            $ongoingAcademicYear,
+            $upcomingAcademicYear,
+        ], inOrder: true)
+        ->searchTable('NK27-28')
+        ->assertCanSeeTableRecords([$upcomingAcademicYear])
+        ->assertCanNotSeeTableRecords([$ongoingAcademicYear, $finishedAcademicYear]);
+});
+
+test('academic year filament table no longer exposes bulk actions', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-year.view',
+        'management.academic-year.delete',
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(AcademicYearList::class);
+
+    expect($component->instance()->getTable()->getBulkActions())->toBe([]);
+});
+
+test('filament export action translation keys resolve in vietnamese', function () {
+    app()->setLocale('vi');
+
+    expect(__('filament-actions::export.modal.form.columns.actions.select_all.label'))->toBe('Chọn tất cả')
+        ->and(__('filament-actions::export.modal.form.columns.actions.deselect_all.label'))->toBe('Bỏ chọn tất cả')
+        ->and(__('filament-actions::export.notifications.no_columns.title'))->toBe('Chưa chọn cột nào');
 });

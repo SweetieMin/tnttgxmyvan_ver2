@@ -27,7 +27,10 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->timestamps();
 
-            $table->unique(['academic_course_id', 'user_id', 'assignment_type']);
+            $table->unique(
+                ['academic_course_id', 'user_id', 'assignment_type'],
+                'acs_course_user_assignment_unique'
+            );
         });
     }
 

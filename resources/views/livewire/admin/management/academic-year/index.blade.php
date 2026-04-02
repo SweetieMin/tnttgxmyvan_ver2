@@ -8,9 +8,7 @@
         permission="management.academic-year.create"
     />
 
-    <x-app-filter :has-pages="true" />
-
-    <livewire:admin.management.academic-year.academic-year-list :search="$search" :per-page="$perPage" :key="'academic-year-list-'.md5($search.'|'.$perPage)" lazy />
+    <livewire:admin.management.academic-year.academic-year-list lazy />
 
     <livewire:admin.management.academic-year.academic-year-actions />
 </section>

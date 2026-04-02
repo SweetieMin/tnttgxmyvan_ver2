@@ -97,10 +97,13 @@
         {{ $slot }}
     </flux:main>
 
+    <livewire:notifications />
+
     <flux:toast.group position="top end">
         <flux:toast />
     </flux:toast.group>
 
+    @filamentScripts
     @fluxScripts
 </body>
 
