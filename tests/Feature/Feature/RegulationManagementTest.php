@@ -131,11 +131,131 @@ test('regulations can be reordered from the list', function () {
 
     $this->actingAs($user);
 
-    Livewire::test(RegulationList::class)
-        ->call('sortRegulation', $thirdRegulation->id, 0)
+    $component = Livewire::test(RegulationList::class)
+        ->assertCanSeeTableRecords([
+            $firstRegulation,
+            $secondRegulation,
+            $thirdRegulation,
+        ], inOrder: true)
+        ->call('reorderTable', [
+            $thirdRegulation->id,
+            $firstRegulation->id,
+            $secondRegulation->id,
+        ])
         ->assertHasNoErrors();
+
+    expect($component->instance()->getTable()->isReorderable())->toBeTrue();
 
     expect($thirdRegulation->fresh()->ordering)->toBe(1);
     expect($firstRegulation->fresh()->ordering)->toBe(2);
     expect($secondRegulation->fresh()->ordering)->toBe(3);
+});
+
+test('regulation filament table supports searching filters and record actions', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.regulation.view',
+        'management.regulation.update',
+        'management.regulation.delete',
+    ]);
+
+    $appliedRegulation = Regulation::factory()->create([
+        'ordering' => 1,
+        'description' => 'Đi lễ đầy đủ',
+        'type' => 'plus',
+        'status' => 'applied',
+        'points' => 10,
+    ]);
+
+    $pendingRegulation = Regulation::factory()->create([
+        'ordering' => 2,
+        'description' => 'Đi học trễ',
+        'type' => 'minus',
+        'status' => 'pending',
+        'points' => 5,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(RegulationList::class)
+        ->assertCanSeeTableRecords([
+            $appliedRegulation,
+            $pendingRegulation,
+        ], inOrder: true)
+        ->assertTableActionExists('edit', record: $appliedRegulation)
+        ->assertTableActionExists('delete', record: $appliedRegulation)
+        ->searchTable('trễ')
+        ->assertCanSeeTableRecords([$pendingRegulation])
+        ->assertCanNotSeeTableRecords([$appliedRegulation])
+        ->searchTable('')
+        ->filterTable('status', 'applied')
+        ->assertCanSeeTableRecords([$appliedRegulation])
+        ->assertCanNotSeeTableRecords([$pendingRegulation]);
+});
+
+test('regulation filament table can bulk update status for selected records', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.regulation.view',
+        'management.regulation.update',
+    ]);
+
+    $firstRegulation = Regulation::factory()->create([
+        'status' => 'pending',
+        'description' => 'Đi học đúng giờ',
+    ]);
+
+    $secondRegulation = Regulation::factory()->create([
+        'status' => 'pending',
+        'description' => 'Đi lễ đầy đủ',
+    ]);
+
+    $untouchedRegulation = Regulation::factory()->create([
+        'status' => 'not_applied',
+        'description' => 'Không mặc đồng phục',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(RegulationList::class)
+        ->assertTableBulkActionExists('updateStatus')
+        ->callTableBulkAction('updateStatus', [$firstRegulation, $secondRegulation], data: [
+            'status' => 'applied',
+        ])
+        ->assertHasNoErrors();
+
+    expect($firstRegulation->fresh()->status)->toBe('applied')
+        ->and($secondRegulation->fresh()->status)->toBe('applied')
+        ->and($untouchedRegulation->fresh()->status)->toBe('not_applied');
+});
+
+test('regulation filament table can bulk delete selected records', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.regulation.view',
+        'management.regulation.delete',
+    ]);
+
+    $firstRegulation = Regulation::factory()->create([
+        'description' => 'Đi học đúng giờ',
+    ]);
+
+    $secondRegulation = Regulation::factory()->create([
+        'description' => 'Đi lễ đầy đủ',
+    ]);
+
+    $untouchedRegulation = Regulation::factory()->create([
+        'description' => 'Không mặc đồng phục',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(RegulationList::class)
+        ->assertTableBulkActionExists('deleteSelected')
+        ->callTableBulkAction('deleteSelected', [$firstRegulation, $secondRegulation])
+        ->assertHasNoErrors();
+
+    expect($firstRegulation->fresh()->trashed())->toBeTrue()
+        ->and($secondRegulation->fresh()->trashed())->toBeTrue()
+        ->and($untouchedRegulation->fresh()->trashed())->toBeFalse();
 });

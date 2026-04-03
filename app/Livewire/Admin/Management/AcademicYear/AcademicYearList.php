@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Management\AcademicYear;
 use App\Models\AcademicYear;
 use App\Repositories\Contracts\AcademicYearRepositoryInterface;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
@@ -51,22 +52,27 @@ class AcademicYearList extends Component implements HasActions, HasSchemas, HasT
                 TextColumn::make('catechism_period')
                     ->label(__('Catechism period'))
                     ->placeholder(__('N/A'))
-                    ->visibleFrom('md'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('catechism_avg_score')
                     ->label(__('Catechism average score'))
                     ->formatStateUsing(fn (mixed $state): string => number_format((float) $state, 2, ',', '.'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->alignCenter(),
                 TextColumn::make('catechism_training_score')
                     ->label(__('Catechism training score'))
                     ->formatStateUsing(fn (mixed $state): string => number_format((float) $state, 2, ',', '.'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->alignCenter(),
                 TextColumn::make('activity_period')
                     ->label(__('Activity period'))
                     ->placeholder(__('N/A'))
-                    ->visibleFrom('md'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('activity_score')
                     ->label(__('Activity score'))
-                    ->visibleFrom('sm'),
+                    ->visibleFrom('lg')
+                    ->alignCenter(),
                 TextColumn::make('status_academic')
                     ->label(__('Status'))
                     ->badge()
@@ -78,11 +84,14 @@ class AcademicYearList extends Component implements HasActions, HasSchemas, HasT
                     ->color(fn (string $state): string => match ($state) {
                         'upcoming' => 'warning',
                         'ongoing' => 'success',
-                        'finished' => 'zinc',
+                        'finished' => 'gray',
                         default => 'warning',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
             ])
+            ->persistSortInSession()
+            ->reorderableColumns()
             ->stackedOnMobile()
             ->filters([
                 SelectFilter::make('status_academic')
@@ -112,24 +121,30 @@ class AcademicYearList extends Component implements HasActions, HasSchemas, HasT
             ->extremePaginationLinks()
             ->emptyStateHeading(__('No academic years found.'))
             ->recordActions([
-                Action::make('edit')
-                    ->label(__('Edit'))
+                ActionGroup::make([
+                    Action::make('edit')
+                        ->label(__('Edit'))
+                        ->color('primary')
+                        ->icon('heroicon-m-pencil-square')
+                        ->visible(fn (): bool => Auth::user()?->can('management.academic-year.update') ?? false)
+                        ->action(function (AcademicYear $record): void {
+                            $this->dispatch('edit-academic-year', academicYearId: $record->getKey());
+                        }),
+                    Action::make('delete')
+                        ->label(__('Delete'))
+                        ->icon('heroicon-m-trash')
+                        ->color('danger')
+                        ->visible(fn (): bool => Auth::user()?->can('management.academic-year.delete') ?? false)
+                        ->action(function (AcademicYear $record): void {
+                            $this->dispatch('confirm-delete-academic-year', academicYearId: $record->getKey());
+                        }),
+                ])
                     ->button()
-                    ->color('primary')
-                    ->icon('heroicon-m-pencil-square')
-                    ->visible(fn (): bool => Auth::user()?->can('management.academic-year.update') ?? false)
-                    ->action(function (AcademicYear $record): void {
-                        $this->dispatch('edit-academic-year', academicYearId: $record->getKey());
-                    }),
-                Action::make('delete')
-                    ->label(__('Delete'))
-                    ->button()
-                    ->icon('heroicon-m-trash')
-                    ->color('danger')
-                    ->visible(fn (): bool => Auth::user()?->can('management.academic-year.delete') ?? false)
-                    ->action(function (AcademicYear $record): void {
-                        $this->dispatch('confirm-delete-academic-year', academicYearId: $record->getKey());
-                    }),
+                    ->label(__('Actions'))
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->color('gray')
+                    ->size('sm')
+                    ->dropdownPlacement('bottom-end'),
             ]);
     }
 

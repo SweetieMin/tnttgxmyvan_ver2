@@ -90,6 +90,7 @@ test('academic courses can be created updated and deleted from the livewire scre
 test('academic course index defaults to the ongoing academic year', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('management.academic-course.view');
+    $user->givePermissionTo('management.academic-course.create');
 
     $ongoingAcademicYear = AcademicYear::factory()->create([
         'status_academic' => 'ongoing',
@@ -102,10 +103,8 @@ test('academic course index defaults to the ongoing academic year', function () 
     $this->actingAs($user);
 
     Livewire::test(AcademicCourseIndex::class)
-        ->assertSet('selectedAcademicYear', $ongoingAcademicYear->id)
-        ->set('selectedAcademicYear', '')
-        ->call('resetFilter')
-        ->assertSet('selectedAcademicYear', $ongoingAcademicYear->id);
+        ->call('openCreateModal')
+        ->assertDispatched('open-create-academic-course-modal', academicYearId: $ongoingAcademicYear->id);
 });
 
 test('academic course list filters and reorders within the selected academic year', function () {
@@ -151,14 +150,19 @@ test('academic course list filters and reorders within the selected academic yea
 
     $this->actingAs($user);
 
-    Livewire::test(AcademicCourseList::class, [
-        'selectedAcademicYear' => $ongoingAcademicYear->id,
-    ])
-        ->assertSee('Them Suc 1A')
-        ->assertSee('Them Suc 1B')
-        ->assertDontSee($otherAcademicYearCourse->course_name)
-        ->call('sortAcademicCourse', $secondCourse->id, 0)
+    $component = Livewire::test(AcademicCourseList::class)
+        ->assertCanSeeTableRecords([
+            $firstCourse,
+            $secondCourse,
+        ], inOrder: true)
+        ->assertCanNotSeeTableRecords([$otherAcademicYearCourse])
+        ->call('reorderTable', [
+            $secondCourse->id,
+            $firstCourse->id,
+        ])
         ->assertHasNoErrors();
+
+    expect($component->instance()->getTable()->isReorderable())->toBeTrue();
 
     expect($secondCourse->fresh()->ordering)->toBe(1)
         ->and($firstCourse->fresh()->ordering)->toBe(2)
@@ -195,11 +199,71 @@ test('academic course list shows all academic years when the filter is empty', f
 
     $this->actingAs($user);
 
-    Livewire::test(AcademicCourseList::class, [
-        'selectedAcademicYear' => null,
-    ])
-        ->assertSee($firstCourse->course_name)
-        ->assertSee($secondCourse->course_name);
+    Livewire::test(AcademicCourseList::class)
+        ->removeTableFilter('academic_year_id', 'value')
+        ->assertCanSeeTableRecords([
+            $firstCourse,
+            $secondCourse,
+        ]);
+});
+
+test('academic course filament table supports searching filters and record actions', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-course.view',
+        'management.academic-course.create',
+        'management.academic-course.update',
+        'management.academic-course.delete',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create([
+        'name' => 'NK25-26',
+        'status_academic' => 'ongoing',
+    ]);
+
+    $program = Program::factory()->create();
+
+    $activeCourse = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+        'course_name' => 'Khai Tam 1A',
+        'sector_name' => 'Au 1A',
+        'is_active' => true,
+    ]);
+
+    $inactiveCourse = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+        'course_name' => 'Khai Tam 1B',
+        'sector_name' => 'Au 1B',
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicCourseList::class)
+        ->assertTableFilterExists('academic_year_id')
+        ->assertTableColumnExists('required_scores')
+        ->assertCanSeeTableRecords([
+            $activeCourse,
+            $inactiveCourse,
+        ])
+        ->assertSeeText('Khai Tam 1A')
+        ->assertSeeText('Au 1A')
+        ->assertSeeText(__('Active'))
+        ->assertSeeText(__('Catechism average'))
+        ->assertSeeText('5.00')
+        ->assertTableActionExists('edit', record: $activeCourse)
+        ->assertTableActionExists('duplicate', record: $activeCourse)
+        ->assertTableActionExists('delete', record: $activeCourse)
+        ->searchTable('Au 1B')
+        ->assertCanSeeTableRecords([$inactiveCourse])
+        ->assertCanNotSeeTableRecords([$activeCourse])
+        ->searchTable('')
+        ->filterTable('academic_year_id', $academicYear->id)
+        ->filterTable('is_active', '1')
+        ->assertCanSeeTableRecords([$activeCourse])
+        ->assertCanNotSeeTableRecords([$inactiveCourse]);
 });
 
 test('academic courses can be duplicated from the livewire screen', function () {

@@ -8,9 +8,7 @@
         permission="finance.category.create"
     />
 
-    <x-app-filter :has-pages="true" />
-
-    <livewire:admin.finance.categories.category-list :search="$search" :per-page="$perPage" :key="'category-list-'.md5($search.'|'.$perPage)" lazy />
+    <livewire:admin.finance.categories.category-list lazy />
 
     <livewire:admin.finance.categories.category-actions />
 </section>

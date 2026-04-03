@@ -8,9 +8,7 @@
         permission="management.program.create"
     />
 
-    <x-app-filter :has-pages="true" />
-
-    <livewire:admin.management.programs.program-list :search="$search" :per-page="$perPage" :key="'program-list-'.md5($search.'|'.$perPage)" lazy />
+    <livewire:admin.management.programs.program-list lazy />
 
     <livewire:admin.management.programs.program-actions />
 </section>

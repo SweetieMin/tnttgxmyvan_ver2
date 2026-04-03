@@ -1,5 +1,6 @@
 <?php
 
+use App\Exports\Finance\TransactionExport as TransactionExcelExport;
 use App\Livewire\Admin\Finance\Transactions\TransactionActions;
 use App\Livewire\Admin\Finance\Transactions\TransactionList;
 use App\Models\Category;
@@ -9,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Maatwebsite\Excel\Facades\Excel;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -255,11 +257,139 @@ test('transactions can be filtered by category', function () {
 
     $this->actingAs($user);
 
-    Livewire::test(TransactionList::class, [
-        'selectedCategory' => (string) $tet->id,
-    ])
-        ->assertSeeText('Thu Tet')
-        ->assertDontSeeText('Thu Trung Thu');
+    Livewire::test(TransactionList::class)
+        ->filterTable('category_id', (string) $tet->id)
+        ->assertCanSeeTableRecords([
+            Transaction::query()->where('transaction_item', 'Thu Tet')->firstOrFail(),
+        ])
+        ->assertCanNotSeeTableRecords([
+            Transaction::query()->where('transaction_item', 'Thu Trung Thu')->firstOrFail(),
+        ]);
+});
+
+test('transaction filament table supports searching filters and record actions', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'finance.transaction.view',
+        'finance.transaction.update',
+        'finance.transaction.delete',
+    ]);
+
+    $tet = Category::factory()->create([
+        'name' => 'Tet',
+        'ordering' => 1,
+    ]);
+
+    $trungThu = Category::factory()->create([
+        'name' => 'Trung Thu',
+        'ordering' => 2,
+    ]);
+
+    $matchingTransaction = Transaction::factory()->create([
+        'transaction_item' => 'Thu quỹ đầu năm',
+        'category_id' => $tet->id,
+        'type' => 'income',
+        'status' => 'completed',
+        'amount' => 500000,
+        'transaction_date' => '2026-03-21',
+    ]);
+
+    $filteredOutTransaction = Transaction::factory()->create([
+        'transaction_item' => 'Chi Trung Thu',
+        'category_id' => $trungThu->id,
+        'type' => 'expense',
+        'status' => 'pending',
+        'amount' => 250000,
+        'transaction_date' => '2026-03-20',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionList::class)
+        ->assertTableColumnExists('transaction_item')
+        ->assertTableColumnExists('status')
+        ->assertTableColumnExists('file_name')
+        ->assertTableFilterExists('type')
+        ->assertTableFilterExists('category_id')
+        ->assertTableFilterExists('status')
+        ->assertTableFilterExists('transaction_date')
+        ->assertCanSeeTableRecords([$matchingTransaction, $filteredOutTransaction])
+        ->assertTableActionExists('edit', record: $matchingTransaction)
+        ->assertTableActionExists('delete', record: $matchingTransaction)
+        ->searchTable('quỹ đầu năm')
+        ->filterTable('type', 'income')
+        ->filterTable('category_id', (string) $tet->id)
+        ->filterTable('status', 'completed')
+        ->filterTable('transaction_date', [
+            'from' => '2026-03-21',
+            'until' => '2026-03-21',
+        ])
+        ->assertCanSeeTableRecords([$matchingTransaction])
+        ->assertCanNotSeeTableRecords([$filteredOutTransaction])
+        ->assertSeeText('500.000 đ');
+});
+
+test('transaction export form defaults read the current filament filters', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.view');
+
+    $category = Category::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionList::class)
+        ->assertTableHeaderActionsExistInOrder(['exportData'])
+        ->filterTable('type', 'income')
+        ->filterTable('category_id', (string) $category->id)
+        ->filterTable('status', 'completed')
+        ->filterTable('transaction_date', [
+            'from' => '2026-03-01',
+            'until' => '2026-03-31',
+        ])
+        ->call('exportFormData')
+        ->assertReturned(fn (array $data): bool => $data['selectedTypes'] === ['income']
+            && $data['selectedCategoryIds'] === [(string) $category->id]
+            && $data['selectedStatuses'] === ['completed']
+            && $data['dateFrom'] === '2026-03-01'
+            && $data['dateUntil'] === '2026-03-31');
+});
+
+test('transaction list export can download an excel file', function () {
+    Excel::fake();
+
+    $user = User::factory()->create();
+    $user->givePermissionTo('finance.transaction.view');
+
+    $category = Category::factory()->create([
+        'name' => 'Trung Thu',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_item' => 'Thu Trung Thu',
+        'type' => 'income',
+        'status' => 'completed',
+        'amount' => 1000000,
+        'transaction_date' => '2026-03-20',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TransactionList::class)
+        ->call('exportTransactions', [
+            'selectedTypes' => ['income'],
+            'selectedCategoryIds' => [(string) $category->id],
+            'selectedStatuses' => ['completed'],
+            'selectedColumns' => ['transaction_date', 'category', 'transaction_item', 'amount'],
+            'dateFrom' => '2026-03-01',
+            'dateUntil' => '2026-03-31',
+            'fileName' => 'bao-cao-quy-filament',
+        ]);
+
+    Excel::assertDownloaded('bao-cao-quy-filament.xlsx', function (TransactionExcelExport $export): bool {
+        return $export->headings() === ['Ngày giao dịch', 'Hạng mục', 'Khoản mục chi', 'Thu', 'Chi']
+            && count($export->dataRows()) === 1;
+    });
 });
 
 test('selected transaction attachment can be removed before saving', function () {

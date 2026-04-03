@@ -10,7 +10,7 @@
     :data-theme="themePreset" :data-neutral-palette="themeNeutralPalette"
     class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800">
     <flux:sidebar sticky collapsible
-        class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-15 z-10 flex h-screen flex-col overflow-hidden">
+        class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-17 z-10 flex h-screen flex-col overflow-hidden">
         <flux:sidebar.header>
             <flux:sidebar.brand href="{{ route('dashboard') }}"
                 logo="{{ asset('storage/' . ltrim($siteFavicon ?: 'images/sites/FAVICON_default.png', '/')) }}"

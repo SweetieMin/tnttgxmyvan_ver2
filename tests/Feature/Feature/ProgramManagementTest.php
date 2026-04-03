@@ -114,11 +114,56 @@ test('programs can be reordered from the list', function () {
 
     $this->actingAs($user);
 
-    Livewire::test(ProgramList::class)
-        ->call('sortProgram', $thirdProgram->id, 0)
+    $component = Livewire::test(ProgramList::class)
+        ->assertCanSeeTableRecords([
+            $firstProgram,
+            $secondProgram,
+            $thirdProgram,
+        ], inOrder: true)
+        ->call('reorderTable', [
+            $thirdProgram->id,
+            $firstProgram->id,
+            $secondProgram->id,
+        ])
         ->assertHasNoErrors();
+
+    expect($component->instance()->getTable()->isReorderable())->toBeTrue();
 
     expect($thirdProgram->fresh()->ordering)->toBe(1);
     expect($firstProgram->fresh()->ordering)->toBe(2);
     expect($secondProgram->fresh()->ordering)->toBe(3);
+});
+
+test('program filament table supports searching and record actions', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.program.view',
+        'management.program.update',
+        'management.program.delete',
+    ]);
+
+    $alphaProgram = Program::factory()->create([
+        'ordering' => 1,
+        'course' => 'Khai Tâm Căn Bản',
+        'sector' => 'Tiền Ấu 1',
+    ]);
+
+    $betaProgram = Program::factory()->create([
+        'ordering' => 2,
+        'course' => 'Nghĩa Sĩ Nâng Cao',
+        'sector' => 'Thiếu Nhi 2',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ProgramList::class)
+        ->assertCanSeeTableRecords([
+            $alphaProgram,
+            $betaProgram,
+        ], inOrder: true)
+        ->assertTableActionExists('edit', record: $alphaProgram)
+        ->assertTableActionExists('delete', record: $alphaProgram)
+        ->searchTable('Thiếu Nhi 2')
+        ->assertCanSeeTableRecords([$betaProgram])
+        ->assertCanNotSeeTableRecords([$alphaProgram]);
 });
