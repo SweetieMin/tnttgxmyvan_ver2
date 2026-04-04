@@ -19,7 +19,7 @@
             <flux:card class="rounded-2xl p-5">
                 <flux:heading size="sm">{{ $block['title'] }}</flux:heading>
                 <div class="mt-4 space-y-4">
-                    <flux:date-picker wire:model.live="{{ $bindings[$block['date']] }}" :label="__('Date')" type="input" locale="vi-VN" selectable-header />
+                    <flux:date-picker wire:model.live="{{ $bindings[$block['date']] }}" :label="__('Date')"  locale="vi-VN" selectable-header />
                     <flux:input wire:model.live.debounce.300ms="{{ $bindings[$block['place']] }}" :label="__('Place')" />
                     <flux:input wire:model.live.debounce.300ms="{{ $bindings[$block['person']] }}" :label="$block['person_label']" />
                 </div>

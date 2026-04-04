@@ -12,6 +12,7 @@
         "filament/forms": "^5.4",
         "filament/schemas": "^5.4",
         "filament/tables": "^5.4",
+        "lab404/laravel-impersonate": "^1.7",
         "laravel/ai": "^0.3.2",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",

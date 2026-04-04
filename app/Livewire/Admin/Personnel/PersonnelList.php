@@ -10,8 +10,10 @@ use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Lab404\Impersonate\Services\ImpersonateManager;
 use Livewire\Component;
 use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
@@ -234,6 +236,45 @@ class PersonnelList extends Component
         return $this->isVisibleUser($user)
             && $this->hasExportableBadgeAvatar($user)
             && (bool) auth()->user()?->can($this->directory()->permissionForGroup('users'));
+    }
+
+    public function canImpersonateUser(User $user): bool
+    {
+        $currentUser = Auth::user();
+
+        if (! $currentUser instanceof User) {
+            return false;
+        }
+
+        if (! $this->directory()->isAllUsersPage($this->group) || $user->trashed()) {
+            return false;
+        }
+
+        if ($currentUser->isImpersonated() || $currentUser->is($user)) {
+            return false;
+        }
+
+        return $currentUser->canImpersonate()
+            && $this->isVisibleUser($user)
+            && $user->canBeImpersonated();
+    }
+
+    public function impersonateUser(int $userId): void
+    {
+        $user = User::query()->with('roles')->findOrFail($userId);
+        abort_unless($this->canImpersonateUser($user), 403);
+
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+        abort_unless($currentUser->impersonate($user), 403);
+
+        Flux::toast(
+            text: __('You are now impersonating :name.', ['name' => $user->full_name]),
+            heading: __('Success'),
+            variant: 'success',
+        );
+
+        $this->redirectRoute('dashboard', navigate: true);
     }
 
     public function editRoute(User $user): string
@@ -564,6 +605,11 @@ class PersonnelList extends Component
     protected function directory(): PersonnelDirectory
     {
         return app(PersonnelDirectory::class);
+    }
+
+    protected function impersonateManager(): ImpersonateManager
+    {
+        return app(ImpersonateManager::class);
     }
 
     /**

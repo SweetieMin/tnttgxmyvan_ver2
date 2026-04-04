@@ -120,6 +120,7 @@ class AcademicYearList extends Component implements HasActions, HasSchemas, HasT
             ->paginated([15, 25, 50, 100])
             ->extremePaginationLinks()
             ->emptyStateHeading(__('No academic years found.'))
+
             ->recordActions([
                 ActionGroup::make([
                     Action::make('edit')

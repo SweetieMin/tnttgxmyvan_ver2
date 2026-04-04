@@ -20,7 +20,31 @@
                 class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 hidden lg:flex" />
         </flux:sidebar.header>
 
-        <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div
+            x-data="{
+                remember() {
+                    try {
+                        sessionStorage.setItem('app-sidebar-scroll-top', String(this.$el.scrollTop))
+                    } catch (error) {
+                        console.debug(error)
+                    }
+                },
+                restore() {
+                    try {
+                        const savedScrollTop = Number(sessionStorage.getItem('app-sidebar-scroll-top') ?? 0)
+
+                        this.$el.scrollTop = Number.isFinite(savedScrollTop) ? savedScrollTop : 0
+                    } catch (error) {
+                        console.debug(error)
+                    }
+                },
+            }"
+            x-init="$nextTick(() => restore())"
+            x-on:scroll.throttle.100ms="remember()"
+            x-on:livewire:navigating.window="remember()"
+            x-on:livewire:navigated.window="$nextTick(() => restore())"
+            class="flex min-h-0 flex-1 flex-col overflow-y-auto"
+        >
             @foreach ($sidebarNavigation['primary'] ?? [] as $section)
                 <div class="my-2">
                     <flux:separator :text="$section['label']" />

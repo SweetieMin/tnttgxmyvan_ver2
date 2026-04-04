@@ -102,15 +102,18 @@ class TransactionList extends Component implements HasActions, HasSchemas, HasTa
                 TextColumn::make('transaction_date')
                     ->label(__('Transaction date'))
                     ->date('d/m/Y')
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('category.name')
                     ->label(__('Category'))
                     ->placeholder(__('No category'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('transaction_item')
                     ->label(__('Fund item'))
                     ->searchable()
-                    ->wrap(),
+                    ->wrap()
+                    ->toggleable(),
                 TextColumn::make('type')
                     ->label(__('Type'))
                     ->badge()
@@ -122,14 +125,17 @@ class TransactionList extends Component implements HasActions, HasSchemas, HasTa
                         'expense' => 'danger',
                         default => 'success',
                     })
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('amount')
                     ->label(__('Amount'))
-                    ->formatStateUsing(fn (int $state): string => number_format($state, 0, ',', '.').' đ'),
+                    ->formatStateUsing(fn (int $state): string => number_format($state, 0, ',', '.').' đ')
+                    ->toggleable(),
                 TextColumn::make('in_charge')
                     ->label(__('In charge'))
                     ->placeholder('—')
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label(__('Status'))
                     ->badge()
@@ -141,7 +147,8 @@ class TransactionList extends Component implements HasActions, HasSchemas, HasTa
                         'completed' => 'success',
                         default => 'warning',
                     })
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('file_name')
                     ->label(__('Attachment'))
                     ->getStateUsing(function (Transaction $record): HtmlString {
@@ -155,7 +162,8 @@ class TransactionList extends Component implements HasActions, HasSchemas, HasTa
                     ->openUrlInNewTab()
                     ->html()
                     ->color(fn (Transaction $record): string => filled($record->file_url) ? 'primary' : 'gray')
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('type')
@@ -200,6 +208,7 @@ class TransactionList extends Component implements HasActions, HasSchemas, HasTa
             ->filtersFormColumns(2)
             ->deferFilters(false)
             ->persistFiltersInSession()
+            ->reorderableColumns()
             ->headerActions([
                 Action::make('exportData')
                     ->label(__('Export'))

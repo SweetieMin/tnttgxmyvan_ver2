@@ -111,8 +111,11 @@ test('category analytics applies the selected filters to overview data', functio
         ->set('selectedCategory', (string) $trungThu->id)
         ->set('dateRange.start', '2026-03-01')
         ->set('dateRange.end', '2026-03-31')
-        ->assertSeeText(__('Previous year fund balance'))
-        ->assertSeeText('700.000 đ')
+        ->assertSeeText(__('Total transactions'))
+        ->assertSeeText('2')
+        ->assertSeeText(__('So với năm trước'))
+        ->assertSeeText(__('An toàn quỹ'))
+        ->assertSeeText('01/03/2026 - 31/03/2026')
         ->assertSeeText('Trung Thu')
         ->assertSeeText('1.000.000 đ')
         ->assertSeeText('400.000 đ')
@@ -301,4 +304,129 @@ test('category analytics treats an empty date range as all time', function () {
 
     expect($component->dateRange)->toBeNull()
         ->and($component->categorySummaries()->sum('total_income'))->toBe(2000000);
+});
+
+test('category analytics calculates year over year insight for the same selected period', function () {
+    Carbon::setTestNow('2026-04-04 10:00:00');
+
+    $category = Category::factory()->create([
+        'ordering' => 1,
+        'name' => 'Trung Thu',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-03-10',
+        'type' => 'income',
+        'amount' => 1200000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Trung Thu 2026',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-03-11',
+        'type' => 'expense',
+        'amount' => 500000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi Trung Thu 2026',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2025-03-10',
+        'type' => 'income',
+        'amount' => 1000000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu Trung Thu 2025',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2025-03-11',
+        'type' => 'expense',
+        'amount' => 400000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi Trung Thu 2025',
+    ]);
+
+    $component = new CategoryAnalytics;
+    $component->selectedCategory = (string) $category->id;
+    $component->dateRange = new DateRange('2026-03-01', '2026-03-31');
+
+    $insight = $component->yearOverYearInsight();
+
+    expect($insight['current_label'])->toBe('01/03/2026 - 31/03/2026')
+        ->and($insight['previous_label'])->toBe('01/03/2025 - 31/03/2025')
+        ->and($insight['income_current'])->toBe(1200000)
+        ->and($insight['income_previous'])->toBe(1000000)
+        ->and($insight['expense_current'])->toBe(500000)
+        ->and($insight['expense_previous'])->toBe(400000)
+        ->and($insight['income_delta'])->toBe(200000)
+        ->and($insight['expense_delta'])->toBe(100000)
+        ->and($insight['income_delta_percentage'])->toBe(20.0)
+        ->and($insight['expense_delta_percentage'])->toBe(25.0);
+
+    Carbon::setTestNow();
+});
+
+test('category analytics estimates a safer spending reserve from recent annual expense history', function () {
+    Carbon::setTestNow('2026-04-04 10:00:00');
+
+    $category = Category::factory()->create([
+        'ordering' => 1,
+        'name' => 'Trại hè',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2023-07-10',
+        'type' => 'expense',
+        'amount' => 1000000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi trại hè 2023',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2024-07-10',
+        'type' => 'expense',
+        'amount' => 1500000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi trại hè 2024',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2025-07-10',
+        'type' => 'expense',
+        'amount' => 2000000,
+        'status' => 'completed',
+        'transaction_item' => 'Chi trại hè 2025',
+    ]);
+
+    Transaction::factory()->create([
+        'category_id' => $category->id,
+        'transaction_date' => '2026-01-10',
+        'type' => 'income',
+        'amount' => 5000000,
+        'status' => 'completed',
+        'transaction_item' => 'Thu quỹ trại hè',
+    ]);
+
+    $component = new CategoryAnalytics;
+    $component->selectedCategory = (string) $category->id;
+    $component->dateRange = DateRange::yearToDate();
+
+    $insight = $component->fundSafetyInsight();
+
+    expect($insight['average_annual_expense'])->toBe(1500000)
+        ->and($insight['highest_annual_expense'])->toBe(2000000)
+        ->and($insight['recommended_reserve'])->toBe(1700000)
+        ->and($insight['current_balance'])->toBe(500000)
+        ->and($insight['safe_to_spend'])->toBe(0)
+        ->and($insight['status'])->toBe('watch')
+        ->and($insight['years_used'])->toBe(['2023', '2024', '2025']);
+
+    Carbon::setTestNow();
 });

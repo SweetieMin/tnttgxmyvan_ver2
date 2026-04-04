@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Lab404\Impersonate\Services\ImpersonateManager;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -26,6 +27,7 @@ beforeEach(function () {
         'personnel.user.create',
         'personnel.user.update',
         'personnel.user.delete',
+        'access.impersonate.users',
         'personnel.deleted.view',
         'personnel.director.view',
         'personnel.director.create',
@@ -416,6 +418,51 @@ test('group personnel list only shows roles that belong to the current group con
     Livewire::test(PersonnelList::class, ['group' => 'leaders'])
         ->assertSeeText('Huynh Trưởng')
         ->assertDontSeeText('Giáo Lý Viên');
+});
+
+test('authorized users can impersonate a visible user from the all users list', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.user.view', 'access.impersonate.users']
+    );
+
+    $target = User::factory()->create([
+        'last_name' => 'Nguyễn',
+        'name' => 'Thiên Ân',
+    ]);
+    $target->assignRole(personnelRole('Thiếu Nhi'));
+
+    $this->actingAs($viewer);
+
+    Livewire::test(PersonnelList::class, ['group' => 'users'])
+        ->call('impersonateUser', $target->id)
+        ->assertRedirect(route('dashboard'));
+
+    expect(auth()->id())->toBe($target->id)
+        ->and(app(ImpersonateManager::class)->isImpersonating())->toBeTrue()
+        ->and(app(ImpersonateManager::class)->getImpersonatorId())->toBe($viewer->id);
+});
+
+test('impersonation can be stopped from the shared user menu route', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Thiếu Nhi'],
+        ['personnel.user.view', 'access.impersonate.users']
+    );
+
+    $target = User::factory()->create([
+        'last_name' => 'Trần',
+        'name' => 'Bảo',
+    ]);
+    $target->assignRole(personnelRole('Thiếu Nhi'));
+
+    $this->actingAs($viewer);
+    $viewer->impersonate($target);
+
+    $this->post(route('impersonation.leave'))
+        ->assertRedirect(route('dashboard'));
+
+    expect(auth()->id())->toBe($viewer->id)
+        ->and(app(ImpersonateManager::class)->isImpersonating())->toBeFalse();
 });
 
 test('create pages only offer manageable roles for the current context', function () {

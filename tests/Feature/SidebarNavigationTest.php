@@ -115,3 +115,15 @@ test('personnel edit routes only mark the current group as active in the sidebar
     expect($items[__('All users')]['active'])->toBeFalse()
         ->and($items[__('Catechists')]['active'])->toBeTrue();
 });
+
+test('authenticated admin pages include the sidebar scroll persistence hooks', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('personnel.user.view');
+
+    $this->actingAs($user)
+        ->get(route('admin.personnel.users'))
+        ->assertOk()
+        ->assertSee('app-sidebar-scroll-top', false)
+        ->assertSee('livewire:navigating.window', false)
+        ->assertSee('livewire:navigated.window', false);
+});
