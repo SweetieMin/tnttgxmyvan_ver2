@@ -2,13 +2,18 @@
 
 namespace App\Livewire\Admin\Management\AcademicCourses;
 
+use App\Foundation\PersonnelDirectory;
 use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
+use App\Models\Role;
+use App\Models\User;
 use App\Repositories\Contracts\AcademicCourseRepositoryInterface;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
@@ -19,6 +24,7 @@ use Filament\Tables\Table;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 use Livewire\Attributes\On;
@@ -139,6 +145,92 @@ class AcademicCourseList extends Component implements HasActions, HasSchemas, Ha
                         ->action(function (AcademicCourse $record): void {
                             $this->dispatch('duplicate-academic-course', academicCourseId: $record->getKey());
                         }),
+                    Action::make('assignCatechists')
+                        ->label(__('Assign catechists'))
+                        ->icon('heroicon-m-book-open')
+                        ->color('info')
+                        ->visible(fn (): bool => Auth::user()?->can('management.academic-course.update') ?? false)
+                        ->modalHeading(__('Assign catechists'))
+                        ->modalDescription(__('Choose the primary catechist and supporting catechists for this class.'))
+                        ->modalSubmitActionLabel(__('Save assignments'))
+                        ->fillForm(fn (AcademicCourse $record): array => $this->assignmentFormData(
+                            $record,
+                            'catechist',
+                            'assistant_catechist',
+                            'primaryCatechistId',
+                            'assistantCatechistIds',
+                            ['Trưởng Giáo Lý', 'Phó Giáo Lý'],
+                        ))
+                        ->schema([
+                            Select::make('primaryCatechistId')
+                                ->label(__('Primary catechist'))
+                                ->options(fn (): array => $this->catechistOptions())
+                                ->searchable()
+                                ->preload(),
+                            CheckboxList::make('assistantCatechistIds')
+                                ->label(__('Supporting catechists'))
+                                ->options(fn (): array => $this->catechistOptions())
+                                ->bulkToggleable()
+                                ->columns(2),
+                        ])
+                        ->action(function (AcademicCourse $record, array $data): void {
+                            $this->syncAcademicCourseAssignments(
+                                $record,
+                                primaryAssignmentType: 'catechist',
+                                assistantAssignmentType: 'assistant_catechist',
+                                primaryUserId: data_get($data, 'primaryCatechistId'),
+                                assistantUserIds: data_get($data, 'assistantCatechistIds', []),
+                            );
+
+                            Flux::toast(
+                                text: __('Catechist assignments updated successfully.'),
+                                heading: __('Success'),
+                                variant: 'success',
+                            );
+                        }),
+                    Action::make('assignLeaders')
+                        ->label(__('Assign leaders'))
+                        ->icon('heroicon-m-flag')
+                        ->color('info')
+                        ->visible(fn (): bool => Auth::user()?->can('management.academic-course.update') ?? false)
+                        ->modalHeading(__('Assign leaders'))
+                        ->modalDescription(__('Choose the primary leader and supporting leaders for this class.'))
+                        ->modalSubmitActionLabel(__('Save assignments'))
+                        ->fillForm(fn (AcademicCourse $record): array => $this->assignmentFormData(
+                            $record,
+                            'leader',
+                            'assistant_leader',
+                            'primaryLeaderId',
+                            'assistantLeaderIds',
+                            ['Xứ Đoàn Trưởng', 'Xứ Đoàn Phó'],
+                        ))
+                        ->schema([
+                            Select::make('primaryLeaderId')
+                                ->label(__('Primary leader'))
+                                ->options(fn (): array => $this->leaderOptions())
+                                ->searchable()
+                                ->preload(),
+                            CheckboxList::make('assistantLeaderIds')
+                                ->label(__('Supporting leaders'))
+                                ->options(fn (): array => $this->leaderOptions())
+                                ->bulkToggleable()
+                                ->columns(2),
+                        ])
+                        ->action(function (AcademicCourse $record, array $data): void {
+                            $this->syncAcademicCourseAssignments(
+                                $record,
+                                primaryAssignmentType: 'leader',
+                                assistantAssignmentType: 'assistant_leader',
+                                primaryUserId: data_get($data, 'primaryLeaderId'),
+                                assistantUserIds: data_get($data, 'assistantLeaderIds', []),
+                            );
+
+                            Flux::toast(
+                                text: __('Leader assignments updated successfully.'),
+                                heading: __('Success'),
+                                variant: 'success',
+                            );
+                        }),
                     Action::make('delete')
                         ->label(__('Delete'))
                         ->icon('heroicon-m-trash')
@@ -199,5 +291,186 @@ class AcademicCourseList extends Component implements HasActions, HasSchemas, Ha
         $academicYearId = AcademicYear::query()->latest('id')->value('id');
 
         return $academicYearId !== null ? (int) $academicYearId : null;
+    }
+
+    /**
+     * @return array{primaryCatechistId?: int|null, assistantCatechistIds?: array<int, int>, primaryLeaderId?: int|null, assistantLeaderIds?: array<int, int>}
+     */
+    protected function assignmentFormData(
+        AcademicCourse $record,
+        string $primaryAssignmentType,
+        string $assistantAssignmentType,
+        string $primaryField,
+        string $assistantField,
+        array $defaultAssistantRoleNames,
+    ): array {
+        $assignments = $record->staffAssignments()
+            ->whereIn('assignment_type', [$primaryAssignmentType, $assistantAssignmentType])
+            ->get();
+
+        $primaryUserId = $assignments
+            ->firstWhere('assignment_type', $primaryAssignmentType)?->user_id;
+
+        /** @var array<int, int> $assistantUserIds */
+        $assistantUserIds = $assignments
+            ->where('assignment_type', $assistantAssignmentType)
+            ->pluck('user_id')
+            ->map(fn (mixed $userId): int => (int) $userId)
+            ->values()
+            ->all();
+
+        return [
+            $primaryField => $primaryUserId,
+            $assistantField => $assistantUserIds !== []
+                ? $assistantUserIds
+                : $this->defaultAssignmentUserIds($defaultAssistantRoleNames),
+        ];
+    }
+
+    /**
+     * @param  array<int, mixed>  $assistantUserIds
+     */
+    protected function syncAcademicCourseAssignments(
+        AcademicCourse $record,
+        string $primaryAssignmentType,
+        string $assistantAssignmentType,
+        mixed $primaryUserId,
+        array $assistantUserIds,
+    ): void {
+        $normalizedPrimaryUserId = is_numeric($primaryUserId) ? (int) $primaryUserId : null;
+        $normalizedAssistantUserIds = collect($assistantUserIds)
+            ->filter(fn (mixed $userId): bool => is_numeric($userId))
+            ->map(fn (mixed $userId): int => (int) $userId)
+            ->when(
+                $normalizedPrimaryUserId !== null,
+                fn (Collection $userIds): Collection => $userIds->reject(fn (int $userId): bool => $userId === $normalizedPrimaryUserId),
+            )
+            ->unique()
+            ->values();
+
+        $record->staffAssignments()
+            ->whereIn('assignment_type', [$primaryAssignmentType, $assistantAssignmentType])
+            ->delete();
+
+        $assignments = [];
+
+        if ($normalizedPrimaryUserId !== null) {
+            $assignments[] = [
+                'user_id' => $normalizedPrimaryUserId,
+                'assignment_type' => $primaryAssignmentType,
+                'is_primary' => true,
+                'assigned_by' => Auth::id(),
+            ];
+        }
+
+        foreach ($normalizedAssistantUserIds as $assistantUserId) {
+            $assignments[] = [
+                'user_id' => $assistantUserId,
+                'assignment_type' => $assistantAssignmentType,
+                'is_primary' => false,
+                'assigned_by' => Auth::id(),
+            ];
+        }
+
+        if ($assignments !== []) {
+            $record->staffAssignments()->createMany($assignments);
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function catechistOptions(): array
+    {
+        return $this->personnelOptionsForGroup('catechists');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function leaderOptions(): array
+    {
+        return $this->personnelOptionsForGroup('leaders');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function personnelOptionsForGroup(string $group): array
+    {
+        $roleNames = $this->personnelDirectory()->roleNamesForGroup($group);
+
+        if ($roleNames === []) {
+            return [];
+        }
+
+        return User::query()
+            ->with('roles:id,name')
+            ->whereHas('roles', function (Builder $query) use ($roleNames): void {
+                $query->whereIn('name', $roleNames);
+            })
+            ->orderBy('last_name')
+            ->orderBy('name')
+            ->get()
+            ->sortBy(fn (User $user): string => sprintf(
+                '%05d|%s|%s',
+                $this->contextRoleIdForGroup($user, $roleNames),
+                mb_strtolower($user->last_name),
+                mb_strtolower($user->name),
+            ))
+            ->mapWithKeys(fn (User $user): array => [
+                $user->id => $user->full_name.' - '.$this->groupRoleLabel($user, $roleNames),
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, string>  $roleNames
+     */
+    protected function contextRoleIdForGroup(User $user, array $roleNames): int
+    {
+        return (int) ($user->roles
+            ->filter(fn (Role $role): bool => in_array($role->name, $roleNames, true))
+            ->pluck('id')
+            ->min() ?? PHP_INT_MAX);
+    }
+
+    /**
+     * @param  array<int, string>  $roleNames
+     */
+    protected function groupRoleLabel(User $user, array $roleNames): string
+    {
+        return $user->roles
+            ->filter(fn (Role $role): bool => in_array($role->name, $roleNames, true))
+            ->sortBy('id')
+            ->pluck('name')
+            ->first() ?? __('Unknown');
+    }
+
+    protected function personnelDirectory(): PersonnelDirectory
+    {
+        return app(PersonnelDirectory::class);
+    }
+
+    /**
+     * @param  array<int, string>  $roleNames
+     * @return array<int, int>
+     */
+    protected function defaultAssignmentUserIds(array $roleNames): array
+    {
+        if ($roleNames === []) {
+            return [];
+        }
+
+        return User::query()
+            ->whereHas('roles', function (Builder $query) use ($roleNames): void {
+                $query->whereIn('name', $roleNames);
+            })
+            ->orderBy('last_name')
+            ->orderBy('name')
+            ->pluck('id')
+            ->map(fn (mixed $userId): int => (int) $userId)
+            ->values()
+            ->all();
     }
 }

@@ -12,10 +12,8 @@ use App\Models\User;
 use App\Models\UserDetail;
 use App\Models\UserReligiousProfile;
 use App\Validation\Admin\Personnel\UserProfileRules;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Lab404\Impersonate\Services\ImpersonateManager;
@@ -240,6 +238,70 @@ test('all users list still shows users without any assigned role', function () {
         ->assertDontSeeText($director->full_name);
 });
 
+test('all users list can be filtered by role', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Cha Tuyên Úy', 'Giáo Lý Viên'],
+        ['personnel.user.view']
+    );
+
+    $director = User::factory()->create([
+        'last_name' => 'Trần',
+        'name' => 'Linh Hướng',
+    ]);
+    $director->assignRole(personnelRole('Cha Tuyên Úy'));
+
+    $catechist = User::factory()->create([
+        'last_name' => 'Nguyễn',
+        'name' => 'Giáo Lý Viên',
+    ]);
+    $catechist->assignRole(personnelRole('Giáo Lý Viên'));
+
+    $this->actingAs($viewer);
+
+    Livewire::test(PersonnelList::class, [
+        'group' => 'users',
+        'selectedRole' => 'Cha Tuyên Úy',
+    ])
+        ->assertSeeText($director->full_name)
+        ->assertDontSeeText($catechist->full_name);
+});
+
+test('all users list is ordered by role id and places unassigned users last', function () {
+    personnelRole('Cha Tuyên Úy');
+    personnelRole('Giáo Lý Viên');
+
+    $viewer = createManagerWithManageableRoles(
+        ['Cha Tuyên Úy', 'Giáo Lý Viên'],
+        ['personnel.user.view']
+    );
+
+    $catechist = User::factory()->create([
+        'last_name' => 'Alpha',
+        'name' => 'Zed',
+    ]);
+    $catechist->assignRole(personnelRole('Giáo Lý Viên'));
+
+    $director = User::factory()->create([
+        'last_name' => 'Zulu',
+        'name' => 'Aaron',
+    ]);
+    $director->assignRole(personnelRole('Cha Tuyên Úy'));
+
+    $unassigned = User::factory()->create([
+        'last_name' => 'Mai',
+        'name' => 'Không Vai Trò',
+    ]);
+
+    $this->actingAs($viewer);
+
+    Livewire::test(PersonnelList::class, ['group' => 'users'])
+        ->assertSeeTextInOrder([
+            'Zulu Aaron',
+            'Alpha Zed',
+            'Mai Không Vai Trò',
+        ]);
+});
+
 test('all users edit page is accessible for an unassigned user', function () {
     $viewer = createManagerWithManageableRoles(
         ['Thiếu Nhi'],
@@ -257,6 +319,29 @@ test('all users edit page is accessible for an unassigned user', function () {
         'group' => 'users',
         'user' => $unassignedUser,
     ]))->assertOk();
+});
+
+test('edit profile heading includes a back button to the current personnel group page', function () {
+    $viewer = createManagerWithManageableRoles(
+        ['Giáo Lý Viên'],
+        ['personnel.catechist.view', 'personnel.catechist.update']
+    );
+
+    $user = User::factory()->create([
+        'last_name' => 'Nguyễn',
+        'name' => 'An',
+    ]);
+    $user->assignRole(personnelRole('Giáo Lý Viên'));
+
+    $this->actingAs($viewer);
+
+    $this->get(route('admin.personnel.users.edit', [
+        'group' => 'catechists',
+        'user' => $user,
+    ]))
+        ->assertOk()
+        ->assertSee(route('admin.personnel.catechists'), false)
+        ->assertSeeText(__('Back'));
 });
 
 test('all users can export a badge png from the options menu', function () {
@@ -420,6 +505,68 @@ test('group personnel list only shows roles that belong to the current group con
         ->assertDontSeeText('Giáo Lý Viên');
 });
 
+test('group personnel lists are ordered by role id within the current group', function () {
+    personnelRole('Cha Tuyên Úy');
+    personnelRole('Thầy Phó Tế');
+    personnelRole('Trưởng Giáo Lý');
+    personnelRole('Phó Giáo Lý');
+    personnelRole('Giáo Lý Viên');
+    personnelRole('Xứ Đoàn Trưởng');
+    personnelRole('Xứ Đoàn Phó');
+    personnelRole('Huynh Trưởng');
+
+    $viewer = createManagerWithManageableRoles(
+        ['Cha Tuyên Úy', 'Thầy Phó Tế', 'Trưởng Giáo Lý', 'Phó Giáo Lý', 'Giáo Lý Viên', 'Xứ Đoàn Trưởng', 'Xứ Đoàn Phó', 'Huynh Trưởng'],
+        ['personnel.director.view', 'personnel.catechist.view', 'personnel.leader.view']
+    );
+
+    $deacon = User::factory()->create(['last_name' => 'Zulu', 'name' => 'Te']);
+    $deacon->assignRole(personnelRole('Thầy Phó Tế'));
+
+    $chaplain = User::factory()->create(['last_name' => 'Alpha', 'name' => 'Linh Huong']);
+    $chaplain->assignRole(personnelRole('Cha Tuyên Úy'));
+
+    $catechist = User::factory()->create(['last_name' => 'Omega', 'name' => 'GLV']);
+    $catechist->assignRole(personnelRole('Giáo Lý Viên'));
+
+    $headCatechist = User::factory()->create(['last_name' => 'Beta', 'name' => 'Truong GL']);
+    $headCatechist->assignRole(personnelRole('Trưởng Giáo Lý'));
+
+    $viceCatechist = User::factory()->create(['last_name' => 'Gamma', 'name' => 'Pho GL']);
+    $viceCatechist->assignRole(personnelRole('Phó Giáo Lý'));
+
+    $viceLeader = User::factory()->create(['last_name' => 'Delta', 'name' => 'Pho Xu Doan']);
+    $viceLeader->assignRole(personnelRole('Xứ Đoàn Phó'));
+
+    $chiefLeader = User::factory()->create(['last_name' => 'Epsilon', 'name' => 'Xu Doan Truong']);
+    $chiefLeader->assignRole(personnelRole('Xứ Đoàn Trưởng'));
+
+    $leader = User::factory()->create(['last_name' => 'Theta', 'name' => 'Huynh Truong']);
+    $leader->assignRole(personnelRole('Huynh Trưởng'));
+
+    $this->actingAs($viewer);
+
+    Livewire::test(PersonnelList::class, ['group' => 'directors'])
+        ->assertSeeTextInOrder([
+            'Alpha Linh Huong',
+            'Zulu Te',
+        ]);
+
+    Livewire::test(PersonnelList::class, ['group' => 'catechists'])
+        ->assertSeeTextInOrder([
+            'Beta Truong GL',
+            'Gamma Pho GL',
+            'Omega GLV',
+        ]);
+
+    Livewire::test(PersonnelList::class, ['group' => 'leaders'])
+        ->assertSeeTextInOrder([
+            'Epsilon Xu Doan Truong',
+            'Delta Pho Xu Doan',
+            'Theta Huynh Truong',
+        ]);
+});
+
 test('authorized users can impersonate a visible user from the all users list', function () {
     $viewer = createManagerWithManageableRoles(
         ['Thiếu Nhi'],
@@ -489,20 +636,14 @@ test('create pages only offer manageable roles for the current context', functio
         ->assertSee('z-0', false);
 });
 
-test('role options are ordered by the ordering column when it exists', function () {
-    if (! Schema::hasColumn('roles', 'ordering')) {
-        Schema::table('roles', function (Blueprint $table): void {
-            $table->unsignedInteger('ordering')->default(0);
-        });
-    }
+test('role options are ordered by role id', function () {
+    personnelRole('Thiếu Nhi');
+    personnelRole('Đội Trưởng');
 
     $viewer = createManagerWithManageableRoles(
         ['Đội Trưởng', 'Thiếu Nhi'],
         ['personnel.user.create']
     );
-
-    personnelRole('Đội Trưởng')->update(['ordering' => 2]);
-    personnelRole('Thiếu Nhi')->update(['ordering' => 1]);
 
     $this->actingAs($viewer);
 

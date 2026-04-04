@@ -16,6 +16,8 @@ class PersonnelIndex extends Component
 
     public string $selectedStatus = '';
 
+    public string $selectedRole = '';
+
     public function mount(string $group = 'users'): void
     {
         abort_unless($this->directory()->hasGroup($group), 404);
@@ -26,7 +28,7 @@ class PersonnelIndex extends Component
 
     public function resetFilter(): void
     {
-        $this->reset(['search', 'perPage', 'selectedStatus']);
+        $this->reset(['search', 'perPage', 'selectedStatus', 'selectedRole']);
         $this->perPage = 15;
         $this->selectedStatus = $this->defaultSelectedStatus();
     }
@@ -48,6 +50,24 @@ class PersonnelIndex extends Component
         return $this->group === 'children'
             ? $this->directory()->childStudyStatuses()
             : [];
+    }
+
+    /**
+     * @return array<int, array{value: string, label: string}>
+     */
+    public function roleOptions(): array
+    {
+        if (! $this->directory()->isAllUsersPage($this->group)) {
+            return [];
+        }
+
+        return collect($this->directory()->manageableRoleNamesFor(auth()->user()))
+            ->map(fn (string $roleName): array => [
+                'value' => $roleName,
+                'label' => $roleName,
+            ])
+            ->values()
+            ->all();
     }
 
     public function title(): string
