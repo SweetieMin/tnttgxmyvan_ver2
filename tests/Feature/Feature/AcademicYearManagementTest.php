@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearActions;
+use App\Livewire\Admin\Management\AcademicYear\AcademicYearList;
 use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
 use App\Models\Permission;
@@ -26,6 +27,43 @@ test('authorized users can visit the academic years page', function () {
 
     $response->assertOk()
         ->assertSeeText(__('Academic years'));
+});
+
+test('academic year list supports filament search and status filters', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-year.view',
+        'management.academic-year.update',
+        'management.academic-year.delete',
+    ]);
+
+    $ongoingAcademicYear = AcademicYear::factory()->create([
+        'name' => 'NK24-25',
+        'status_academic' => 'ongoing',
+    ]);
+
+    $upcomingAcademicYear = AcademicYear::factory()->create([
+        'name' => 'NK26-27',
+        'status_academic' => 'upcoming',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicYearList::class)
+        ->assertSee($ongoingAcademicYear->name)
+        ->assertSee($upcomingAcademicYear->name)
+        ->set('tableSearch', 'NK24')
+        ->assertSee($ongoingAcademicYear->name)
+        ->assertDontSee($upcomingAcademicYear->name);
+
+    Livewire::test(AcademicYearList::class)
+        ->set('tableFilters', [
+            'status_academic' => [
+                'value' => 'ongoing',
+            ],
+        ])
+        ->assertSee($ongoingAcademicYear->name)
+        ->assertDontSee($upcomingAcademicYear->name);
 });
 
 test('academic years can be created updated and deleted from the livewire screen', function () {

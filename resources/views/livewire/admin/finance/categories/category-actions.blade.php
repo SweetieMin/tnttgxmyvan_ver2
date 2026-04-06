@@ -9,9 +9,15 @@
             </div>
 
             <div class="grid grid-cols-1 gap-4">
-                <flux:input wire:model.live.debounce.500ms="name" :label="__('Category')" />
-                <flux:textarea wire:model.live.debounce.500ms="description" :label="__('Description')" rows="3" />
-                <flux:switch wire:model.live="is_active" :label="__('Active')" />
+                <div class="col-span-1">
+                    <flux:input wire:model.live.debounce.500ms="name" :label="__('Category')" />
+                </div>
+                <div class="col-span-1">
+                    <flux:textarea wire:model.live.debounce.500ms="description" :label="__('Description')" rows="3" />
+                </div>
+                <div class="col-span-1">
+                    <flux:switch wire:model.live="is_active" :label="__('Active')" />
+                </div>
             </div>
 
             <div class="flex justify-end gap-3">

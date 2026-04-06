@@ -101,6 +101,7 @@
         <flux:toast />
     </flux:toast.group>
 
+    @filamentScripts
     @fluxScripts
 </body>
 

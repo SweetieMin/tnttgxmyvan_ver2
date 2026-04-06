@@ -20,6 +20,7 @@
 >
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+@filamentStyles
 
 <meta name="description" content="{{ $siteMetaDescription ?: $siteTagline ?: $siteTitle }}" />
 <meta name="keywords" content="{{ $siteMetaKeywords }}" />
