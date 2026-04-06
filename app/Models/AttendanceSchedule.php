@@ -19,10 +19,10 @@ class AttendanceSchedule extends Model
     protected $fillable = [
         'academic_year_id',
         'title',
-        'sector_name',
         'attendance_date',
         'start_time',
         'end_time',
+        'regulation_id',
         'points',
         'is_active',
         'created_by',
@@ -35,6 +35,7 @@ class AttendanceSchedule extends Model
     {
         return [
             'academic_year_id' => 'integer',
+            'regulation_id' => 'integer',
             'attendance_date' => 'date',
             'points' => 'integer',
             'is_active' => 'boolean',
@@ -50,6 +51,11 @@ class AttendanceSchedule extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function regulation(): BelongsTo
+    {
+        return $this->belongsTo(Regulation::class);
     }
 
     public function checkins(): HasMany

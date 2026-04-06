@@ -8,7 +8,7 @@
         permission="management.academic-year.create"
     />
 
-    <livewire:admin.management.academic-year.academic-year-list />
+    <livewire:admin.management.academic-year.academic-year-list lazy />
 
     <livewire:admin.management.academic-year.academic-year-actions />
 </section>

@@ -7,7 +7,19 @@
 
     <x-app-filter :show-search="false" :categories="$categoryOptions" :date-range="true" :reset-action="'resetFilters'" />
 
+    <flux:card class="rounded-2xl p-4">
+        <div class="flex flex-wrap gap-2">
+            <flux:badge color="sky">{{ __('Category') }}: {{ $appliedCategoriesLabel }}</flux:badge>
+            <flux:badge color="zinc">{{ __('Date range') }}: {{ $appliedDateRangeLabel }}</flux:badge>
+        </div>
+    </flux:card>
+
     <x-finance.analytics.overview-cards :overview-cards="$overviewCards" />
+
+    <div class="grid gap-4 xl:grid-cols-2">
+        <x-finance.analytics.year-over-year-insight :year-over-year-insight="$yearOverYearInsight" />
+        <x-finance.analytics.fund-safety-insight :fund-safety-insight="$fundSafetyInsight" />
+    </div>
 
     <div class="grid gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div class="min-w-0">

@@ -1,5 +1,5 @@
 <div>
-    <flux:modal wire:model="showExportModal" class="max-w-5xl">
+    <flux:modal wire:model="showExportModal" class="max-w-md">
         <div class="space-y-6">
             <div class="space-y-2">
                 <flux:heading size="lg">{{ __('Export transactions') }}</flux:heading>

@@ -28,6 +28,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Lab404\Impersonate\Services\ImpersonateManager;
 
 Route::view('/', 'welcome')->name('home');
 
@@ -35,6 +36,14 @@ Route::livewire('profile/{token}', ProfileShow::class)->name('front.profile.show
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+
+    Route::post('impersonation/leave', function (ImpersonateManager $impersonateManager) {
+        abort_unless($impersonateManager->isImpersonating(), 403);
+
+        $impersonateManager->leave();
+
+        return redirect()->route('dashboard');
+    })->name('impersonation.leave');
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('access')->name('access.')->group(function () {

@@ -5,8 +5,11 @@
     @include('partials.head')
 </head>
 
-<body x-data="{ themePreset: '{{ $themePreset }}', themeNeutralPalette: '{{ $themeNeutralPalette }}' }" x-on:theme-preset-updated.window="themePreset = $event.detail.preset"
+<body x-data="{ themePreset: '{{ $themePreset }}', themeNeutralPalette: '{{ $themeNeutralPalette }}' }"
+    x-on:theme-preset-updated.window="themePreset = $event.detail.preset"
     x-on:theme-neutral-palette-updated.window="themeNeutralPalette = $event.detail.neutralPalette"
+    x-on:livewire:navigating.window=""
+    x-on:livewire:navigated.window=""
     :data-theme="themePreset" :data-neutral-palette="themeNeutralPalette"
     class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800">
     <flux:sidebar sticky collapsible
@@ -20,7 +23,8 @@
                 class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 hidden lg:flex" />
         </flux:sidebar.header>
 
-        <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div data-app-sidebar-scroll="true" data-app-sidebar-scroll-key="app-sidebar-scroll-top"
+            class="flex min-h-0 flex-1 flex-col overflow-y-auto">
             @foreach ($sidebarNavigation['primary'] ?? [] as $section)
                 <div class="my-2">
                     <flux:separator :text="$section['label']" />
@@ -97,12 +101,15 @@
         {{ $slot }}
     </flux:main>
 
+    <livewire:notifications />
+
     <flux:toast.group position="top end">
         <flux:toast />
     </flux:toast.group>
 
     @filamentScripts
     @fluxScripts
+    @livewireCalendarScripts
 </body>
 
 </html>

@@ -4,9 +4,12 @@ use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseActions;
 use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseIndex;
 use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseList;
 use App\Models\AcademicCourse;
+use App\Models\AcademicCourseStaff;
 use App\Models\AcademicYear;
 use App\Models\Permission;
+use App\Models\PersonnelRoleGroup;
 use App\Models\Program;
+use App\Models\Role;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -18,6 +21,33 @@ beforeEach(function () {
         'management.academic-course.delete',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
+
+function academicCoursePersonnelRole(string $roleName): Role
+{
+    $role = Role::findOrCreate($roleName, 'web');
+    $groupKeys = match ($roleName) {
+        'Trưởng Giáo Lý', 'Phó Giáo Lý', 'Giáo Lý Viên' => ['catechists'],
+        'Xứ Đoàn Trưởng', 'Xứ Đoàn Phó', 'Huynh Trưởng', 'Dự Trưởng' => ['leaders'],
+        default => [],
+    };
+
+    if ($groupKeys !== []) {
+        PersonnelRoleGroup::query()->where('role_id', $role->id)->delete();
+
+        PersonnelRoleGroup::query()->insert(
+            collect($groupKeys)
+                ->map(fn (string $groupKey): array => [
+                    'role_id' => $role->id,
+                    'group_key' => $groupKey,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ])
+                ->all(),
+        );
+    }
+
+    return $role;
+}
 
 test('authorized users can visit the academic courses page', function () {
     $user = User::factory()->create();
@@ -90,6 +120,7 @@ test('academic courses can be created updated and deleted from the livewire scre
 test('academic course index defaults to the ongoing academic year', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('management.academic-course.view');
+    $user->givePermissionTo('management.academic-course.create');
 
     $ongoingAcademicYear = AcademicYear::factory()->create([
         'status_academic' => 'ongoing',
@@ -102,10 +133,8 @@ test('academic course index defaults to the ongoing academic year', function () 
     $this->actingAs($user);
 
     Livewire::test(AcademicCourseIndex::class)
-        ->assertSet('selectedAcademicYear', $ongoingAcademicYear->id)
-        ->set('selectedAcademicYear', '')
-        ->call('resetFilter')
-        ->assertSet('selectedAcademicYear', $ongoingAcademicYear->id);
+        ->call('openCreateModal')
+        ->assertDispatched('open-create-academic-course-modal', academicYearId: $ongoingAcademicYear->id);
 });
 
 test('academic course list filters and reorders within the selected academic year', function () {
@@ -151,14 +180,19 @@ test('academic course list filters and reorders within the selected academic yea
 
     $this->actingAs($user);
 
-    Livewire::test(AcademicCourseList::class, [
-        'selectedAcademicYear' => $ongoingAcademicYear->id,
-    ])
-        ->assertSee('Them Suc 1A')
-        ->assertSee('Them Suc 1B')
-        ->assertDontSee($otherAcademicYearCourse->course_name)
-        ->call('sortAcademicCourse', $secondCourse->id, 0)
+    $component = Livewire::test(AcademicCourseList::class)
+        ->assertCanSeeTableRecords([
+            $firstCourse,
+            $secondCourse,
+        ], inOrder: true)
+        ->assertCanNotSeeTableRecords([$otherAcademicYearCourse])
+        ->call('reorderTable', [
+            $secondCourse->id,
+            $firstCourse->id,
+        ])
         ->assertHasNoErrors();
+
+    expect($component->instance()->getTable()->isReorderable())->toBeTrue();
 
     expect($secondCourse->fresh()->ordering)->toBe(1)
         ->and($firstCourse->fresh()->ordering)->toBe(2)
@@ -195,11 +229,277 @@ test('academic course list shows all academic years when the filter is empty', f
 
     $this->actingAs($user);
 
-    Livewire::test(AcademicCourseList::class, [
-        'selectedAcademicYear' => null,
-    ])
-        ->assertSee($firstCourse->course_name)
-        ->assertSee($secondCourse->course_name);
+    Livewire::test(AcademicCourseList::class)
+        ->removeTableFilter('academic_year_id', 'value')
+        ->assertCanSeeTableRecords([
+            $firstCourse,
+            $secondCourse,
+        ]);
+});
+
+test('academic course filament table supports searching filters and record actions', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-course.view',
+        'management.academic-course.create',
+        'management.academic-course.update',
+        'management.academic-course.delete',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create([
+        'name' => 'NK25-26',
+        'status_academic' => 'ongoing',
+    ]);
+
+    $program = Program::factory()->create();
+
+    $activeCourse = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+        'course_name' => 'Khai Tam 1A',
+        'sector_name' => 'Au 1A',
+        'is_active' => true,
+    ]);
+
+    $inactiveCourse = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+        'course_name' => 'Khai Tam 1B',
+        'sector_name' => 'Au 1B',
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicCourseList::class)
+        ->assertTableFilterExists('academic_year_id')
+        ->assertTableColumnExists('required_scores')
+        ->assertCanSeeTableRecords([
+            $activeCourse,
+            $inactiveCourse,
+        ])
+        ->assertSeeText('Khai Tam 1A')
+        ->assertSeeText('Au 1A')
+        ->assertSeeText(__('Active'))
+        ->assertSeeText(__('Catechism average'))
+        ->assertSeeText('5.00')
+        ->assertTableActionExists('edit', record: $activeCourse)
+        ->assertTableActionExists('duplicate', record: $activeCourse)
+        ->assertTableActionExists('assignCatechists', record: $activeCourse)
+        ->assertTableActionExists('assignLeaders', record: $activeCourse)
+        ->assertTableActionExists('delete', record: $activeCourse)
+        ->searchTable('Au 1B')
+        ->assertCanSeeTableRecords([$inactiveCourse])
+        ->assertCanNotSeeTableRecords([$activeCourse])
+        ->searchTable('')
+        ->filterTable('academic_year_id', $academicYear->id)
+        ->filterTable('is_active', '1')
+        ->assertCanSeeTableRecords([$activeCourse])
+        ->assertCanNotSeeTableRecords([$inactiveCourse]);
+});
+
+test('academic course catechist assignments can be managed from the table action', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-course.view',
+        'management.academic-course.update',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create([
+        'status_academic' => 'ongoing',
+    ]);
+
+    $program = Program::factory()->create();
+
+    $course = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+    ]);
+
+    $primaryCatechist = User::factory()->create([
+        'last_name' => 'Nguyễn',
+        'name' => 'Chính',
+    ]);
+    $primaryCatechist->assignRole(academicCoursePersonnelRole('Giáo Lý Viên'));
+
+    $assistantCatechist = User::factory()->create([
+        'last_name' => 'Trần',
+        'name' => 'Phụ',
+    ]);
+    $assistantCatechist->assignRole(academicCoursePersonnelRole('Phó Giáo Lý'));
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicCourseList::class)
+        ->callTableAction('assignCatechists', $course, data: [
+            'primaryCatechistId' => (string) $primaryCatechist->id,
+            'assistantCatechistIds' => [(string) $assistantCatechist->id],
+        ])
+        ->assertHasNoTableActionErrors();
+
+    expect(AcademicCourseStaff::query()
+        ->where('academic_course_id', $course->id)
+        ->orderBy('assignment_type')
+        ->get()
+        ->map(fn (AcademicCourseStaff $assignment): array => [
+            'user_id' => $assignment->user_id,
+            'assignment_type' => $assignment->assignment_type,
+            'is_primary' => $assignment->is_primary,
+        ])
+        ->all())->toBe([
+            [
+                'user_id' => $assistantCatechist->id,
+                'assignment_type' => 'assistant_catechist',
+                'is_primary' => false,
+            ],
+            [
+                'user_id' => $primaryCatechist->id,
+                'assignment_type' => 'catechist',
+                'is_primary' => true,
+            ],
+        ]);
+});
+
+test('academic course leader assignments can be managed from the table action', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-course.view',
+        'management.academic-course.update',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create([
+        'status_academic' => 'ongoing',
+    ]);
+
+    $program = Program::factory()->create();
+
+    $course = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+    ]);
+
+    $primaryLeader = User::factory()->create([
+        'last_name' => 'Lê',
+        'name' => 'Trưởng',
+    ]);
+    $primaryLeader->assignRole(academicCoursePersonnelRole('Huynh Trưởng'));
+
+    $assistantLeader = User::factory()->create([
+        'last_name' => 'Phạm',
+        'name' => 'Phụ Tá',
+    ]);
+    $assistantLeader->assignRole(academicCoursePersonnelRole('Dự Trưởng'));
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicCourseList::class)
+        ->callTableAction('assignLeaders', $course, data: [
+            'primaryLeaderId' => (string) $primaryLeader->id,
+            'assistantLeaderIds' => [(string) $assistantLeader->id],
+        ])
+        ->assertHasNoTableActionErrors();
+
+    expect(AcademicCourseStaff::query()
+        ->where('academic_course_id', $course->id)
+        ->orderBy('assignment_type')
+        ->get()
+        ->map(fn (AcademicCourseStaff $assignment): array => [
+            'user_id' => $assignment->user_id,
+            'assignment_type' => $assignment->assignment_type,
+            'is_primary' => $assignment->is_primary,
+        ])
+        ->all())->toBe([
+            [
+                'user_id' => $assistantLeader->id,
+                'assignment_type' => 'assistant_leader',
+                'is_primary' => false,
+            ],
+            [
+                'user_id' => $primaryLeader->id,
+                'assignment_type' => 'leader',
+                'is_primary' => true,
+            ],
+        ]);
+});
+
+test('academic course catechist assignment defaults to head and vice catechists as assistants when empty', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-course.view',
+        'management.academic-course.update',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create([
+        'status_academic' => 'ongoing',
+    ]);
+
+    $program = Program::factory()->create();
+
+    $course = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+    ]);
+
+    $headCatechist = User::factory()->create([
+        'last_name' => 'Nguyễn',
+        'name' => 'Trưởng GL',
+    ]);
+    $headCatechist->assignRole(academicCoursePersonnelRole('Trưởng Giáo Lý'));
+
+    $viceCatechist = User::factory()->create([
+        'last_name' => 'Trần',
+        'name' => 'Phó GL',
+    ]);
+    $viceCatechist->assignRole(academicCoursePersonnelRole('Phó Giáo Lý'));
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicCourseList::class)
+        ->mountTableAction('assignCatechists', $course)
+        ->assertTableActionDataSet([
+            'primaryCatechistId' => null,
+            'assistantCatechistIds' => [$headCatechist->id, $viceCatechist->id],
+        ]);
+});
+
+test('academic course leader assignment defaults to parish leader and vice leader as assistants when empty', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.academic-course.view',
+        'management.academic-course.update',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create([
+        'status_academic' => 'ongoing',
+    ]);
+
+    $program = Program::factory()->create();
+
+    $course = AcademicCourse::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'program_id' => $program->id,
+    ]);
+
+    $headLeader = User::factory()->create([
+        'last_name' => 'Lê',
+        'name' => 'Xứ Đoàn Trưởng',
+    ]);
+    $headLeader->assignRole(academicCoursePersonnelRole('Xứ Đoàn Trưởng'));
+
+    $viceLeader = User::factory()->create([
+        'last_name' => 'Phạm',
+        'name' => 'Xứ Đoàn Phó',
+    ]);
+    $viceLeader->assignRole(academicCoursePersonnelRole('Xứ Đoàn Phó'));
+
+    $this->actingAs($user);
+
+    Livewire::test(AcademicCourseList::class)
+        ->mountTableAction('assignLeaders', $course)
+        ->assertTableActionDataSet([
+            'primaryLeaderId' => null,
+            'assistantLeaderIds' => [$headLeader->id, $viceLeader->id],
+        ]);
 });
 
 test('academic courses can be duplicated from the livewire screen', function () {

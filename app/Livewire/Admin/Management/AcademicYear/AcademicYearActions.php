@@ -335,19 +335,22 @@ class AcademicYearActions extends Component
      */
     protected function currentAcademicYearState(): array
     {
+        /** @var array<string, mixed> $state */
+        $state = $this->all();
+
         return [
-            'start_year' => (int) $this->start_year,
-            'end_year' => (int) $this->end_year,
+            'start_year' => (int) ($state['start_year'] ?? 0),
+            'end_year' => (int) ($state['end_year'] ?? 0),
             'name' => $this->generatedAcademicYearName(),
-            'catechism_start_date' => $this->catechism_start_date,
-            'catechism_end_date' => $this->catechism_end_date,
-            'catechism_avg_score' => $this->catechism_avg_score,
-            'catechism_training_score' => $this->catechism_training_score,
-            'activity_start_date' => $this->activity_start_date,
-            'activity_end_date' => $this->activity_end_date,
-            'activity_score' => $this->activity_score,
-            'status_academic' => $this->status_academic,
-            'should_create_academic_courses' => $this->should_create_academic_courses,
+            'catechism_start_date' => (string) ($state['catechism_start_date'] ?? ''),
+            'catechism_end_date' => (string) ($state['catechism_end_date'] ?? ''),
+            'catechism_avg_score' => (string) ($state['catechism_avg_score'] ?? '5.00'),
+            'catechism_training_score' => (string) ($state['catechism_training_score'] ?? '5.00'),
+            'activity_start_date' => (string) ($state['activity_start_date'] ?? ''),
+            'activity_end_date' => (string) ($state['activity_end_date'] ?? ''),
+            'activity_score' => (int) ($state['activity_score'] ?? 150),
+            'status_academic' => (string) ($state['status_academic'] ?? 'upcoming'),
+            'should_create_academic_courses' => (bool) ($state['should_create_academic_courses'] ?? false),
         ];
     }
 

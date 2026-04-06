@@ -1,5 +1,10 @@
 <section class="flex flex-col gap-4">
-    <x-app-heading :title="$this->title()" :sub-title="$this->subtitle()" icon="user-circle" />
+    <x-app-heading
+        :title="$this->title()"
+        :sub-title="$this->subtitle()"
+        icon="user-circle"
+        :back-href="$this->isEditing() ? $this->cancelRoute() : null"
+    />
 
     <form wire:submit="saveUserProfile" class="space-y-4 pb-28 md:pb-0">
         <div class="grid gap-4 xl:grid-cols-[450px_minmax(0,1fr)]">

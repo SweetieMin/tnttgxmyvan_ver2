@@ -27,7 +27,10 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->timestamps();
 
-            $table->unique(['academic_year_id', 'sector_name', 'user_id', 'assignment_type']);
+            $table->unique(
+                ['academic_year_id', 'sector_name', 'user_id', 'assignment_type'],
+                'ayss_year_sector_user_assignment_unique'
+            );
         });
     }
 

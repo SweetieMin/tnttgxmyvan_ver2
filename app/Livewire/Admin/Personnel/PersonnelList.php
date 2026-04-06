@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Personnel;
 
 use App\Foundation\PersonnelDirectory;
+use App\Models\Role;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\BadgePreviewPngExporter;
@@ -10,8 +11,12 @@ use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Lab404\Impersonate\Services\ImpersonateManager;
 use Livewire\Component;
 use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
@@ -30,6 +35,8 @@ class PersonnelList extends Component
 
     public string $selectedStatus = '';
 
+    public string $selectedRole = '';
+
     public bool $showDeleteModal = false;
 
     public ?int $deletingUserId = null;
@@ -46,8 +53,13 @@ class PersonnelList extends Component
 
     public ?int $previewingBadgeUserId = null;
 
-    public function mount(string $group = 'users', string $search = '', int $perPage = 15, string $selectedStatus = ''): void
-    {
+    public function mount(
+        string $group = 'users',
+        string $search = '',
+        int $perPage = 15,
+        string $selectedStatus = '',
+        string $selectedRole = '',
+    ): void {
         abort_unless($this->directory()->hasGroup($group), 404);
 
         $this->group = $group;
@@ -56,6 +68,7 @@ class PersonnelList extends Component
         $this->selectedStatus = $selectedStatus !== ''
             ? $selectedStatus
             : $this->defaultSelectedStatus();
+        $this->selectedRole = $selectedRole;
     }
 
     public function updatedSearch(): void
@@ -69,6 +82,11 @@ class PersonnelList extends Component
     }
 
     public function updatedSelectedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSelectedRole(): void
     {
         $this->resetPage();
     }
@@ -236,6 +254,45 @@ class PersonnelList extends Component
             && (bool) auth()->user()?->can($this->directory()->permissionForGroup('users'));
     }
 
+    public function canImpersonateUser(User $user): bool
+    {
+        $currentUser = Auth::user();
+
+        if (! $currentUser instanceof User) {
+            return false;
+        }
+
+        if (! $this->directory()->isAllUsersPage($this->group) || $user->trashed()) {
+            return false;
+        }
+
+        if ($currentUser->isImpersonated() || $currentUser->is($user)) {
+            return false;
+        }
+
+        return $currentUser->canImpersonate()
+            && $this->isVisibleUser($user)
+            && $user->canBeImpersonated();
+    }
+
+    public function impersonateUser(int $userId): void
+    {
+        $user = User::query()->with('roles')->findOrFail($userId);
+        abort_unless($this->canImpersonateUser($user), 403);
+
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+        abort_unless($currentUser->impersonate($user), 403);
+
+        Flux::toast(
+            text: __('You are now impersonating :name.', ['name' => $user->full_name]),
+            heading: __('Success'),
+            variant: 'success',
+        );
+
+        $this->redirectRoute('dashboard', navigate: true);
+    }
+
     public function editRoute(User $user): string
     {
         return route('admin.personnel.users.edit', [
@@ -276,7 +333,7 @@ class PersonnelList extends Component
      */
     public function users(): LengthAwarePaginator
     {
-        return User::query()
+        $query = User::query()
             ->when($this->directory()->isDeletedUsersPage($this->group), function (Builder $query): void {
                 $query->onlyTrashed();
             })
@@ -326,6 +383,37 @@ class PersonnelList extends Component
                         });
                 });
             })
+            ->when($this->selectedRole !== '', function (Builder $query): void {
+                $query->whereHas('roles', function (Builder $roleQuery): void {
+                    $roleQuery->where('name', $this->selectedRole);
+                });
+            });
+
+        if ($this->directory()->isGroupPage($this->group) || $this->directory()->isAllUsersPage($this->group)) {
+            $sortedUsers = $this->sortUsersByRoleId(
+                $query
+                    ->orderBy('name')
+                    ->orderBy('last_name')
+                    ->get(),
+            );
+
+            $currentPage = Paginator::resolveCurrentPage('page');
+            $items = $sortedUsers->forPage($currentPage, $this->perPage)->values();
+
+            return new Paginator(
+                $items,
+                $sortedUsers->count(),
+                $this->perPage,
+                $currentPage,
+                [
+                    'pageName' => 'page',
+                    'path' => request()->url(),
+                    'query' => request()->query(),
+                ],
+            );
+        }
+
+        return $query
             ->orderBy('name')
             ->orderBy('last_name')
             ->paginate($this->perPage);
@@ -350,7 +438,10 @@ class PersonnelList extends Component
             }
         }
 
-        return $roleNames[0] ?? '—';
+        return $user->roles
+            ->sortBy('id')
+            ->pluck('name')
+            ->first() ?? '—';
     }
 
     public function userStatusLabel(User $user): string
@@ -564,6 +655,49 @@ class PersonnelList extends Component
     protected function directory(): PersonnelDirectory
     {
         return app(PersonnelDirectory::class);
+    }
+
+    /**
+     * @param  Collection<int, User>  $users
+     * @return Collection<int, User>
+     */
+    protected function sortUsersByRoleId(Collection $users): Collection
+    {
+        return $users
+            ->sortBy(fn (User $user): string => sprintf(
+                '%05d|%s|%s',
+                $this->contextRoleId($user),
+                Str::lower($user->name),
+                Str::lower($user->last_name),
+            ))
+            ->values();
+    }
+
+    protected function contextRoleId(User $user): int
+    {
+        return (int) ($this->rolesForCurrentContext($user)
+            ->pluck('id')
+            ->min() ?? PHP_INT_MAX);
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    protected function rolesForCurrentContext(User $user): Collection
+    {
+        $roles = $user->roles;
+
+        if (! $this->directory()->isGroupPage($this->group)) {
+            return $roles;
+        }
+
+        return $roles->filter(fn (mixed $role): bool => $role instanceof Role
+            && in_array($role->name, $this->directory()->roleNamesForGroup($this->group), true));
+    }
+
+    protected function impersonateManager(): ImpersonateManager
+    {
+        return app(ImpersonateManager::class);
     }
 
     /**

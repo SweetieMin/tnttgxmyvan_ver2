@@ -41,7 +41,7 @@
                 <flux:date-picker
                     wire:model.live="{{ $bindings['birthday'] }}"
                     :label="__('Birthday')"
-                    type="input"
+
                     locale="vi-VN"
                     selectable-header
                 />

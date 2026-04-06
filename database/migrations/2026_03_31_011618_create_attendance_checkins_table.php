@@ -34,7 +34,10 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->timestamps();
 
-            $table->unique(['attendance_schedule_id', 'academic_enrollment_id']);
+            $table->unique(
+                ['attendance_schedule_id', 'academic_enrollment_id'],
+                'att_checkins_schedule_enrollment_unique'
+            );
         });
     }
 

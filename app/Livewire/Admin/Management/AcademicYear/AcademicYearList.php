@@ -3,17 +3,30 @@
 namespace App\Livewire\Admin\Management\AcademicYear;
 
 use App\Models\AcademicYear;
+use App\Repositories\Contracts\AcademicYearRepositoryInterface;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Filament\Tables\TableComponent;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
+use Livewire\Component;
 
-class AcademicYearList extends TableComponent
+class AcademicYearList extends Component implements HasActions, HasSchemas, HasTable
 {
+    use InteractsWithActions;
+    use InteractsWithSchemas;
+    use InteractsWithTable;
+
     #[On('academic-year-saved')]
     #[On('academic-year-deleted')]
     public function refreshList(): void
@@ -29,19 +42,8 @@ class AcademicYearList extends TableComponent
     public function table(Table $table): Table
     {
         return $table
-            ->query(
-                AcademicYear::query()
-                    ->orderByRaw("
-                        case status_academic
-                            when 'ongoing' then 1
-                            when 'upcoming' then 2
-                            when 'finished' then 3
-                            else 4
-                        end
-                    ")
-                    ->orderByDesc('catechism_start_date')
-                    ->orderByDesc('id')
-            )
+            ->query($this->academicYearTableQuery())
+            ->striped()
             ->columns([
                 TextColumn::make('name')
                     ->label(__('Academic year'))
@@ -51,72 +53,114 @@ class AcademicYearList extends TableComponent
                 TextColumn::make('catechism_period')
                     ->label(__('Catechism period'))
                     ->placeholder(__('N/A'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('catechism_avg_score')
                     ->label(__('Catechism average score'))
                     ->formatStateUsing(fn (mixed $state): string => number_format((float) $state, 2, ',', '.'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->alignCenter(),
                 TextColumn::make('catechism_training_score')
                     ->label(__('Catechism training score'))
                     ->formatStateUsing(fn (mixed $state): string => number_format((float) $state, 2, ',', '.'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->alignCenter(),
                 TextColumn::make('activity_period')
                     ->label(__('Activity period'))
                     ->placeholder(__('N/A'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->toggleable(),
                 TextColumn::make('activity_score')
                     ->label(__('Activity score'))
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('lg')
+                    ->alignCenter(),
                 TextColumn::make('status_academic')
                     ->label(__('Status'))
-                    ->formatStateUsing(fn (AcademicYear $record): string => __($record->status_academic_label))
-                    ->color(fn (AcademicYear $record): string => $record->status_academic_color)
                     ->badge()
-                    ->sortable(),
+                    ->formatStateUsing(fn (string $state): string => __(match ($state) {
+                        'ongoing' => 'Ongoing',
+                        'finished' => 'Finished',
+                        default => 'Upcoming',
+                    }))
+                    ->color(fn (string $state): string => match ($state) {
+                        'upcoming' => 'warning',
+                        'ongoing' => 'success',
+                        'finished' => 'gray',
+                        default => 'warning',
+                    })
+                    ->sortable()
+                    ->toggleable(),
             ])
+            ->persistSortInSession()
+            ->reorderableColumns()
+            ->stackedOnMobile()
             ->filters([
                 SelectFilter::make('status_academic')
                     ->label(__('Status'))
                     ->options([
-                        'ongoing' => __('Ongoing'),
                         'upcoming' => __('Upcoming'),
+                        'ongoing' => __('Ongoing'),
                         'finished' => __('Finished'),
                     ]),
             ])
-            ->actions([
+            ->defaultSort(function (Builder $query): Builder {
+                return $query
+                    ->orderByRaw("
+                        case status_academic
+                            when 'ongoing' then 1
+                            when 'upcoming' then 2
+                            when 'finished' then 3
+                            else 4
+                        end
+                    ")
+                    ->orderByDesc('catechism_start_date')
+                    ->orderByDesc('id');
+            })
+            ->deferFilters(false)
+            ->defaultPaginationPageOption(15)
+            ->paginated([15, 25, 50, 100])
+            ->extremePaginationLinks()
+            ->emptyStateHeading(__('No academic years found.'))
+            ->recordActions([
                 ActionGroup::make([
                     Action::make('edit')
                         ->label(__('Edit'))
+                        ->color('primary')
                         ->icon('heroicon-m-pencil-square')
-                        ->visible(fn (): bool => auth()->user()?->can('management.academic-year.update') ?? false)
-                        ->dispatch('edit-academic-year', [
-                            'academicYearId' => fn (AcademicYear $record): int => $record->getKey(),
-                        ]),
+                        ->visible(fn (): bool => Auth::user()?->can('management.academic-year.update') ?? false)
+                        ->action(function (AcademicYear $record): void {
+                            $this->dispatch('edit-academic-year', academicYearId: $record->getKey());
+                        }),
                     Action::make('delete')
                         ->label(__('Delete'))
                         ->icon('heroicon-m-trash')
                         ->color('danger')
-                        ->visible(fn (): bool => auth()->user()?->can('management.academic-year.delete') ?? false)
-                        ->dispatch('confirm-delete-academic-year', [
-                            'academicYearId' => fn (AcademicYear $record): int => $record->getKey(),
-                        ]),
+                        ->visible(fn (): bool => Auth::user()?->can('management.academic-year.delete') ?? false)
+                        ->action(function (AcademicYear $record): void {
+                            $this->dispatch('confirm-delete-academic-year', academicYearId: $record->getKey());
+                        }),
                 ])
                     ->button()
                     ->label(__('Actions'))
                     ->icon('heroicon-m-ellipsis-vertical')
                     ->color('gray')
+                    ->size('sm')
                     ->dropdownPlacement('bottom-end'),
-            ])
-            ->actionsColumnLabel(__('Actions'))
-            ->emptyStateHeading(__('No academic years found.'))
-            ->searchable()
-            ->stackedOnMobile()
-            ->paginationPageOptions([15, 25, 50])
-            ->defaultPaginationPageOption(15);
+            ]);
     }
 
     public function render(): View
     {
         return view('livewire.admin.management.academic-year.academic-year-list');
+    }
+
+    protected function academicYearTableQuery(): Builder
+    {
+        return $this->academicYearRepository()->query();
+    }
+
+    protected function academicYearRepository(): AcademicYearRepositoryInterface
+    {
+        return app(AcademicYearRepositoryInterface::class);
     }
 }

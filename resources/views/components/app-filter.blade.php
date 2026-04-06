@@ -4,6 +4,7 @@
     'types' => [],
     'categories' => [],
     'academicYears' => [],
+    'roles' => [],
     'statuses' => [],
     'dateRange' => false,
     'hasPages' => false,
@@ -17,7 +18,7 @@
 ])
 
 <flux:card {{ $attributes->class('border border-(--color-background) rounded-2xl') }}>
-    @if ($showSearch || count($types) > 1 || count($categories) > 1 || count($academicYears) > 0 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData)
+    @if ($showSearch || count($types) > 1 || count($categories) > 1 || count($academicYears) > 0 || count($roles) > 1 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData)
         <div class="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
 
             {{-- Filters --}}
@@ -97,6 +98,18 @@
                         </div>
                     @endif
 
+                    @if (count($roles) > 1)
+                        <div class="w-full sm:w-56 lg:w-64">
+                            <flux:select wire:model.lazy="selectedRole" variant="listbox" searchable
+                                :placeholder="__('Select...')">
+                                <flux:select.option value="">{{ __('All roles') }}</flux:select.option>
+                                @foreach ($roles as $role)
+                                    <flux:select.option value="{{ $role['value'] }}">{{ $role['label'] }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                    @endif
+
                     @if (count($statuses) > 1)
                         <div class="w-full sm:w-56 lg:w-64">
                             @if ($dateRange)
@@ -169,7 +182,7 @@
     @if (trim((string) $slot) !== '')
         <div
             @class([
-                'mt-6' => $showSearch || count($types) > 1 || count($categories) > 1 || count($academicYears) > 0 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData,
+                'mt-6' => $showSearch || count($types) > 1 || count($categories) > 1 || count($academicYears) > 0 || count($roles) > 1 || count($statuses) > 1 || $dateRange || $hasPages || $exportData || $importData,
             ])>
             {{ $slot }}
         </div>

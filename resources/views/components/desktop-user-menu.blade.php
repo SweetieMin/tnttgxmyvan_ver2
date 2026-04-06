@@ -9,6 +9,7 @@
     $resolvedName = $name !== '' ? $name : ($resolvedUser?->full_name ?? $resolvedUser?->name ?? '');
     $resolvedEmail = $email !== '' ? $email : ($resolvedUser?->email ?? '');
     $resolvedUserPicture = $userPicture ?? data_get($resolvedUser?->loadMissing('details'), 'details.picture');
+    $impersonator = app(\Lab404\Impersonate\Services\ImpersonateManager::class)->getImpersonator();
 @endphp
 
 <flux:dropdown position="bottom" align="start">
@@ -32,6 +33,24 @@
         </div>
         <flux:menu.separator />
         <flux:menu.radio.group>
+            @if ($resolvedUser?->isImpersonated())
+                <form method="POST" action="{{ route('impersonation.leave') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item
+                        as="button"
+                        type="submit"
+                        icon="arrow-uturn-left"
+                        class="w-full cursor-pointer"
+                    >
+                        {{ __('Stop impersonating') }}
+                        @if ($impersonator !== null)
+                            ({{ $impersonator->full_name ?? $impersonator->name }})
+                        @endif
+                    </flux:menu.item>
+                </form>
+
+                <flux:menu.separator />
+            @endif
             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                 {{ __('Settings') }}
             </flux:menu.item>

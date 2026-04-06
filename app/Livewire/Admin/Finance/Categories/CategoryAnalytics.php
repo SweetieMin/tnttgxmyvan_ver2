@@ -51,6 +51,39 @@ class CategoryAnalytics extends Component
      */
     protected array $resolvedComparisonCharts = [];
 
+    /**
+     * @var array<string, array{
+     *     title: string,
+     *     description: string,
+     *     current_label: string,
+     *     previous_label: string,
+     *     income_current: int,
+     *     income_previous: int,
+     *     expense_current: int,
+     *     expense_previous: int,
+     *     income_delta: int,
+     *     expense_delta: int,
+     *     income_delta_percentage: float|null,
+     *     expense_delta_percentage: float|null
+     * }>
+     */
+    protected array $resolvedYearOverYearInsights = [];
+
+    /**
+     * @var array<string, array{
+     *     title: string,
+     *     description: string,
+     *     current_balance: int,
+     *     average_annual_expense: int,
+     *     highest_annual_expense: int,
+     *     recommended_reserve: int,
+     *     safe_to_spend: int,
+     *     years_used: array<int, string>,
+     *     status: string
+     * }>
+     */
+    protected array $resolvedFundSafetyInsights = [];
+
     public function mount(): void
     {
         $this->dateRange = DateRange::yearToDate();
@@ -101,6 +134,10 @@ class CategoryAnalytics extends Component
         return view('livewire.admin.finance.categories.category-analytics', [
             'categoryOptions' => $categoryOptions,
             'overviewCards' => $overviewCards,
+            'appliedCategoriesLabel' => $this->appliedCategoriesLabel(),
+            'appliedDateRangeLabel' => $this->appliedDateRangeLabel(),
+            'yearOverYearInsight' => $this->yearOverYearInsight(),
+            'fundSafetyInsight' => $this->fundSafetyInsight(),
         ]);
     }
 
@@ -192,13 +229,13 @@ class CategoryAnalytics extends Component
         $totalIncome = (int) ($totals?->total_income ?? 0);
         $totalExpense = (int) ($totals?->total_expense ?? 0);
         $balance = $totalIncome - $totalExpense;
-        $previousYearBalance = $this->previousYearBalance();
+        $totalTransactions = (int) ($totals?->total_transactions ?? 0);
 
         return [
             [
-                'label' => __('Previous year fund balance'),
-                'value' => $this->formatMoney($previousYearBalance),
-                'tone' => $previousYearBalance >= 0 ? 'sky' : 'rose',
+                'label' => __('Total transactions'),
+                'value' => number_format($totalTransactions, 0, ',', '.'),
+                'tone' => 'sky',
             ],
             [
                 'label' => __('Total income'),
@@ -218,31 +255,119 @@ class CategoryAnalytics extends Component
         ];
     }
 
-    protected function previousYearBalance(): int
+    public function yearOverYearInsight(): array
     {
-        $previousYear = Carbon::now()->subYear()->year;
-        $categorySegment = $this->selectedCategory !== '' ? $this->selectedCategory : 'all';
+        $cacheKey = $this->categoryAnalyticsCacheKey('year-over-year');
 
-        return (int) Cache::remember(
-            "finance.category-analytics.previous-year-balance.{$previousYear}.{$categorySegment}",
-            now()->addHour(),
-            function () use ($previousYear): int {
-                $totals = Transaction::query()
-                    ->when(
-                        $this->selectedCategory !== '',
-                        fn (Builder $query) => $query->where('category_id', $this->selectedCategory),
-                    )
-                    ->whereYear('transaction_date', $previousYear)
-                    ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income")
-                    ->selectRaw("COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense")
-                    ->first();
+        if (array_key_exists($cacheKey, $this->resolvedYearOverYearInsights)) {
+            return $this->resolvedYearOverYearInsights[$cacheKey];
+        }
 
-                $totalIncome = (int) ($totals?->total_income ?? 0);
-                $totalExpense = (int) ($totals?->total_expense ?? 0);
+        [$currentStart, $currentEnd, $currentLabel, $previousStart, $previousEnd, $previousLabel] = $this->comparisonPeriods();
 
-                return $totalIncome - $totalExpense;
+        $currentMetrics = $this->metricsForPeriod($currentStart, $currentEnd);
+        $previousMetrics = $this->metricsForPeriod($previousStart, $previousEnd);
+        $scopeLabel = $this->appliedCategoriesLabel();
+
+        $this->resolvedYearOverYearInsights[$cacheKey] = [
+            'title' => __('Compared with last year'),
+            'description' => __('Review how :scope is performing against the same period last year.', [
+                'scope' => $scopeLabel,
+            ]),
+            'current_label' => $currentLabel,
+            'previous_label' => $previousLabel,
+            'income_current' => $currentMetrics['income'],
+            'income_previous' => $previousMetrics['income'],
+            'expense_current' => $currentMetrics['expense'],
+            'expense_previous' => $previousMetrics['expense'],
+            'income_delta' => $currentMetrics['income'] - $previousMetrics['income'],
+            'expense_delta' => $currentMetrics['expense'] - $previousMetrics['expense'],
+            'income_delta_percentage' => $this->deltaPercentage($currentMetrics['income'], $previousMetrics['income']),
+            'expense_delta_percentage' => $this->deltaPercentage($currentMetrics['expense'], $previousMetrics['expense']),
+        ];
+
+        return $this->resolvedYearOverYearInsights[$cacheKey];
+    }
+
+    public function fundSafetyInsight(): array
+    {
+        $categoryId = $this->selectedCategory !== '' ? $this->selectedCategory : 'all';
+        $cacheKey = "finance.category-analytics.v3.fund-safety.{$categoryId}";
+
+        if (array_key_exists($cacheKey, $this->resolvedFundSafetyInsights)) {
+            return $this->resolvedFundSafetyInsights[$cacheKey];
+        }
+
+        /** @var array<int, array{year: string, expense: int}> $annualExpenseHistory */
+        $annualExpenseHistory = Cache::remember(
+            $cacheKey,
+            now()->addMinutes(10),
+            function (): array {
+                $yearExpression = $this->yearExpression('transaction_date');
+
+                return $this->transactionBaseQuery()
+                    ->where('type', 'expense')
+                    ->selectRaw("{$yearExpression} as summary_year")
+                    ->selectRaw('COALESCE(SUM(amount), 0) as total_expense')
+                    ->groupBy('summary_year')
+                    ->orderByDesc('summary_year')
+                    ->get()
+                    ->map(fn (Transaction $transaction): array => [
+                        'year' => (string) $transaction->getAttribute('summary_year'),
+                        'expense' => (int) ($transaction->getAttribute('total_expense') ?? 0),
+                    ])
+                    ->all();
             },
         );
+
+        $currentYear = (string) Carbon::now()->year;
+        $recentExpenses = collect($annualExpenseHistory)
+            ->reject(fn (array $item): bool => $item['year'] === $currentYear)
+            ->take(3);
+
+        if ($recentExpenses->isEmpty()) {
+            $recentExpenses = collect($annualExpenseHistory)->take(3);
+        }
+
+        $averageAnnualExpense = (int) round($recentExpenses->avg('expense') ?? 0);
+        $highestAnnualExpense = (int) $recentExpenses->max('expense');
+        $recommendedReserve = max(
+            (int) round($averageAnnualExpense * 1.1),
+            (int) round($highestAnnualExpense * 0.85),
+        );
+
+        $totals = $this->transactionBaseQuery()
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income")
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense")
+            ->first();
+
+        $currentBalance = (int) ($totals?->total_income ?? 0) - (int) ($totals?->total_expense ?? 0);
+        $safeToSpend = max($currentBalance - $recommendedReserve, 0);
+        $status = $currentBalance >= $recommendedReserve
+            ? 'safe'
+            : ($currentBalance > 0 ? 'watch' : 'risk');
+
+        $scopeLabel = $this->appliedCategoriesLabel();
+
+        $this->resolvedFundSafetyInsights[$cacheKey] = [
+            'title' => __('Fund safety'),
+            'description' => __('Use the most recent recorded years of :scope to estimate a safer reserve before planning new spending.', [
+                'scope' => $scopeLabel,
+            ]),
+            'current_balance' => $currentBalance,
+            'average_annual_expense' => $averageAnnualExpense,
+            'highest_annual_expense' => $highestAnnualExpense,
+            'recommended_reserve' => $recommendedReserve,
+            'safe_to_spend' => $safeToSpend,
+            'years_used' => $recentExpenses
+                ->pluck('year')
+                ->reverse()
+                ->values()
+                ->all(),
+            'status' => $status,
+        ];
+
+        return $this->resolvedFundSafetyInsights[$cacheKey];
     }
 
     /**
@@ -391,14 +516,16 @@ class CategoryAnalytics extends Component
 
     protected function transactionQuery(): Builder
     {
-        return $this->applyDateRangeFilter(
-            Transaction::query()
-                ->when(
-                    $this->selectedCategory !== '',
-                    fn (Builder $query) => $query->where('category_id', $this->selectedCategory),
-                ),
-            $this->dateRange,
-        );
+        return $this->applyDateRangeFilter($this->transactionBaseQuery(), $this->dateRange);
+    }
+
+    protected function transactionBaseQuery(): Builder
+    {
+        return Transaction::query()
+            ->when(
+                $this->selectedCategory !== '',
+                fn (Builder $query) => $query->where('category_id', $this->selectedCategory),
+            );
     }
 
     protected function applyDateRangeFilter(Builder $query, ?DateRange $dateRange): Builder
@@ -467,5 +594,68 @@ class CategoryAnalytics extends Component
         }
 
         return "YEAR({$column})";
+    }
+
+    /**
+     * @return array{income: int, expense: int}
+     */
+    protected function metricsForPeriod(?Carbon $start, ?Carbon $end): array
+    {
+        $totals = $this->applyDateWindowFilter($this->transactionBaseQuery(), $start, $end)
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income")
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense")
+            ->first();
+
+        return [
+            'income' => (int) ($totals?->total_income ?? 0),
+            'expense' => (int) ($totals?->total_expense ?? 0),
+        ];
+    }
+
+    /**
+     * @return array{0: Carbon, 1: Carbon, 2: string, 3: Carbon, 4: Carbon, 5: string}
+     */
+    protected function comparisonPeriods(): array
+    {
+        $currentStart = $this->dateRange?->hasStart()
+            ? Carbon::instance($this->dateRange->start())
+            : Carbon::now()->startOfYear();
+        $currentEnd = $this->dateRange?->hasEnd()
+            ? Carbon::instance($this->dateRange->end())
+            : Carbon::now();
+
+        $previousStart = $currentStart->copy()->subYear();
+        $previousEnd = $currentEnd->copy()->subYear();
+
+        return [
+            $currentStart,
+            $currentEnd,
+            $currentStart->format('d/m/Y').' - '.$currentEnd->format('d/m/Y'),
+            $previousStart,
+            $previousEnd,
+            $previousStart->format('d/m/Y').' - '.$previousEnd->format('d/m/Y'),
+        ];
+    }
+
+    protected function applyDateWindowFilter(Builder $query, ?Carbon $start, ?Carbon $end): Builder
+    {
+        return $query
+            ->when(
+                $start !== null,
+                fn (Builder $builder) => $builder->whereDate('transaction_date', '>=', $start->toDateString()),
+            )
+            ->when(
+                $end !== null,
+                fn (Builder $builder) => $builder->whereDate('transaction_date', '<=', $end->toDateString()),
+            );
+    }
+
+    protected function deltaPercentage(int $current, int $previous): ?float
+    {
+        if ($previous === 0) {
+            return $current === 0 ? 0.0 : null;
+        }
+
+        return round((($current - $previous) / $previous) * 100, 1);
     }
 }

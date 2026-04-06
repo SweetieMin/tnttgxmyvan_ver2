@@ -6,7 +6,6 @@ use App\Models\PersonnelRoleGroup;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Schema;
 
 class PersonnelDirectory
 {
@@ -14,8 +13,6 @@ class PersonnelDirectory
      * @var array<string, array<int, string>>|null
      */
     protected ?array $roleNamesByGroup = null;
-
-    protected ?bool $rolesHaveOrderingColumn = null;
 
     /**
      * @return array<string, array{
@@ -315,11 +312,7 @@ class PersonnelDirectory
             ->select('personnel_role_groups.group_key', 'roles.name')
             ->join('roles', 'roles.id', '=', 'personnel_role_groups.role_id')
             ->whereIn('personnel_role_groups.group_key', array_keys($this->groups()))
-            ->when(
-                $this->rolesHaveOrderingColumn(),
-                fn ($query) => $query->orderBy('roles.ordering'),
-            )
-            ->orderBy('roles.name')
+            ->orderBy('roles.id')
             ->get()
             ->groupBy('group_key')
             ->map(fn (Collection $groups): array => $groups->pluck('name')->values()->all())
@@ -342,23 +335,10 @@ class PersonnelDirectory
 
         return Role::query()
             ->whereIn('name', $roleNames)
-            ->when(
-                $this->rolesHaveOrderingColumn(),
-                fn ($query) => $query->orderBy('ordering'),
-            )
-            ->orderBy('name')
+            ->orderBy('id')
             ->pluck('name')
             ->values()
             ->all();
-    }
-
-    protected function rolesHaveOrderingColumn(): bool
-    {
-        if ($this->rolesHaveOrderingColumn !== null) {
-            return $this->rolesHaveOrderingColumn;
-        }
-
-        return $this->rolesHaveOrderingColumn = Schema::hasColumn('roles', 'ordering');
     }
 
     /**

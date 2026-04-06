@@ -89,8 +89,14 @@
                                                     </flux:menu.item>
                                                 @endif
 
+                                                @if ($this->canImpersonateUser($user))
+                                                    <flux:menu.item icon="user" wire:click="impersonateUser({{ $user->id }})">
+                                                        {{ __('Impersonate') }}
+                                                    </flux:menu.item>
+                                                @endif
+
                                                 @if ($this->canUpdateUser($user))
-                                                    @if ($this->canExportBadgeUser($user))
+                                                    @if ($this->canExportBadgeUser($user) || $this->canImpersonateUser($user))
                                                         <flux:menu.separator />
                                                     @endif
                                                     <flux:menu.item icon="pencil-square" :href="$this->editRoute($user)" wire:navigate>
@@ -99,7 +105,9 @@
                                                 @endif
 
                                                 @if ($this->canDeleteUser($user))
-                                                    <flux:menu.separator />
+                                                    @if ($this->canExportBadgeUser($user) || $this->canImpersonateUser($user) || $this->canUpdateUser($user))
+                                                        <flux:menu.separator />
+                                                    @endif
                                                     <flux:menu.item variant="danger" icon="trash"
                                                         wire:click="confirmDeleteUser({{ $user->id }})">
                                                         {{ __('Delete') }}
@@ -219,8 +227,14 @@
                                                                 </flux:menu.item>
                                                             @endif
 
+                                                            @if ($this->canImpersonateUser($user))
+                                                                <flux:menu.item icon="user" wire:click="impersonateUser({{ $user->id }})">
+                                                                    {{ __('Impersonate') }}
+                                                                </flux:menu.item>
+                                                            @endif
+
                                                             @if ($this->canUpdateUser($user))
-                                                                @if ($this->canExportBadgeUser($user))
+                                                                @if ($this->canExportBadgeUser($user) || $this->canImpersonateUser($user))
                                                                     <flux:menu.separator />
                                                                 @endif
                                                                 <flux:menu.item icon="pencil-square" :href="$this->editRoute($user)" wire:navigate>
@@ -229,7 +243,9 @@
                                                             @endif
 
                                                             @if ($this->canDeleteUser($user))
-                                                                <flux:menu.separator />
+                                                                @if ($this->canExportBadgeUser($user) || $this->canImpersonateUser($user) || $this->canUpdateUser($user))
+                                                                    <flux:menu.separator />
+                                                                @endif
                                                                 <flux:menu.item variant="danger" icon="trash"
                                                                     wire:click="confirmDeleteUser({{ $user->id }})">
                                                                     {{ __('Delete') }}
