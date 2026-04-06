@@ -6,14 +6,14 @@
     @endif
     class="space-y-4"
 >
-    <flux:card class="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white/95 p-2 shadow-sm shadow-sky-100/40 ring-1 ring-black/5 dark:border-zinc-700/80 dark:bg-zinc-900/95 dark:shadow-none dark:ring-white/10">
+    <flux:card class="overflow-hidden rounded-3xl border border-(--color-background-icon) bg-[color:color-mix(in_srgb,var(--color-background)_14%,white)] p-2 shadow-sm shadow-[color:color-mix(in_srgb,var(--color-heading-table)_16%,transparent)] ring-1 ring-black/5 dark:border-[color:color-mix(in_srgb,var(--color-heading-table)_24%,var(--color-zinc-700))] dark:bg-[color:color-mix(in_srgb,var(--color-zinc-900)_84%,var(--color-heading-table)_16%)] dark:shadow-none dark:ring-white/10">
         @if($beforeCalendarView)
             <div class="p-2 pb-4">
                 @include($beforeCalendarView)
             </div>
         @endif
 
-        <div class="overflow-hidden rounded-[1.35rem] bg-zinc-200/70 dark:bg-zinc-800/80">
+        <div class="overflow-hidden rounded-[1.35rem] bg-[color:color-mix(in_srgb,var(--color-background-icon)_55%,white)] dark:bg-[color:color-mix(in_srgb,var(--color-heading-table)_14%,var(--color-zinc-900))]">
             <div class="flex">
                 <div class="w-full overflow-x-auto">
                     <div class="inline-block min-w-full overflow-hidden space-y-px">

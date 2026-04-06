@@ -148,7 +148,7 @@ class AcademicCourseList extends Component implements HasActions, HasSchemas, Ha
                     Action::make('assignCatechists')
                         ->label(__('Assign catechists'))
                         ->icon('heroicon-m-book-open')
-                        ->color('info')
+
                         ->visible(fn (): bool => Auth::user()?->can('management.academic-course.update') ?? false)
                         ->modalHeading(__('Assign catechists'))
                         ->modalDescription(__('Choose the primary catechist and supporting catechists for this class.'))

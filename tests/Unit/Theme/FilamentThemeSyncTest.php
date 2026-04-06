@@ -16,5 +16,8 @@ test('filament theme variables follow the shared app theme contract', function (
         ->and($css)->toContain('--gray-500: var(--color-zinc-500);')
         ->and($css)->toContain('.fi-btn.fi-color-primary:not(.fi-outlined)')
         ->and($css)->toContain('--bg: var(--color-accent);')
-        ->and($css)->toContain('--text: var(--color-accent-foreground);');
+        ->and($css)->toContain('--text: var(--color-accent-foreground);')
+        ->and($css)->toContain(".fi-modal-footer .fi-ac-btn-action[type='submit']")
+        ->and($css)->toContain(".fi-modal-footer .fi-ac-btn-action[type='submit'].fi-color-info")
+        ->and($css)->toContain('--color-600: var(--theme-600);');
 });

@@ -147,18 +147,18 @@ class AttendanceScheduleCalendar extends LivewireCalendar
         if (str_contains($label, 'thánh lễ')) {
             return [
                 'dot_class' => 'bg-red-500',
-                'border_class' => 'border-red-200/80 dark:border-red-900/60',
-                'background_class' => 'bg-red-50/90 dark:bg-red-950/30',
-                'hover_class' => 'hover:border-red-300 hover:bg-red-50 dark:hover:border-red-800 dark:hover:bg-red-950/40',
+                'border_class' => 'border-red-200/80 dark:border-red-500/35',
+                'background_class' => 'bg-red-50/90 dark:bg-zinc-900/95',
+                'hover_class' => 'hover:border-red-300 hover:bg-red-50 dark:hover:border-red-400/55 dark:hover:bg-zinc-800/95',
             ];
         }
 
         if (str_contains($label, 'chầu')) {
             return [
                 'dot_class' => 'bg-amber-500',
-                'border_class' => 'border-amber-200/80 dark:border-amber-900/60',
-                'background_class' => 'bg-amber-50/90 dark:bg-amber-950/30',
-                'hover_class' => 'hover:border-amber-300 hover:bg-amber-50 dark:hover:border-amber-800 dark:hover:bg-amber-950/40',
+                'border_class' => 'border-amber-200/80 dark:border-amber-500/35',
+                'background_class' => 'bg-amber-50/90 dark:bg-zinc-900/95',
+                'hover_class' => 'hover:border-amber-300 hover:bg-amber-50 dark:hover:border-amber-400/55 dark:hover:bg-zinc-800/95',
             ];
         }
 

@@ -19,8 +19,8 @@
     rel="stylesheet"
 >
 
+@vite(['resources/css/app.css', 'resources/js/app.js'])
 @filamentStyles
-@vite(['resources/css/app.css', 'resources/css/filament.css', 'resources/js/app.js'])
 
 <meta name="description" content="{{ $siteMetaDescription ?: $siteTagline ?: $siteTitle }}" />
 <meta name="keywords" content="{{ $siteMetaKeywords }}" />
@@ -67,13 +67,6 @@
             $siteTikTokUrl,
         ])),
     ], fn (mixed $value): bool => filled($value)), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
-</script>
-
-<script>
-    if (! window.localStorage.getItem('flux.appearance.initialized')) {
-        window.localStorage.setItem('flux.appearance', 'dark')
-        window.localStorage.setItem('flux.appearance.initialized', '1')
-    }
 </script>
 
 @fluxAppearance

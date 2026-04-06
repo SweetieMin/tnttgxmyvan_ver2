@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
 
 <head>
     @include('partials.head')
@@ -8,9 +8,9 @@
 <body x-data="{ themePreset: '{{ $themePreset }}', themeNeutralPalette: '{{ $themeNeutralPalette }}' }" x-on:theme-preset-updated.window="themePreset = $event.detail.preset"
     x-on:theme-neutral-palette-updated.window="themeNeutralPalette = $event.detail.neutralPalette"
     :data-theme="themePreset" :data-neutral-palette="themeNeutralPalette"
-    class="min-h-screen overflow-hidden bg-zinc-50 antialiased dark:bg-zinc-950">
+    class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800">
     <flux:sidebar sticky collapsible
-        class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-17 z-10 flex h-screen flex-col overflow-hidden">
+        class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 w-75 data-flux-sidebar-collapsed-desktop:w-15 z-10 flex h-screen flex-col overflow-hidden">
         <flux:sidebar.header>
             <flux:sidebar.brand href="{{ route('dashboard') }}"
                 logo="{{ asset('storage/' . ltrim($siteFavicon ?: 'images/sites/FAVICON_default.png', '/')) }}"
@@ -20,31 +20,7 @@
                 class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 hidden lg:flex" />
         </flux:sidebar.header>
 
-        <div
-            x-data="{
-                remember() {
-                    try {
-                        sessionStorage.setItem('app-sidebar-scroll-top', String(this.$el.scrollTop))
-                    } catch (error) {
-                        console.debug(error)
-                    }
-                },
-                restore() {
-                    try {
-                        const savedScrollTop = Number(sessionStorage.getItem('app-sidebar-scroll-top') ?? 0)
-
-                        this.$el.scrollTop = Number.isFinite(savedScrollTop) ? savedScrollTop : 0
-                    } catch (error) {
-                        console.debug(error)
-                    }
-                },
-            }"
-            x-init="$nextTick(() => restore())"
-            x-on:scroll.throttle.100ms="remember()"
-            x-on:livewire:navigating.window="remember()"
-            x-on:livewire:navigated.window="$nextTick(() => restore())"
-            class="flex min-h-0 flex-1 flex-col overflow-y-auto"
-        >
+        <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
             @foreach ($sidebarNavigation['primary'] ?? [] as $section)
                 <div class="my-2">
                     <flux:separator :text="$section['label']" />
@@ -87,7 +63,7 @@
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
             <flux:spacer />
 
-            <flux:button variant="ghost" x-data x-on:click="$flux.appearance = $flux.dark ? 'light' : 'dark'" icon="moon"
+            <flux:button variant="ghost" x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon"
                 aria-label="Toggle dark mode" />
             <flux:separator vertical class="my-2" />
 
@@ -108,7 +84,7 @@
 
             <flux:separator vertical class="my-2" />
 
-            <flux:button variant="ghost" x-data x-on:click="$flux.appearance = $flux.dark ? 'light' : 'dark'" icon="moon"
+            <flux:button variant="ghost" x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon"
                 aria-label="Toggle dark mode" />
             <flux:separator vertical class="my-2" />
 
@@ -129,6 +105,7 @@
 
     @filamentScripts
     @fluxScripts
+    @livewireCalendarScripts
 </body>
 
 </html>

@@ -6,6 +6,8 @@
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
+@import './filament.css';
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -74,11 +76,17 @@
     --color-taupe-900: #31251e;
     --color-taupe-950: #1d1511;
 
+    --theme-50: var(--color-sky-50);
     --theme-100: var(--color-sky-100);
     --theme-200: var(--color-sky-200);
+    --theme-300: var(--color-sky-300);
     --theme-400: var(--color-sky-400);
     --theme-500: var(--color-sky-500);
     --theme-600: var(--color-sky-600);
+    --theme-700: var(--color-sky-700);
+    --theme-800: var(--color-sky-800);
+    --theme-900: var(--color-sky-900);
+    --theme-950: var(--color-sky-950);
 
     --color-accent: var(--color-sky-600);
     --color-accent-content: var(--color-sky-600);
@@ -235,11 +243,11 @@
         --theme-300: var(--color-zinc-300);
         --theme-400: var(--color-zinc-400);
         --theme-500: var(--color-zinc-500);
+        --theme-600: var(--color-zinc-700);
         --theme-700: var(--color-zinc-700);
         --theme-800: var(--color-zinc-800);
         --theme-900: var(--color-zinc-900);
         --theme-950: var(--color-zinc-950);
-        --theme-600: var(--color-zinc-700);
     }
 
     [data-theme='red'] {
@@ -485,10 +493,10 @@
         --color-accent-content: var(--color-sky-400);
         --color-accent-foreground: var(--color-white);
 
-        --color-background: color-mix(in oklab, var(--color-sky-900) 60%, var(--color-zinc-950));
-        --color-background-icon: color-mix(in oklab, var(--color-sky-800) 55%, var(--color-zinc-900));
-        --color-text-hidden: var(--color-sky-200);
-        --color-heading-table: var(--color-sky-400);
+        --color-background: var(--color-zinc-700);
+        --color-background-icon: var(--color-zinc-600);
+        --color-text-hidden: var(--color-white);
+        --color-heading-table: var(--color-sky-500);
     }
 
     .dark [data-theme],
@@ -497,10 +505,10 @@
         --color-accent-content: var(--theme-400);
         --color-accent-foreground: var(--color-white);
 
-        --color-background: color-mix(in oklab, var(--theme-900) 60%, var(--color-zinc-950));
-        --color-background-icon: color-mix(in oklab, var(--theme-800) 55%, var(--color-zinc-900));
-        --color-text-hidden: var(--theme-200);
-        --color-heading-table: var(--theme-400);
+        --color-background: var(--color-zinc-700);
+        --color-background-icon: var(--color-zinc-600);
+        --color-text-hidden: var(--color-white);
+        --color-heading-table: var(--theme-500);
     }
 }
 
