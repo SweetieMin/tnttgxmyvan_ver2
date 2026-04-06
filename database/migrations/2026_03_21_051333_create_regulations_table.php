@@ -16,6 +16,7 @@ return new class extends Migration
 
             $table->unsignedSmallInteger('ordering')->default(1000);
             $table->text('description');
+            $table->string('short_desc')->nullable();
             $table->enum('type', ['plus', 'minus']);
             $table->integer('points')->default(0);
 

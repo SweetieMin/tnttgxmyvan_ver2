@@ -21,6 +21,7 @@ class RegulationFactory extends Factory
 
         return [
             'ordering' => $ordering++,
+            'short_desc' => $this->faker->words(3, true),
             'description' => $this->faker->sentence(),
             'type' => $this->faker->randomElement(['plus', 'minus']),
             'status' => $this->faker->randomElement(['applied', 'not_applied', 'pending']),

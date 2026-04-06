@@ -27,6 +27,9 @@ class RegulationActions extends Component
     public string $description = '';
 
     #[Validate]
+    public string $short_desc = '';
+
+    #[Validate]
     public string $type = 'plus';
 
     #[Validate]
@@ -55,6 +58,7 @@ class RegulationActions extends Component
 
         $this->editingRegulationId = (int) $regulation->id;
         $this->description = $regulation->description;
+        $this->short_desc = (string) $regulation->short_desc;
         $this->type = $regulation->type;
         $this->status = $regulation->status;
         $this->point_value = (string) $regulation->points;
@@ -71,6 +75,7 @@ class RegulationActions extends Component
         try {
             $this->regulationRepository()->save([
                 'description' => $validated['description'],
+                'short_desc' => $validated['short_desc'],
                 'type' => $validated['type'],
                 'status' => $validated['status'],
                 'points' => (int) $validated['point_value'],
@@ -183,6 +188,7 @@ class RegulationActions extends Component
         $this->reset([
             'editingRegulationId',
             'description',
+            'short_desc',
             'type',
             'status',
             'point_value',
@@ -207,6 +213,7 @@ class RegulationActions extends Component
     {
         return [
             'description' => $this->description,
+            'short_desc' => $this->short_desc,
             'type' => $this->type,
             'status' => $this->status,
             'point_value' => (string) $this->point_value,

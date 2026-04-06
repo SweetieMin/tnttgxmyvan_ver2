@@ -10,6 +10,9 @@
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="md:col-span-2">
+                    <flux:input wire:model.live.debounce.500ms="short_desc" :label="__('Short description')" />
+                </div>
+                <div class="md:col-span-2">
                     <flux:textarea wire:model.live.debounce.500ms="description" :label="__('Description')" class="min-h-28" />
                 </div>
                 <div class="md:col-span-1">

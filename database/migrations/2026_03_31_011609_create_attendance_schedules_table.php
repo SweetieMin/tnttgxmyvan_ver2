@@ -17,10 +17,13 @@ return new class extends Migration
                 ->constrained('academic_years')
                 ->cascadeOnDelete();
             $table->string('title');
-            $table->string('sector_name')->nullable();
             $table->date('attendance_date');
             $table->time('start_time');
             $table->time('end_time');
+            $table->foreignId('regulation_id')
+                ->nullable()
+                ->constrained('regulations')
+                ->nullOnDelete();
             $table->integer('points')->default(0);
             $table->boolean('is_active')->default(true);
             $table->foreignId('created_by')

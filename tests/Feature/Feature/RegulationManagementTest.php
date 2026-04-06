@@ -39,6 +39,7 @@ test('regulations can be created updated and deleted from the livewire screen', 
 
     Livewire::test(RegulationActions::class)
         ->call('openCreateModal')
+        ->set('short_desc', 'Đi học đúng giờ')
         ->set('description', 'Đi học đúng giờ')
         ->set('type', 'plus')
         ->set('status', 'applied')
@@ -50,11 +51,13 @@ test('regulations can be created updated and deleted from the livewire screen', 
 
     Livewire::test(RegulationActions::class)
         ->call('openEditModal', $regulation->id)
+        ->set('short_desc', 'Đi học đúng giờ')
         ->set('description', 'Đi học đúng giờ và đầy đủ')
         ->call('saveRegulation')
         ->assertHasNoErrors();
 
-    expect($regulation->fresh()->description)->toBe('Đi học đúng giờ và đầy đủ');
+    expect($regulation->fresh()->description)->toBe('Đi học đúng giờ và đầy đủ')
+        ->and($regulation->fresh()->short_desc)->toBe('Đi học đúng giờ');
 
     Livewire::test(RegulationActions::class)
         ->call('confirmDeleteRegulation', $regulation->id)
@@ -99,12 +102,31 @@ test('regulation points show a validation error when the value is not an integer
 
     Livewire::test(RegulationActions::class)
         ->call('openCreateModal')
+        ->set('short_desc', 'Đi học đúng giờ')
         ->set('description', 'Đi học đúng giờ')
         ->set('type', 'plus')
         ->set('status', 'applied')
         ->set('point_value', 'h')
         ->call('saveRegulation')
         ->assertHasErrors(['point_value' => 'integer']);
+});
+
+test('regulation short description is required', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo([
+        'management.regulation.create',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(RegulationActions::class)
+        ->call('openCreateModal')
+        ->set('description', 'Đi học đúng giờ')
+        ->set('type', 'plus')
+        ->set('status', 'applied')
+        ->set('point_value', 10)
+        ->call('saveRegulation')
+        ->assertHasErrors(['short_desc' => 'required']);
 });
 
 test('regulations can be reordered from the list', function () {

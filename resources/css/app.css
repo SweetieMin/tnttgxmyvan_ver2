@@ -485,10 +485,10 @@
         --color-accent-content: var(--color-sky-400);
         --color-accent-foreground: var(--color-white);
 
-        --color-background: var(--color-zinc-700);
-        --color-background-icon: var(--color-zinc-600);
-        --color-text-hidden: var(--color-white);
-        --color-heading-table: var(--color-sky-500);
+        --color-background: color-mix(in oklab, var(--color-sky-900) 60%, var(--color-zinc-950));
+        --color-background-icon: color-mix(in oklab, var(--color-sky-800) 55%, var(--color-zinc-900));
+        --color-text-hidden: var(--color-sky-200);
+        --color-heading-table: var(--color-sky-400);
     }
 
     .dark [data-theme],
@@ -497,10 +497,10 @@
         --color-accent-content: var(--theme-400);
         --color-accent-foreground: var(--color-white);
 
-        --color-background: var(--color-zinc-700);
-        --color-background-icon: var(--color-zinc-600);
-        --color-text-hidden: var(--color-white);
-        --color-heading-table: var(--theme-500);
+        --color-background: color-mix(in oklab, var(--theme-900) 60%, var(--color-zinc-950));
+        --color-background-icon: color-mix(in oklab, var(--theme-800) 55%, var(--color-zinc-900));
+        --color-text-hidden: var(--theme-200);
+        --color-heading-table: var(--theme-400);
     }
 }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\LogsModelActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Regulation extends Model
@@ -15,6 +16,7 @@ class Regulation extends Model
     protected $fillable = [
         'ordering',
         'description',
+        'short_desc',
         'type',
         'status',
         'points',
@@ -64,5 +66,10 @@ class Regulation extends Model
             'pending' => 'amber',
             default => 'amber',
         };
+    }
+
+    public function attendanceSchedules(): HasMany
+    {
+        return $this->hasMany(AttendanceSchedule::class);
     }
 }

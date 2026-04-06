@@ -13,6 +13,7 @@ class RegulationRules
     {
         return [
             'description' => ['required', 'string', 'max:65535'],
+            'short_desc' => ['required', 'string', 'max:255'],
             'type' => ['required', 'string', Rule::in(['plus', 'minus'])],
             'status' => ['required', 'string', Rule::in(['applied', 'not_applied', 'pending'])],
             $pointsField => ['required', 'integer', 'min:0'],
@@ -26,6 +27,7 @@ class RegulationRules
     {
         return [
             'description.required' => __('Description is required.'),
+            'short_desc.required' => __('Short description is required.'),
             'type.required' => __('Type is required.'),
             'status.required' => __('Status is required.'),
             "{$pointsField}.required" => __('Points are required.'),
