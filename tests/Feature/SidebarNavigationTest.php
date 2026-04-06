@@ -124,6 +124,7 @@ test('authenticated admin pages include the sidebar scroll persistence hooks', f
         ->get(route('admin.personnel.users'))
         ->assertOk()
         ->assertSee('app-sidebar-scroll-top', false)
+        ->assertSee('data-app-sidebar-scroll', false)
         ->assertSee('livewire:navigating.window', false)
         ->assertSee('livewire:navigated.window', false);
 });
