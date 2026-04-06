@@ -22,6 +22,9 @@ test('app layout relies on flux appearance without a hard-coded dark html class'
         ->get(route('dashboard'))
         ->assertOk()
         ->assertDontSee('class="dark"', false)
+        ->assertSee("window.localStorage.getItem('flux.appearance.initialized')", false)
+        ->assertSee("window.localStorage.setItem('flux.appearance', 'dark')", false)
+        ->assertSee("window.localStorage.setItem('flux.appearance.initialized', '1')", false)
         ->assertSee("\$flux.appearance = \$flux.dark ? 'light' : 'dark'", false)
         ->assertSee(':data-theme="themePreset"', false)
         ->assertSee(':data-neutral-palette="themeNeutralPalette"', false);
