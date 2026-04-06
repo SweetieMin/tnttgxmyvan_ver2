@@ -12,7 +12,7 @@
     'iconButton' => 'plus'
 ])
 
-<flux:card class="bg-(--color-background) dark:[:where(&)]:bg-white/10! border-0 rounded-2xl p-6">
+<flux:card class="bg-(--color-background) border-0 rounded-2xl p-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
         {{-- LEFT COLUMN --}}

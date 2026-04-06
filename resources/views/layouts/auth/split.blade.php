@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
+<body class="min-h-screen bg-zinc-50 antialiased dark:bg-zinc-950">
     <div
         class="relative grid min-h-dvh flex-col items-center justify-center px-2 sm:px-6 lg:max-w-none lg:grid-cols-2 lg:px-0">
         <div class="absolute top-4 right-4 z-50">
-            <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
+            <flux:button x-data x-on:click="$flux.appearance = $flux.dark ? 'light' : 'dark'" icon="moon" variant="subtle"
                 aria-label="Toggle dark mode" />
         </div>
         <div
