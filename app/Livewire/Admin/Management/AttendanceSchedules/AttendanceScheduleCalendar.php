@@ -11,6 +11,8 @@ use Omnia\LivewireCalendar\LivewireCalendar;
 
 class AttendanceScheduleCalendar extends LivewireCalendar
 {
+    public $dayClickEnabled;
+
     /**
      * @param  array<string, mixed>  $extras
      */

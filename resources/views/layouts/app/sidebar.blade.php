@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html
+    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    class="dark"
+    data-theme="{{ $themePreset }}"
+    data-neutral-palette="{{ $themeNeutralPalette }}"
+>
 
 <head>
     @include('partials.head')
@@ -10,6 +15,11 @@
     x-on:theme-neutral-palette-updated.window="themeNeutralPalette = $event.detail.neutralPalette"
     x-on:livewire:navigating.window=""
     x-on:livewire:navigated.window=""
+    x-effect="
+        document.documentElement.dataset.theme = themePreset;
+        document.documentElement.dataset.neutralPalette = themeNeutralPalette;
+    "
+    data-theme="{{ $themePreset }}" data-neutral-palette="{{ $themeNeutralPalette }}"
     :data-theme="themePreset" :data-neutral-palette="themeNeutralPalette"
     class="min-h-screen overflow-hidden bg-white antialiased dark:bg-zinc-800">
     <flux:sidebar sticky collapsible
