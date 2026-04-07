@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Gradebook\Enrollments;
+namespace App\Livewire\Admin\Arrangement\Enrollments;
 
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
@@ -11,6 +11,6 @@ class EnrollmentIndex extends Component
 {
     public function render(): View
     {
-        return view('livewire.admin.gradebook.enrollments.index');
+        return view('livewire.admin.arrangement.enrollments.index');
     }
 }

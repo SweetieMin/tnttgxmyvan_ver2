@@ -5,7 +5,7 @@ use App\Models\User;
 
 beforeEach(function () {
     collect([
-        'gradebook.enrollment.view',
+        'arrangement.enrollment.view',
         'attendance.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
@@ -25,7 +25,7 @@ it('allows authorized users to visit the new academic management modules', funct
     $response->assertOk()
         ->assertSeeText(__($label));
 })->with([
-    ['gradebook.enrollment.view', 'admin.gradebook.enrollments', 'Enrollments'],
+    ['arrangement.enrollment.view', 'admin.arrangement.enrollments', 'Enrollments'],
     ['attendance.gradebook.view', 'admin.attendance.gradebooks', 'Gradebooks'],
     ['arrangement.class-assignment.view', 'admin.arrangement.class-assignments', 'Class assignments'],
     ['arrangement.sector-assignment.view', 'admin.arrangement.sector-assignments', 'Sector assignments'],

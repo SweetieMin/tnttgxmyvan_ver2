@@ -69,10 +69,10 @@ class RolePermissionSeeder extends Seeder
             'management.academic-course.update',
             'management.academic-course.delete',
 
-            'gradebook.enrollment.view',
-            'gradebook.enrollment.create',
-            'gradebook.enrollment.update',
-            'gradebook.enrollment.delete',
+            'arrangement.enrollment.view',
+            'arrangement.enrollment.create',
+            'arrangement.enrollment.update',
+            'arrangement.enrollment.delete',
 
             'attendance.gradebook.view',
             'attendance.gradebook.create',

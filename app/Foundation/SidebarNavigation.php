@@ -36,9 +36,6 @@ class SidebarNavigation
                     $permissions->contains('management.academic-course.view')
                         ? $this->item('rectangle-stack', route('admin.management.academic-courses'), 'admin.management.academic-courses', __('Catechism - sector classes'))
                         : null,
-                    $permissions->contains('gradebook.enrollment.view')
-                        ? $this->item('clipboard-document-check', route('admin.gradebook.enrollments'), 'admin.gradebook.enrollments', __('Enrollments'))
-                        : null,
                 ]),
                 $this->section(__('Review'), [
                     $permissions->contains('review.promotion.view')
@@ -62,6 +59,9 @@ class SidebarNavigation
                         : null,
                     $permissions->contains('arrangement.attendance-schedule.view')
                         ? $this->item('calendar-days', route('admin.arrangement.attendance-schedules'), 'admin.arrangement.attendance-schedules', __('Attendance schedules'))
+                        : null,
+                    $permissions->contains('arrangement.enrollment.view')
+                        ? $this->item('clipboard-document-check', route('admin.arrangement.enrollments'), 'admin.arrangement.enrollments', __('Enrollments'))
                         : null,
                 ]),
                 $this->section(__('Personnel'), [

@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 beforeEach(function () {
     collect([
         'management.academic-year.view',
-        'gradebook.enrollment.view',
+        'arrangement.enrollment.view',
         'attendance.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
@@ -28,7 +28,7 @@ beforeEach(function () {
 test('sidebar navigation includes newly scaffolded academic workflow items when the user can access them', function () {
     $user = User::factory()->create();
     $user->givePermissionTo([
-        'gradebook.enrollment.view',
+        'arrangement.enrollment.view',
         'attendance.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
@@ -64,6 +64,7 @@ test('sidebar navigation includes newly scaffolded academic workflow items when 
             __('Class assignments'),
             __('Sector assignments'),
             __('Attendance schedules'),
+            __('Enrollments'),
         ]);
 });
 

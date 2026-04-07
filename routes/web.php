@@ -4,6 +4,7 @@ use App\Livewire\Admin\Access\Permissions\PermissionIndex;
 use App\Livewire\Admin\Access\Roles\RoleIndex;
 use App\Livewire\Admin\Arrangement\AttendanceSchedules\AttendanceScheduleIndex;
 use App\Livewire\Admin\Arrangement\ClassAssignments\ClassAssignmentIndex;
+use App\Livewire\Admin\Arrangement\Enrollments\EnrollmentIndex;
 use App\Livewire\Admin\Arrangement\SectorAssignments\SectorAssignmentIndex;
 use App\Livewire\Admin\Attendance\ActivityPoints\ActivityPointIndex;
 use App\Livewire\Admin\Attendance\AttendanceCheckins\AttendanceCheckinIndex;
@@ -11,7 +12,6 @@ use App\Livewire\Admin\Attendance\Gradebooks\GradebookIndex;
 use App\Livewire\Admin\Finance\Categories\CategoryAnalytics;
 use App\Livewire\Admin\Finance\Categories\CategoryIndex;
 use App\Livewire\Admin\Finance\Transactions\TransactionIndex;
-use App\Livewire\Admin\Gradebook\Enrollments\EnrollmentIndex;
 use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
@@ -75,12 +75,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('regulations');
         });
 
-        Route::prefix('gradebook')->name('gradebook.')->group(function () {
-            Route::livewire('enrollments', EnrollmentIndex::class)
-                ->middleware('permission:gradebook.enrollment.view')
-                ->name('enrollments');
-        });
-
         Route::prefix('attendance')->name('attendance.')->group(function () {
             Route::livewire('attendance-checkins', AttendanceCheckinIndex::class)
                 ->middleware('permission:attendance.attendance-checkin.view')
@@ -113,6 +107,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('attendance-schedules', AttendanceScheduleIndex::class)
                 ->middleware('permission:arrangement.attendance-schedule.view')
                 ->name('attendance-schedules');
+
+            Route::livewire('enrollments', EnrollmentIndex::class)
+                ->middleware('permission:arrangement.enrollment.view')
+                ->name('enrollments');
         });
 
         Route::prefix('finance')->name('finance.')->group(function () {
