@@ -10,13 +10,13 @@ beforeEach(function () {
     collect([
         'management.academic-year.view',
         'gradebook.enrollment.view',
-        'gradebook.gradebook.view',
+        'attendance.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
-        'attendance.attendance-schedule.view',
+        'arrangement.attendance-schedule.view',
         'attendance.attendance-checkin.view',
         'attendance.activity-point.view',
-        'gradebook.promotion.view',
+        'review.promotion.view',
         'finance.transaction.view',
         'settings.log.activity.view',
         'personnel.user.view',
@@ -29,22 +29,21 @@ test('sidebar navigation includes newly scaffolded academic workflow items when 
     $user = User::factory()->create();
     $user->givePermissionTo([
         'gradebook.enrollment.view',
-        'gradebook.gradebook.view',
+        'attendance.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
-        'attendance.attendance-schedule.view',
-        'gradebook.promotion.view',
+        'arrangement.attendance-schedule.view',
+        'review.promotion.view',
+        'attendance.attendance-checkin.view',
     ]);
 
     $navigation = app(SidebarNavigation::class)->for($user);
 
-    $gradebookSection = collect($navigation['primary'])
-        ->firstWhere('label', __('Gradebook'));
+    $reviewSection = collect($navigation['primary'])
+        ->firstWhere('label', __('Review'));
 
-    expect($gradebookSection)->not->toBeNull()
-        ->and(collect($gradebookSection['items'])->pluck('label')->all())->toBe([
-            __('Enrollments'),
-            __('Gradebooks'),
+    expect($reviewSection)->not->toBeNull()
+        ->and(collect($reviewSection['items'])->pluck('label')->all())->toBe([
             __('Promotions'),
         ]);
 
@@ -53,7 +52,8 @@ test('sidebar navigation includes newly scaffolded academic workflow items when 
 
     expect($attendanceSection)->not->toBeNull()
         ->and(collect($attendanceSection['items'])->pluck('label')->all())->toBe([
-            __('Attendance schedules'),
+            __('Attendance check-ins'),
+            __('Gradebooks'),
         ]);
 
     $arrangementSection = collect($navigation['primary'])
@@ -63,6 +63,7 @@ test('sidebar navigation includes newly scaffolded academic workflow items when 
         ->and(collect($arrangementSection['items'])->pluck('label')->all())->toBe([
             __('Class assignments'),
             __('Sector assignments'),
+            __('Attendance schedules'),
         ]);
 });
 

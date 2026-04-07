@@ -2,17 +2,16 @@
 
 use App\Livewire\Admin\Access\Permissions\PermissionIndex;
 use App\Livewire\Admin\Access\Roles\RoleIndex;
+use App\Livewire\Admin\Arrangement\AttendanceSchedules\AttendanceScheduleIndex;
 use App\Livewire\Admin\Arrangement\ClassAssignments\ClassAssignmentIndex;
 use App\Livewire\Admin\Arrangement\SectorAssignments\SectorAssignmentIndex;
 use App\Livewire\Admin\Attendance\ActivityPoints\ActivityPointIndex;
 use App\Livewire\Admin\Attendance\AttendanceCheckins\AttendanceCheckinIndex;
-use App\Livewire\Admin\Attendance\AttendanceSchedules\AttendanceScheduleIndex;
+use App\Livewire\Admin\Attendance\Gradebooks\GradebookIndex;
 use App\Livewire\Admin\Finance\Categories\CategoryAnalytics;
 use App\Livewire\Admin\Finance\Categories\CategoryIndex;
 use App\Livewire\Admin\Finance\Transactions\TransactionIndex;
 use App\Livewire\Admin\Gradebook\Enrollments\EnrollmentIndex;
-use App\Livewire\Admin\Gradebook\Gradebooks\GradebookIndex;
-use App\Livewire\Admin\Gradebook\Promotions\PromotionIndex;
 use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
@@ -24,6 +23,7 @@ use App\Livewire\Admin\Personnel\Directors\DirectorIndex;
 use App\Livewire\Admin\Personnel\Leaders\LeaderIndex;
 use App\Livewire\Admin\Personnel\UserProfileEditor;
 use App\Livewire\Admin\Personnel\Users\UserIndex;
+use App\Livewire\Admin\Review\Promotions\PromotionIndex;
 use App\Livewire\Front\ProfileShow;
 use App\Models\Permission;
 use App\Models\Role;
@@ -79,21 +79,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('enrollments', EnrollmentIndex::class)
                 ->middleware('permission:gradebook.enrollment.view')
                 ->name('enrollments');
-
-            Route::livewire('gradebooks', GradebookIndex::class)
-                ->middleware('permission:gradebook.gradebook.view')
-                ->name('gradebooks');
-
-            Route::livewire('promotions', PromotionIndex::class)
-                ->middleware('permission:gradebook.promotion.view')
-                ->name('promotions');
         });
 
         Route::prefix('attendance')->name('attendance.')->group(function () {
-            Route::livewire('attendance-schedules', AttendanceScheduleIndex::class)
-                ->middleware('permission:attendance.attendance-schedule.view')
-                ->name('attendance-schedules');
-
             Route::livewire('attendance-checkins', AttendanceCheckinIndex::class)
                 ->middleware('permission:attendance.attendance-checkin.view')
                 ->name('attendance-checkins');
@@ -101,6 +89,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('activity-points', ActivityPointIndex::class)
                 ->middleware('permission:attendance.activity-point.view')
                 ->name('activity-points');
+
+            Route::livewire('gradebooks', GradebookIndex::class)
+                ->middleware('permission:attendance.gradebook.view')
+                ->name('gradebooks');
+        });
+
+        Route::prefix('review')->name('review.')->group(function () {
+            Route::livewire('promotions', PromotionIndex::class)
+                ->middleware('permission:review.promotion.view')
+                ->name('promotions');
         });
 
         Route::prefix('arrangement')->name('arrangement.')->group(function () {
@@ -111,6 +109,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('class-assignments', ClassAssignmentIndex::class)
                 ->middleware('permission:arrangement.class-assignment.view')
                 ->name('class-assignments');
+
+            Route::livewire('attendance-schedules', AttendanceScheduleIndex::class)
+                ->middleware('permission:arrangement.attendance-schedule.view')
+                ->name('attendance-schedules');
         });
 
         Route::prefix('finance')->name('finance.')->group(function () {

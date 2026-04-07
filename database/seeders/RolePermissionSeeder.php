@@ -74,10 +74,10 @@ class RolePermissionSeeder extends Seeder
             'gradebook.enrollment.update',
             'gradebook.enrollment.delete',
 
-            'gradebook.gradebook.view',
-            'gradebook.gradebook.create',
-            'gradebook.gradebook.update',
-            'gradebook.gradebook.delete',
+            'attendance.gradebook.view',
+            'attendance.gradebook.create',
+            'attendance.gradebook.update',
+            'attendance.gradebook.delete',
 
             'arrangement.sector-assignment.view',
             'arrangement.sector-assignment.create',
@@ -89,10 +89,10 @@ class RolePermissionSeeder extends Seeder
             'arrangement.class-assignment.update',
             'arrangement.class-assignment.delete',
 
-            'attendance.attendance-schedule.view',
-            'attendance.attendance-schedule.create',
-            'attendance.attendance-schedule.update',
-            'attendance.attendance-schedule.delete',
+            'arrangement.attendance-schedule.view',
+            'arrangement.attendance-schedule.create',
+            'arrangement.attendance-schedule.update',
+            'arrangement.attendance-schedule.delete',
 
             'attendance.attendance-checkin.view',
             'attendance.attendance-checkin.create',
@@ -104,10 +104,10 @@ class RolePermissionSeeder extends Seeder
             'attendance.activity-point.update',
             'attendance.activity-point.delete',
 
-            'gradebook.promotion.view',
-            'gradebook.promotion.create',
-            'gradebook.promotion.update',
-            'gradebook.promotion.delete',
+            'review.promotion.view',
+            'review.promotion.create',
+            'review.promotion.update',
+            'review.promotion.delete',
 
             'management.program.view',
             'management.program.create',

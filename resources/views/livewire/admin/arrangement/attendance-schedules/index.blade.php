@@ -8,6 +8,6 @@
         permission="attendance.attendance-schedule.create"
     />
 
-    <livewire:admin.attendance.attendance-schedules.attendance-schedule-calendar />
-    <livewire:admin.attendance.attendance-schedules.attendance-schedule-actions />
+    <livewire:admin.arrangement.attendance-schedules.attendance-schedule-calendar />
+    <livewire:admin.arrangement.attendance-schedules.attendance-schedule-actions />
 </section>

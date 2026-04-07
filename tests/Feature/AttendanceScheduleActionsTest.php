@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Admin\Attendance\AttendanceSchedules\AttendanceScheduleActions;
+use App\Livewire\Admin\Arrangement\AttendanceSchedules\AttendanceScheduleActions;
 use App\Models\AcademicYear;
 use App\Models\AttendanceSchedule;
 use App\Models\Permission;
@@ -13,16 +13,16 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     collect([
-        'attendance.attendance-schedule.view',
-        'attendance.attendance-schedule.create',
-        'attendance.attendance-schedule.update',
-        'attendance.attendance-schedule.delete',
+        'arrangement.attendance-schedule.view',
+        'arrangement.attendance-schedule.create',
+        'arrangement.attendance-schedule.update',
+        'arrangement.attendance-schedule.delete',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
 
 test('attendance schedule actions prefill the generated title and regulation short description', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('attendance.attendance-schedule.create');
+    $user->givePermissionTo('arrangement.attendance-schedule.create');
 
     $academicYear = AcademicYear::factory()->create([
         'status_academic' => 'ongoing',
@@ -69,9 +69,9 @@ test('attendance schedule actions prefill the generated title and regulation sho
 test('attendance schedules can be created updated and deleted from the actions component', function () {
     $user = User::factory()->create();
     $user->givePermissionTo([
-        'attendance.attendance-schedule.create',
-        'attendance.attendance-schedule.update',
-        'attendance.attendance-schedule.delete',
+        'arrangement.attendance-schedule.create',
+        'arrangement.attendance-schedule.update',
+        'arrangement.attendance-schedule.delete',
     ]);
 
     $academicYear = AcademicYear::factory()->create();
@@ -121,7 +121,7 @@ test('attendance schedules can be created updated and deleted from the actions c
 
 test('attendance schedule requires a regulation selection', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('attendance.attendance-schedule.create');
+    $user->givePermissionTo('arrangement.attendance-schedule.create');
 
     $academicYear = AcademicYear::factory()->create();
 

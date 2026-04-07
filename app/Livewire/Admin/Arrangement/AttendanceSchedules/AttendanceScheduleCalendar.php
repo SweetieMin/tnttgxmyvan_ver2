@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Attendance\AttendanceSchedules;
+namespace App\Livewire\Admin\Arrangement\AttendanceSchedules;
 
 use App\Models\AcademicYear;
 use App\Models\AttendanceSchedule;
@@ -21,8 +21,8 @@ class AttendanceScheduleCalendar extends LivewireCalendar
      */
     public function afterMount($extras = []): void
     {
-        $this->beforeCalendarView = 'livewire.admin.attendance.attendance-schedules.calendar-before';
-        $this->afterCalendarView = 'livewire.admin.attendance.attendance-schedules.calendar-after';
+        $this->beforeCalendarView = 'livewire.admin.arrangement.attendance-schedules.calendar-before';
+        $this->afterCalendarView = 'livewire.admin.arrangement.attendance-schedules.calendar-after';
     }
 
     public function placeholder(): View

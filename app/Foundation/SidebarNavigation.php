@@ -36,27 +36,21 @@ class SidebarNavigation
                     $permissions->contains('management.academic-course.view')
                         ? $this->item('rectangle-stack', route('admin.management.academic-courses'), 'admin.management.academic-courses', __('Catechism - sector classes'))
                         : null,
-                ]),
-                $this->section(__('Gradebook'), [
                     $permissions->contains('gradebook.enrollment.view')
                         ? $this->item('clipboard-document-check', route('admin.gradebook.enrollments'), 'admin.gradebook.enrollments', __('Enrollments'))
                         : null,
-                    $permissions->contains('gradebook.gradebook.view')
-                        ? $this->item('book-open', route('admin.gradebook.gradebooks'), 'admin.gradebook.gradebooks', __('Gradebooks'))
-                        : null,
-                    $permissions->contains('gradebook.promotion.view')
-                        ? $this->item('arrow-trending-up', route('admin.gradebook.promotions'), 'admin.gradebook.promotions', __('Promotions'))
+                ]),
+                $this->section(__('Review'), [
+                    $permissions->contains('review.promotion.view')
+                        ? $this->item('arrow-trending-up', route('admin.review.promotions'), 'admin.review.promotions', __('Promotions'))
                         : null,
                 ]),
                 $this->section(__('Attendance'), [
-                    $permissions->contains('attendance.attendance-schedule.view')
-                        ? $this->item('calendar-days', route('admin.attendance.attendance-schedules'), 'admin.attendance.attendance-schedules', __('Attendance schedules'))
-                        : null,
                     $permissions->contains('attendance.attendance-checkin.view')
                         ? $this->item('qr-code', route('admin.attendance.attendance-checkins'), 'admin.attendance.attendance-checkins', __('Attendance check-ins'))
                         : null,
-                    $permissions->contains('attendance.activity-point.view')
-                        ? $this->item('sparkles', route('admin.attendance.activity-points'), 'admin.attendance.activity-points', __('Activity points'))
+                    $permissions->contains('attendance.gradebook.view')
+                        ? $this->item('book-open', route('admin.attendance.gradebooks'), 'admin.attendance.gradebooks', __('Gradebooks'))
                         : null,
                 ]),
                 $this->section(__('Arrangement'), [
@@ -65,6 +59,9 @@ class SidebarNavigation
                         : null,
                     $permissions->contains('arrangement.sector-assignment.view')
                         ? $this->item('flag', route('admin.arrangement.sector-assignments'), 'admin.arrangement.sector-assignments', __('Sector assignments'))
+                        : null,
+                    $permissions->contains('arrangement.attendance-schedule.view')
+                        ? $this->item('calendar-days', route('admin.arrangement.attendance-schedules'), 'admin.arrangement.attendance-schedules', __('Attendance schedules'))
                         : null,
                 ]),
                 $this->section(__('Personnel'), [

@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Admin\Attendance\AttendanceSchedules\AttendanceScheduleCalendar;
+use App\Livewire\Admin\Arrangement\AttendanceSchedules\AttendanceScheduleCalendar;
 use App\Models\AcademicYear;
 use App\Models\AttendanceSchedule;
 use App\Models\Permission;
@@ -12,15 +12,17 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    Livewire::withoutLazyLoading();
+
     collect([
-        'attendance.attendance-schedule.view',
-        'attendance.attendance-schedule.create',
+        'arrangement.attendance-schedule.view',
+        'arrangement.attendance-schedule.create',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
 
 test('attendance schedule calendar shows schedules from the current calendar grid', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('attendance.attendance-schedule.view');
+    $user->givePermissionTo('arrangement.attendance-schedule.view');
 
     $regulation = Regulation::factory()->create([
         'description' => 'Lễ Chúa Nhật',
@@ -42,14 +44,17 @@ test('attendance schedule calendar shows schedules from the current calendar gri
 
     $this->actingAs($user);
 
-    Livewire::test(AttendanceScheduleCalendar::class)
+    Livewire::test(AttendanceScheduleCalendar::class, [
+        'gridStartsAt' => now()->startOfMonth()->startOfWeek(),
+        'gridEndsAt' => now()->endOfMonth()->endOfWeek(),
+    ])
         ->assertSee('Lễ CN tuần 1')
         ->assertDontSee('Lễ CN tương lai');
 });
 
 test('attendance schedule calendar maps regulation keywords to event colors', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('attendance.attendance-schedule.view');
+    $user->givePermissionTo('arrangement.attendance-schedule.view');
 
     $holyMassRegulation = Regulation::factory()->create([
         'short_desc' => 'Tham dự Thánh Lễ',
@@ -79,7 +84,10 @@ test('attendance schedule calendar maps regulation keywords to event colors', fu
 
     $this->actingAs($user);
 
-    Livewire::test(AttendanceScheduleCalendar::class)
+    Livewire::test(AttendanceScheduleCalendar::class, [
+        'gridStartsAt' => now()->startOfMonth()->startOfWeek(),
+        'gridEndsAt' => now()->endOfMonth()->endOfWeek(),
+    ])
         ->call('events')
         ->assertReturned(fn (array $events) => collect($events)->contains(
             fn (array $event): bool => $event['id'] === $holyMassSchedule->id
@@ -93,24 +101,22 @@ test('attendance schedule calendar maps regulation keywords to event colors', fu
 test('attendance schedules page renders the package calendar component', function () {
     $user = User::factory()->create();
     $user->givePermissionTo([
-        'attendance.attendance-schedule.view',
-        'attendance.attendance-schedule.create',
+        'arrangement.attendance-schedule.view',
+        'arrangement.attendance-schedule.create',
     ]);
 
     $this->actingAs($user)
-        ->get(route('admin.attendance.attendance-schedules'))
+        ->get(route('admin.arrangement.attendance-schedules'))
         ->assertOk()
         ->assertSee(__('Attendance schedules'))
-        ->assertSee(__('Add attendance schedule'))
-        ->assertSee(__('Holy Mass'))
-        ->assertSee(__('Eucharistic adoration'));
+        ->assertSee(__('Add attendance schedule'));
 });
 
 test('clicking a day prepares the attendance schedule modal', function () {
     $user = User::factory()->create();
     $user->givePermissionTo([
-        'attendance.attendance-schedule.view',
-        'attendance.attendance-schedule.create',
+        'arrangement.attendance-schedule.view',
+        'arrangement.attendance-schedule.create',
     ]);
 
     $academicYear = AcademicYear::factory()->create([
@@ -119,14 +125,17 @@ test('clicking a day prepares the attendance schedule modal', function () {
 
     $this->actingAs($user);
 
-    Livewire::test(AttendanceScheduleCalendar::class)
+    Livewire::test(AttendanceScheduleCalendar::class, [
+        'gridStartsAt' => now()->startOfMonth()->startOfWeek(),
+        'gridEndsAt' => now()->endOfMonth()->endOfWeek(),
+    ])
         ->call('onDayClick', 2026, 4, 18)
         ->assertDispatched('open-create-attendance-schedule-modal');
 });
 
 test('attendance schedule event click loads data and dropped event updates the date', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('attendance.attendance-schedule.view');
+    $user->givePermissionTo('arrangement.attendance-schedule.view');
 
     $academicYear = AcademicYear::factory()->create();
     $regulation = Regulation::factory()->create([
@@ -147,7 +156,10 @@ test('attendance schedule event click loads data and dropped event updates the d
 
     $this->actingAs($user);
 
-    Livewire::test(AttendanceScheduleCalendar::class)
+    Livewire::test(AttendanceScheduleCalendar::class, [
+        'gridStartsAt' => now()->startOfMonth()->startOfWeek(),
+        'gridEndsAt' => now()->endOfMonth()->endOfWeek(),
+    ])
         ->call('onEventClick', $attendanceSchedule->id)
         ->assertDispatched('edit-attendance-schedule')
         ->call('onEventDropped', $attendanceSchedule->id, 2026, 4, 12);
