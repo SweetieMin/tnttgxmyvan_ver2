@@ -9,6 +9,8 @@ use Livewire\Component;
 #[Title('Điểm danh sinh hoạt')]
 class AttendanceCheckinIndex extends Component
 {
+    public ?int $attendanceScheduleId = null;
+
     public function render(): View
     {
         return view('livewire.admin.attendance.attendance-checkins.index');
