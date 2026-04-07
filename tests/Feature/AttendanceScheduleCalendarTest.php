@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Admin\Management\AttendanceSchedules\AttendanceScheduleCalendar;
+use App\Livewire\Admin\Attendance\AttendanceSchedules\AttendanceScheduleCalendar;
 use App\Models\AcademicYear;
 use App\Models\AttendanceSchedule;
 use App\Models\Permission;
@@ -13,14 +13,14 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     collect([
-        'management.attendance-schedule.view',
-        'management.attendance-schedule.create',
+        'attendance.attendance-schedule.view',
+        'attendance.attendance-schedule.create',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
 
 test('attendance schedule calendar shows schedules from the current calendar grid', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('management.attendance-schedule.view');
+    $user->givePermissionTo('attendance.attendance-schedule.view');
 
     $regulation = Regulation::factory()->create([
         'description' => 'Lễ Chúa Nhật',
@@ -49,7 +49,7 @@ test('attendance schedule calendar shows schedules from the current calendar gri
 
 test('attendance schedule calendar maps regulation keywords to event colors', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('management.attendance-schedule.view');
+    $user->givePermissionTo('attendance.attendance-schedule.view');
 
     $holyMassRegulation = Regulation::factory()->create([
         'short_desc' => 'Tham dự Thánh Lễ',
@@ -93,12 +93,12 @@ test('attendance schedule calendar maps regulation keywords to event colors', fu
 test('attendance schedules page renders the package calendar component', function () {
     $user = User::factory()->create();
     $user->givePermissionTo([
-        'management.attendance-schedule.view',
-        'management.attendance-schedule.create',
+        'attendance.attendance-schedule.view',
+        'attendance.attendance-schedule.create',
     ]);
 
     $this->actingAs($user)
-        ->get(route('admin.management.attendance-schedules'))
+        ->get(route('admin.attendance.attendance-schedules'))
         ->assertOk()
         ->assertSee(__('Attendance schedules'))
         ->assertSee(__('Add attendance schedule'))
@@ -109,8 +109,8 @@ test('attendance schedules page renders the package calendar component', functio
 test('clicking a day prepares the attendance schedule modal', function () {
     $user = User::factory()->create();
     $user->givePermissionTo([
-        'management.attendance-schedule.view',
-        'management.attendance-schedule.create',
+        'attendance.attendance-schedule.view',
+        'attendance.attendance-schedule.create',
     ]);
 
     $academicYear = AcademicYear::factory()->create([
@@ -126,7 +126,7 @@ test('clicking a day prepares the attendance schedule modal', function () {
 
 test('attendance schedule event click loads data and dropped event updates the date', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('management.attendance-schedule.view');
+    $user->givePermissionTo('attendance.attendance-schedule.view');
 
     $academicYear = AcademicYear::factory()->create();
     $regulation = Regulation::factory()->create([

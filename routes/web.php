@@ -2,21 +2,21 @@
 
 use App\Livewire\Admin\Access\Permissions\PermissionIndex;
 use App\Livewire\Admin\Access\Roles\RoleIndex;
+use App\Livewire\Admin\Arrangement\ClassAssignments\ClassAssignmentIndex;
+use App\Livewire\Admin\Arrangement\SectorAssignments\SectorAssignmentIndex;
+use App\Livewire\Admin\Attendance\ActivityPoints\ActivityPointIndex;
+use App\Livewire\Admin\Attendance\AttendanceCheckins\AttendanceCheckinIndex;
+use App\Livewire\Admin\Attendance\AttendanceSchedules\AttendanceScheduleIndex;
 use App\Livewire\Admin\Finance\Categories\CategoryAnalytics;
 use App\Livewire\Admin\Finance\Categories\CategoryIndex;
 use App\Livewire\Admin\Finance\Transactions\TransactionIndex;
+use App\Livewire\Admin\Gradebook\Enrollments\EnrollmentIndex;
+use App\Livewire\Admin\Gradebook\Gradebooks\GradebookIndex;
+use App\Livewire\Admin\Gradebook\Promotions\PromotionIndex;
 use App\Livewire\Admin\Management\AcademicCourses\AcademicCourseIndex;
 use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
-use App\Livewire\Admin\Management\ActivityPoints\ActivityPointIndex;
-use App\Livewire\Admin\Management\AttendanceCheckins\AttendanceCheckinIndex;
-use App\Livewire\Admin\Management\AttendanceSchedules\AttendanceScheduleIndex;
-use App\Livewire\Admin\Management\ClassAssignments\ClassAssignmentIndex;
-use App\Livewire\Admin\Management\Enrollments\EnrollmentIndex;
-use App\Livewire\Admin\Management\Gradebooks\GradebookIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
-use App\Livewire\Admin\Management\Promotions\PromotionIndex;
 use App\Livewire\Admin\Management\Regulations\RegulationIndex;
-use App\Livewire\Admin\Management\SectorAssignments\SectorAssignmentIndex;
 use App\Livewire\Admin\Personnel\Catechists\CatechistIndex;
 use App\Livewire\Admin\Personnel\Children\ChildIndex;
 use App\Livewire\Admin\Personnel\DeletedUsers\DeletedUserIndex;
@@ -66,30 +66,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:management.academic-course.view')
                 ->name('academic-courses');
 
-            Route::livewire('enrollments', EnrollmentIndex::class)
-                ->middleware('permission:management.enrollment.view')
-                ->name('enrollments');
-
-            Route::livewire('gradebooks', GradebookIndex::class)
-                ->middleware('permission:management.gradebook.view')
-                ->name('gradebooks');
-
-            Route::livewire('attendance-schedules', AttendanceScheduleIndex::class)
-                ->middleware('permission:management.attendance-schedule.view')
-                ->name('attendance-schedules');
-
-            Route::livewire('attendance-checkins', AttendanceCheckinIndex::class)
-                ->middleware('permission:management.attendance-checkin.view')
-                ->name('attendance-checkins');
-
-            Route::livewire('activity-points', ActivityPointIndex::class)
-                ->middleware('permission:management.activity-point.view')
-                ->name('activity-points');
-
-            Route::livewire('promotions', PromotionIndex::class)
-                ->middleware('permission:management.promotion.view')
-                ->name('promotions');
-
             Route::livewire('programs', ProgramIndex::class)
                 ->middleware('permission:management.program.view')
                 ->name('programs');
@@ -97,6 +73,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('regulations', RegulationIndex::class)
                 ->middleware('permission:management.regulation.view')
                 ->name('regulations');
+        });
+
+        Route::prefix('gradebook')->name('gradebook.')->group(function () {
+            Route::livewire('enrollments', EnrollmentIndex::class)
+                ->middleware('permission:gradebook.enrollment.view')
+                ->name('enrollments');
+
+            Route::livewire('gradebooks', GradebookIndex::class)
+                ->middleware('permission:gradebook.gradebook.view')
+                ->name('gradebooks');
+
+            Route::livewire('promotions', PromotionIndex::class)
+                ->middleware('permission:gradebook.promotion.view')
+                ->name('promotions');
+        });
+
+        Route::prefix('attendance')->name('attendance.')->group(function () {
+            Route::livewire('attendance-schedules', AttendanceScheduleIndex::class)
+                ->middleware('permission:attendance.attendance-schedule.view')
+                ->name('attendance-schedules');
+
+            Route::livewire('attendance-checkins', AttendanceCheckinIndex::class)
+                ->middleware('permission:attendance.attendance-checkin.view')
+                ->name('attendance-checkins');
+
+            Route::livewire('activity-points', ActivityPointIndex::class)
+                ->middleware('permission:attendance.activity-point.view')
+                ->name('activity-points');
         });
 
         Route::prefix('arrangement')->name('arrangement.')->group(function () {

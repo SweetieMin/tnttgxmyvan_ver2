@@ -36,23 +36,27 @@ class SidebarNavigation
                     $permissions->contains('management.academic-course.view')
                         ? $this->item('rectangle-stack', route('admin.management.academic-courses'), 'admin.management.academic-courses', __('Catechism - sector classes'))
                         : null,
-                    $permissions->contains('management.enrollment.view')
-                        ? $this->item('clipboard-document-check', route('admin.management.enrollments'), 'admin.management.enrollments', __('Enrollments'))
+                ]),
+                $this->section(__('Gradebook'), [
+                    $permissions->contains('gradebook.enrollment.view')
+                        ? $this->item('clipboard-document-check', route('admin.gradebook.enrollments'), 'admin.gradebook.enrollments', __('Enrollments'))
                         : null,
-                    $permissions->contains('management.gradebook.view')
-                        ? $this->item('book-open', route('admin.management.gradebooks'), 'admin.management.gradebooks', __('Gradebooks'))
+                    $permissions->contains('gradebook.gradebook.view')
+                        ? $this->item('book-open', route('admin.gradebook.gradebooks'), 'admin.gradebook.gradebooks', __('Gradebooks'))
                         : null,
-                    $permissions->contains('management.attendance-schedule.view')
-                        ? $this->item('calendar-days', route('admin.management.attendance-schedules'), 'admin.management.attendance-schedules', __('Attendance schedules'))
+                    $permissions->contains('gradebook.promotion.view')
+                        ? $this->item('arrow-trending-up', route('admin.gradebook.promotions'), 'admin.gradebook.promotions', __('Promotions'))
                         : null,
-                    $permissions->contains('management.attendance-checkin.view')
-                        ? $this->item('qr-code', route('admin.management.attendance-checkins'), 'admin.management.attendance-checkins', __('Attendance check-ins'))
+                ]),
+                $this->section(__('Attendance'), [
+                    $permissions->contains('attendance.attendance-schedule.view')
+                        ? $this->item('calendar-days', route('admin.attendance.attendance-schedules'), 'admin.attendance.attendance-schedules', __('Attendance schedules'))
                         : null,
-                    $permissions->contains('management.activity-point.view')
-                        ? $this->item('sparkles', route('admin.management.activity-points'), 'admin.management.activity-points', __('Activity points'))
+                    $permissions->contains('attendance.attendance-checkin.view')
+                        ? $this->item('qr-code', route('admin.attendance.attendance-checkins'), 'admin.attendance.attendance-checkins', __('Attendance check-ins'))
                         : null,
-                    $permissions->contains('management.promotion.view')
-                        ? $this->item('arrow-trending-up', route('admin.management.promotions'), 'admin.management.promotions', __('Promotions'))
+                    $permissions->contains('attendance.activity-point.view')
+                        ? $this->item('sparkles', route('admin.attendance.activity-points'), 'admin.attendance.activity-points', __('Activity points'))
                         : null,
                 ]),
                 $this->section(__('Arrangement'), [

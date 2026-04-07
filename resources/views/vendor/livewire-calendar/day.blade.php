@@ -16,7 +16,7 @@
             @if($dayClickEnabled)
                 wire:click="onDayClick({{ $day->year }}, {{ $day->month }}, {{ $day->day }})"
             @endif
-            class="flex h-full w-full flex-col p-2 transition-colors lg:p-3 {{ $dayClickEnabled ? 'cursor-pointer' : '' }} {{ $dayInMonth ? ($isToday ? 'bg-(--color-background)/45 dark:bg-zinc-800/90' : 'bg-white/95 hover:bg-(--color-background)/18 dark:bg-zinc-900/90 dark:hover:bg-zinc-800/90') : 'bg-zinc-50/95 dark:bg-zinc-950/50' }}"
+            class="flex h-full w-full flex-col p-2 lg:p-3 {{ $dayClickEnabled ? 'cursor-pointer' : '' }} {{ $dayInMonth ? ($isToday ? 'bg-(--color-background)/45 dark:bg-zinc-800/90' : 'bg-white/95 hover:bg-(--color-background)/18 dark:bg-zinc-900/90 dark:hover:bg-zinc-800/90') : 'bg-zinc-50/95 dark:bg-zinc-950/50' }}"
         >
 
             <div class="flex items-center justify-between gap-2">

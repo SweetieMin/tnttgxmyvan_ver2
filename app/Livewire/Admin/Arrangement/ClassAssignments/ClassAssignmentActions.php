@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\ClassAssignments;
+namespace App\Livewire\Admin\Arrangement\ClassAssignments;
 
 use App\Concerns\ActivityLogs\LogsAcademicCourseAssignmentActivity;
 use App\Foundation\PersonnelDirectory;
@@ -114,7 +114,7 @@ class ClassAssignmentActions extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.class-assignments.class-assignment-actions', [
+        return view('livewire.admin.arrangement.class-assignments.class-assignment-actions', [
             'catechistOptions' => $this->catechistOptions(),
         ]);
     }

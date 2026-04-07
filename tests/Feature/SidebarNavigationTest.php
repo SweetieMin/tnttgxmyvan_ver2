@@ -9,14 +9,14 @@ use Illuminate\Http\Request;
 beforeEach(function () {
     collect([
         'management.academic-year.view',
-        'management.enrollment.view',
-        'management.gradebook.view',
+        'gradebook.enrollment.view',
+        'gradebook.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
-        'management.attendance-schedule.view',
-        'management.attendance-checkin.view',
-        'management.activity-point.view',
-        'management.promotion.view',
+        'attendance.attendance-schedule.view',
+        'attendance.attendance-checkin.view',
+        'attendance.activity-point.view',
+        'gradebook.promotion.view',
         'finance.transaction.view',
         'settings.log.activity.view',
         'personnel.user.view',
@@ -28,24 +28,32 @@ beforeEach(function () {
 test('sidebar navigation includes newly scaffolded academic workflow items when the user can access them', function () {
     $user = User::factory()->create();
     $user->givePermissionTo([
-        'management.enrollment.view',
-        'management.gradebook.view',
+        'gradebook.enrollment.view',
+        'gradebook.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
-        'management.attendance-schedule.view',
-        'management.promotion.view',
+        'attendance.attendance-schedule.view',
+        'gradebook.promotion.view',
     ]);
 
     $navigation = app(SidebarNavigation::class)->for($user);
-    $managementSection = collect($navigation['primary'])
-        ->firstWhere('label', __('Management'));
 
-    expect($managementSection)->not->toBeNull()
-        ->and(collect($managementSection['items'])->pluck('label')->all())->toBe([
+    $gradebookSection = collect($navigation['primary'])
+        ->firstWhere('label', __('Gradebook'));
+
+    expect($gradebookSection)->not->toBeNull()
+        ->and(collect($gradebookSection['items'])->pluck('label')->all())->toBe([
             __('Enrollments'),
             __('Gradebooks'),
-            __('Attendance schedules'),
             __('Promotions'),
+        ]);
+
+    $attendanceSection = collect($navigation['primary'])
+        ->firstWhere('label', __('Attendance'));
+
+    expect($attendanceSection)->not->toBeNull()
+        ->and(collect($attendanceSection['items'])->pluck('label')->all())->toBe([
+            __('Attendance schedules'),
         ]);
 
     $arrangementSection = collect($navigation['primary'])

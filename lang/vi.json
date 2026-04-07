@@ -985,7 +985,9 @@
     "Short description": "Mô tả ngắn",
     "Short description is required.": "Mô tả ngắn là bắt buộc.",
 
-    "Arrangement": "Phân công",
+    "Arrangement": "Sắp xếp",
+    "Gradebook": "Học vụ",
+    "Attendance": "Điểm danh",
     "Sectors with sector heads": "Ngành đã có trưởng ngành",
 
     "Updated catechist assignments": "Đã cập nhật phân công giáo lý viên",

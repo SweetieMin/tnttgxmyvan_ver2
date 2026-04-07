@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\SectorAssignments;
+namespace App\Livewire\Admin\Arrangement\SectorAssignments;
 
 use App\Concerns\ActivityLogs\LogsAcademicYearSectorAssignmentActivity;
 use App\Foundation\PersonnelDirectory;
@@ -125,7 +125,7 @@ class SectorAssignmentActions extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.sector-assignments.sector-assignment-actions', [
+        return view('livewire.admin.arrangement.sector-assignments.sector-assignment-actions', [
             'leaderOptions' => $this->leaderOptions(),
         ]);
     }

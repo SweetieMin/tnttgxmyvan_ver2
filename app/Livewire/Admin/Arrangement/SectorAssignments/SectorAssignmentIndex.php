@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\SectorAssignments;
+namespace App\Livewire\Admin\Arrangement\SectorAssignments;
 
 use App\Models\AcademicYear;
 use Illuminate\Contracts\View\View;
@@ -31,7 +31,7 @@ class SectorAssignmentIndex extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.sector-assignments.index', [
+        return view('livewire.admin.arrangement.sector-assignments.index', [
             'academicYears' => $this->academicYears(),
         ]);
     }

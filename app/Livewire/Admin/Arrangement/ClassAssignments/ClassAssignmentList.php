@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\ClassAssignments;
+namespace App\Livewire\Admin\Arrangement\ClassAssignments;
 
 use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
@@ -112,7 +112,7 @@ class ClassAssignmentList extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.class-assignments.class-assignment-list', [
+        return view('livewire.admin.arrangement.class-assignments.class-assignment-list', [
             'academicYear' => $this->academicYear(),
             'classAssignments' => $this->classAssignments(),
             'overviewStats' => $this->overviewStats(),

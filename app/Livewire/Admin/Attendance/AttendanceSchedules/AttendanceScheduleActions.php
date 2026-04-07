@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\AttendanceSchedules;
+namespace App\Livewire\Admin\Attendance\AttendanceSchedules;
 
 use App\Models\AcademicYear;
 use App\Models\AttendanceSchedule;
@@ -41,7 +41,7 @@ class AttendanceScheduleActions extends Component
     #[On('open-create-attendance-schedule-modal')]
     public function openCreateModal(?string $attendanceDate = null, ?int $academicYearId = null): void
     {
-        $this->ensureCan('management.attendance-schedule.create');
+        $this->ensureCan('attendance.attendance-schedule.create');
 
         $this->resetForm();
         $this->academic_year_id = $academicYearId ?? $this->defaultAcademicYearId();
@@ -54,7 +54,7 @@ class AttendanceScheduleActions extends Component
     #[On('edit-attendance-schedule')]
     public function openEditModal(int $attendanceScheduleId): void
     {
-        $this->ensureCan('management.attendance-schedule.update');
+        $this->ensureCan('attendance.attendance-schedule.update');
 
         /** @var AttendanceSchedule $attendanceSchedule */
         $attendanceSchedule = AttendanceSchedule::query()->findOrFail($attendanceScheduleId);
@@ -102,7 +102,7 @@ class AttendanceScheduleActions extends Component
 
     public function saveAttendanceSchedule(): void
     {
-        $this->ensureCan($this->editingAttendanceScheduleId === null ? 'management.attendance-schedule.create' : 'management.attendance-schedule.update');
+        $this->ensureCan($this->editingAttendanceScheduleId === null ? 'attendance.attendance-schedule.create' : 'attendance.attendance-schedule.update');
 
         $this->syncGeneratedTitle();
 
@@ -146,7 +146,7 @@ class AttendanceScheduleActions extends Component
 
     public function confirmDeleteAttendanceSchedule(): void
     {
-        $this->ensureCan('management.attendance-schedule.delete');
+        $this->ensureCan('attendance.attendance-schedule.delete');
 
         if ($this->editingAttendanceScheduleId === null) {
             return;
@@ -159,7 +159,7 @@ class AttendanceScheduleActions extends Component
 
     public function deleteAttendanceSchedule(): void
     {
-        $this->ensureCan('management.attendance-schedule.delete');
+        $this->ensureCan('attendance.attendance-schedule.delete');
 
         if ($this->deletingAttendanceScheduleId === null) {
             return;
@@ -247,7 +247,7 @@ class AttendanceScheduleActions extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.attendance-schedules.attendance-schedule-actions');
+        return view('livewire.admin.attendance.attendance-schedules.attendance-schedule-actions');
     }
 
     /**

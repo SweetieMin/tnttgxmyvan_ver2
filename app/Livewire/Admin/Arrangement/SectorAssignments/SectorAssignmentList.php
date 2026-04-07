@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\SectorAssignments;
+namespace App\Livewire\Admin\Arrangement\SectorAssignments;
 
 use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
@@ -142,7 +142,7 @@ class SectorAssignmentList extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.sector-assignments.sector-assignment-list', [
+        return view('livewire.admin.arrangement.sector-assignments.sector-assignment-list', [
             'academicYear' => $this->academicYear(),
             'sectorAssignments' => $this->sectorAssignments(),
             'overviewStats' => $this->overviewStats(),

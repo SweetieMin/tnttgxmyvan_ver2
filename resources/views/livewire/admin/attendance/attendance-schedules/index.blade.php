@@ -5,9 +5,9 @@
         icon="calendar-days"
         :button-label="__('Add attendance schedule')"
         button-action="openCreateModal"
-        permission="management.attendance-schedule.create"
+        permission="attendance.attendance-schedule.create"
     />
 
-    <livewire:admin.management.attendance-schedules.attendance-schedule-calendar />
-    <livewire:admin.management.attendance-schedules.attendance-schedule-actions />
+    <livewire:admin.attendance.attendance-schedules.attendance-schedule-calendar />
+    <livewire:admin.attendance.attendance-schedules.attendance-schedule-actions />
 </section>

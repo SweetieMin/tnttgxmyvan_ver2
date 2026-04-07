@@ -5,14 +5,14 @@ use App\Models\User;
 
 beforeEach(function () {
     collect([
-        'management.enrollment.view',
-        'management.gradebook.view',
+        'gradebook.enrollment.view',
+        'gradebook.gradebook.view',
         'arrangement.class-assignment.view',
         'arrangement.sector-assignment.view',
-        'management.attendance-schedule.view',
-        'management.attendance-checkin.view',
-        'management.activity-point.view',
-        'management.promotion.view',
+        'attendance.attendance-schedule.view',
+        'attendance.attendance-checkin.view',
+        'attendance.activity-point.view',
+        'gradebook.promotion.view',
     ])->each(fn (string $permission) => Permission::findOrCreate($permission, 'web'));
 });
 
@@ -25,12 +25,12 @@ it('allows authorized users to visit the new academic management modules', funct
     $response->assertOk()
         ->assertSeeText(__($label));
 })->with([
-    ['management.enrollment.view', 'admin.management.enrollments', 'Enrollments'],
-    ['management.gradebook.view', 'admin.management.gradebooks', 'Gradebooks'],
+    ['gradebook.enrollment.view', 'admin.gradebook.enrollments', 'Enrollments'],
+    ['gradebook.gradebook.view', 'admin.gradebook.gradebooks', 'Gradebooks'],
     ['arrangement.class-assignment.view', 'admin.arrangement.class-assignments', 'Class assignments'],
     ['arrangement.sector-assignment.view', 'admin.arrangement.sector-assignments', 'Sector assignments'],
-    ['management.attendance-schedule.view', 'admin.management.attendance-schedules', 'Attendance schedules'],
-    ['management.attendance-checkin.view', 'admin.management.attendance-checkins', 'Attendance check-ins'],
-    ['management.activity-point.view', 'admin.management.activity-points', 'Activity points'],
-    ['management.promotion.view', 'admin.management.promotions', 'Promotions'],
+    ['attendance.attendance-schedule.view', 'admin.attendance.attendance-schedules', 'Attendance schedules'],
+    ['attendance.attendance-checkin.view', 'admin.attendance.attendance-checkins', 'Attendance check-ins'],
+    ['attendance.activity-point.view', 'admin.attendance.activity-points', 'Activity points'],
+    ['gradebook.promotion.view', 'admin.gradebook.promotions', 'Promotions'],
 ]);

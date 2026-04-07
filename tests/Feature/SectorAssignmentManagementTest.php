@@ -1,7 +1,7 @@
 <?php
 
-use App\Livewire\Admin\Management\SectorAssignments\SectorAssignmentActions;
-use App\Livewire\Admin\Management\SectorAssignments\SectorAssignmentList;
+use App\Livewire\Admin\Arrangement\SectorAssignments\SectorAssignmentActions;
+use App\Livewire\Admin\Arrangement\SectorAssignments\SectorAssignmentList;
 use App\Models\AcademicCourse;
 use App\Models\AcademicYear;
 use App\Models\AcademicYearSectorStaff;

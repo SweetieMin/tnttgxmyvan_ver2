@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\Promotions;
+namespace App\Livewire\Admin\Gradebook\Promotions;
 
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
@@ -11,6 +11,6 @@ class PromotionIndex extends Component
 {
     public function render(): View
     {
-        return view('livewire.admin.management.promotions.index');
+        return view('livewire.admin.gradebook.promotions.index');
     }
 }

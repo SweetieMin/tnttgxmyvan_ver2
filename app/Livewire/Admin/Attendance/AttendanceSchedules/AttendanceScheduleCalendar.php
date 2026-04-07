@@ -1,14 +1,17 @@
 <?php
 
-namespace App\Livewire\Admin\Management\AttendanceSchedules;
+namespace App\Livewire\Admin\Attendance\AttendanceSchedules;
 
 use App\Models\AcademicYear;
 use App\Models\AttendanceSchedule;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\On;
 use Omnia\LivewireCalendar\LivewireCalendar;
 
+#[Lazy]
 class AttendanceScheduleCalendar extends LivewireCalendar
 {
     public $dayClickEnabled;
@@ -18,8 +21,13 @@ class AttendanceScheduleCalendar extends LivewireCalendar
      */
     public function afterMount($extras = []): void
     {
-        $this->beforeCalendarView = 'livewire.admin.management.attendance-schedules.calendar-before';
-        $this->afterCalendarView = 'livewire.admin.management.attendance-schedules.calendar-after';
+        $this->beforeCalendarView = 'livewire.admin.attendance.attendance-schedules.calendar-before';
+        $this->afterCalendarView = 'livewire.admin.attendance.attendance-schedules.calendar-after';
+    }
+
+    public function placeholder(): View
+    {
+        return view('components.placeholder.calendar');
     }
 
     #[On('attendance-schedule-saved')]

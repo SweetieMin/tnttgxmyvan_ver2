@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\AttendanceCheckins;
+namespace App\Livewire\Admin\Attendance\AttendanceCheckins;
 
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
@@ -11,6 +11,6 @@ class AttendanceCheckinIndex extends Component
 {
     public function render(): View
     {
-        return view('livewire.admin.management.attendance-checkins.index');
+        return view('livewire.admin.attendance.attendance-checkins.index');
     }
 }

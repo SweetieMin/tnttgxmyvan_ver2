@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\AttendanceSchedules;
+namespace App\Livewire\Admin\Attendance\AttendanceSchedules;
 
 use App\Models\AcademicYear;
 use Illuminate\Contracts\View\View;
@@ -21,7 +21,7 @@ class AttendanceScheduleIndex extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.attendance-schedules.index');
+        return view('livewire.admin.attendance.attendance-schedules.index');
     }
 
     protected function defaultAcademicYearId(): ?int

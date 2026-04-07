@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\ActivityPoints;
+namespace App\Livewire\Admin\Attendance\ActivityPoints;
 
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
@@ -11,6 +11,6 @@ class ActivityPointIndex extends Component
 {
     public function render(): View
     {
-        return view('livewire.admin.management.activity-points.index');
+        return view('livewire.admin.attendance.activity-points.index');
     }
 }
