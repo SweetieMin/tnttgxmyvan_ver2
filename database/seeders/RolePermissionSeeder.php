@@ -79,10 +79,15 @@ class RolePermissionSeeder extends Seeder
             'management.gradebook.update',
             'management.gradebook.delete',
 
-            'management.sector-assignment.view',
-            'management.sector-assignment.create',
-            'management.sector-assignment.update',
-            'management.sector-assignment.delete',
+            'arrangement.sector-assignment.view',
+            'arrangement.sector-assignment.create',
+            'arrangement.sector-assignment.update',
+            'arrangement.sector-assignment.delete',
+
+            'arrangement.class-assignment.view',
+            'arrangement.class-assignment.create',
+            'arrangement.class-assignment.update',
+            'arrangement.class-assignment.delete',
 
             'management.attendance-schedule.view',
             'management.attendance-schedule.create',

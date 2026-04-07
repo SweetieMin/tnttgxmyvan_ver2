@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Management\SectorAssignments;
+namespace App\Livewire\Admin\Management\ClassAssignments;
 
 use App\Models\AcademicYear;
 use Illuminate\Contracts\View\View;
@@ -8,8 +8,8 @@ use Illuminate\Support\Collection;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Phân công ngành')]
-class SectorAssignmentIndex extends Component
+#[Title('Phân công lớp GL')]
+class ClassAssignmentIndex extends Component
 {
     public int|string $academicYearId = '';
 
@@ -31,7 +31,7 @@ class SectorAssignmentIndex extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.management.sector-assignments.index', [
+        return view('livewire.admin.management.class-assignments.class-assignment-index', [
             'academicYears' => $this->academicYears(),
         ]);
     }

@@ -7,7 +7,8 @@ beforeEach(function () {
     collect([
         'management.enrollment.view',
         'management.gradebook.view',
-        'management.sector-assignment.view',
+        'arrangement.class-assignment.view',
+        'arrangement.sector-assignment.view',
         'management.attendance-schedule.view',
         'management.attendance-checkin.view',
         'management.activity-point.view',
@@ -26,7 +27,8 @@ it('allows authorized users to visit the new academic management modules', funct
 })->with([
     ['management.enrollment.view', 'admin.management.enrollments', 'Enrollments'],
     ['management.gradebook.view', 'admin.management.gradebooks', 'Gradebooks'],
-    ['management.sector-assignment.view', 'admin.management.sector-assignments', 'Sector assignments'],
+    ['arrangement.class-assignment.view', 'admin.arrangement.class-assignments', 'Class assignments'],
+    ['arrangement.sector-assignment.view', 'admin.arrangement.sector-assignments', 'Sector assignments'],
     ['management.attendance-schedule.view', 'admin.management.attendance-schedules', 'Attendance schedules'],
     ['management.attendance-checkin.view', 'admin.management.attendance-checkins', 'Attendance check-ins'],
     ['management.activity-point.view', 'admin.management.activity-points', 'Activity points'],

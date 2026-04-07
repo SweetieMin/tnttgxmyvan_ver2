@@ -42,9 +42,6 @@ class SidebarNavigation
                     $permissions->contains('management.gradebook.view')
                         ? $this->item('book-open', route('admin.management.gradebooks'), 'admin.management.gradebooks', __('Gradebooks'))
                         : null,
-                    $permissions->contains('management.sector-assignment.view')
-                        ? $this->item('flag', route('admin.management.sector-assignments'), 'admin.management.sector-assignments', __('Sector assignments'))
-                        : null,
                     $permissions->contains('management.attendance-schedule.view')
                         ? $this->item('calendar-days', route('admin.management.attendance-schedules'), 'admin.management.attendance-schedules', __('Attendance schedules'))
                         : null,
@@ -56,6 +53,14 @@ class SidebarNavigation
                         : null,
                     $permissions->contains('management.promotion.view')
                         ? $this->item('arrow-trending-up', route('admin.management.promotions'), 'admin.management.promotions', __('Promotions'))
+                        : null,
+                ]),
+                $this->section(__('Arrangement'), [
+                    $permissions->contains('arrangement.class-assignment.view')
+                        ? $this->item('users', route('admin.arrangement.class-assignments'), 'admin.arrangement.class-assignments', __('Class assignments'))
+                        : null,
+                    $permissions->contains('arrangement.sector-assignment.view')
+                        ? $this->item('flag', route('admin.arrangement.sector-assignments'), 'admin.arrangement.sector-assignments', __('Sector assignments'))
                         : null,
                 ]),
                 $this->section(__('Personnel'), [

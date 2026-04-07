@@ -10,6 +10,7 @@ use App\Livewire\Admin\Management\AcademicYear\AcademicYearIndex;
 use App\Livewire\Admin\Management\ActivityPoints\ActivityPointIndex;
 use App\Livewire\Admin\Management\AttendanceCheckins\AttendanceCheckinIndex;
 use App\Livewire\Admin\Management\AttendanceSchedules\AttendanceScheduleIndex;
+use App\Livewire\Admin\Management\ClassAssignments\ClassAssignmentIndex;
 use App\Livewire\Admin\Management\Enrollments\EnrollmentIndex;
 use App\Livewire\Admin\Management\Gradebooks\GradebookIndex;
 use App\Livewire\Admin\Management\Programs\ProgramIndex;
@@ -73,10 +74,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('permission:management.gradebook.view')
                 ->name('gradebooks');
 
-            Route::livewire('sector-assignments', SectorAssignmentIndex::class)
-                ->middleware('permission:management.sector-assignment.view')
-                ->name('sector-assignments');
-
             Route::livewire('attendance-schedules', AttendanceScheduleIndex::class)
                 ->middleware('permission:management.attendance-schedule.view')
                 ->name('attendance-schedules');
@@ -100,6 +97,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::livewire('regulations', RegulationIndex::class)
                 ->middleware('permission:management.regulation.view')
                 ->name('regulations');
+        });
+
+        Route::prefix('arrangement')->name('arrangement.')->group(function () {
+            Route::livewire('sector-assignments', SectorAssignmentIndex::class)
+                ->middleware('permission:arrangement.sector-assignment.view')
+                ->name('sector-assignments');
+
+            Route::livewire('class-assignments', ClassAssignmentIndex::class)
+                ->middleware('permission:arrangement.class-assignment.view')
+                ->name('class-assignments');
         });
 
         Route::prefix('finance')->name('finance.')->group(function () {

@@ -11,7 +11,8 @@ beforeEach(function () {
         'management.academic-year.view',
         'management.enrollment.view',
         'management.gradebook.view',
-        'management.sector-assignment.view',
+        'arrangement.class-assignment.view',
+        'arrangement.sector-assignment.view',
         'management.attendance-schedule.view',
         'management.attendance-checkin.view',
         'management.activity-point.view',
@@ -29,6 +30,8 @@ test('sidebar navigation includes newly scaffolded academic workflow items when 
     $user->givePermissionTo([
         'management.enrollment.view',
         'management.gradebook.view',
+        'arrangement.class-assignment.view',
+        'arrangement.sector-assignment.view',
         'management.attendance-schedule.view',
         'management.promotion.view',
     ]);
@@ -43,6 +46,15 @@ test('sidebar navigation includes newly scaffolded academic workflow items when 
             __('Gradebooks'),
             __('Attendance schedules'),
             __('Promotions'),
+        ]);
+
+    $arrangementSection = collect($navigation['primary'])
+        ->firstWhere('label', __('Arrangement'));
+
+    expect($arrangementSection)->not->toBeNull()
+        ->and(collect($arrangementSection['items'])->pluck('label')->all())->toBe([
+            __('Class assignments'),
+            __('Sector assignments'),
         ]);
 });
 
