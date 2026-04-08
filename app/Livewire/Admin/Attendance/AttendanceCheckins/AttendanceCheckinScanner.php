@@ -17,24 +17,27 @@ class AttendanceCheckinScanner extends Component
 
     public bool $cameraActive = false;
 
-    /** @var array<string, mixed>|null */
-    public ?array $lastScannedUser = null;
-
-    public string $lastScanStatus = '';
-
-    public function mount(): void
+    public function mount(?int $attendanceScheduleId = null): void
     {
+        if ($attendanceScheduleId !== null) {
+            $this->attendanceScheduleId = $attendanceScheduleId;
+
+            return;
+        }
+
         $this->detectCurrentSchedule();
     }
 
     public function detectCurrentSchedule(): void
     {
+        $now = now()->timezone('Asia/Ho_Chi_Minh');
+
         /** @var AttendanceSchedule|null $schedule */
         $schedule = AttendanceSchedule::query()
-            ->where('attendance_date', today())
+            ->whereDate('attendance_date', $now->toDateString())
             ->where('is_active', true)
-            ->whereTime('start_time', '<=', now())
-            ->whereTime('end_time', '>=', now())
+            ->where('start_time', '<=', $now->format('H:i:s'))
+            ->where('end_time', '>=', $now->format('H:i:s'))
             ->latest('start_time')
             ->first();
 
@@ -45,8 +48,6 @@ class AttendanceCheckinScanner extends Component
         }
 
         $this->cameraActive = false;
-        $this->lastScannedUser = null;
-        $this->lastScanStatus = '';
     }
 
     public function currentSchedule(): ?AttendanceSchedule
@@ -63,6 +64,7 @@ class AttendanceCheckinScanner extends Component
         if (! $this->attendanceScheduleId) {
             Flux::toast(
                 text: __('No active schedule found for this time slot.'),
+                heading: __('Warning'),
                 variant: 'warning',
             );
 
@@ -70,8 +72,6 @@ class AttendanceCheckinScanner extends Component
         }
 
         $this->cameraActive = ! $this->cameraActive;
-        $this->lastScannedUser = null;
-        $this->lastScanStatus = '';
     }
 
     public function processQrCode(string $qrValue): void
@@ -84,8 +84,11 @@ class AttendanceCheckinScanner extends Component
         $schedule = AttendanceSchedule::query()->find($this->attendanceScheduleId);
 
         if ($schedule === null) {
-            $this->lastScanStatus = 'error';
-            $this->lastScannedUser = null;
+            Flux::toast(
+                text: __('No active schedule found for this time slot.'),
+                heading: __('Warning'),
+                variant: 'warning',
+            );
 
             return;
         }
@@ -97,8 +100,11 @@ class AttendanceCheckinScanner extends Component
         $user = User::query()->where('token', $token)->first();
 
         if ($user === null) {
-            $this->lastScanStatus = 'not_found';
-            $this->lastScannedUser = null;
+            Flux::toast(
+                text: __('QR code not recognized'),
+                heading: __('Warning'),
+                variant: 'warning',
+            );
 
             return;
         }
@@ -110,8 +116,11 @@ class AttendanceCheckinScanner extends Component
             ->first();
 
         if ($enrollment === null) {
-            $this->lastScanStatus = 'not_enrolled';
-            $this->lastScannedUser = ['name' => $user->christian_full_name, 'id' => $user->id];
+            Flux::toast(
+                text: __('Not enrolled').': '.$user->christian_full_name,
+                heading: __('Warning'),
+                variant: 'warning',
+            );
 
             return;
         }
@@ -122,8 +131,11 @@ class AttendanceCheckinScanner extends Component
             ->exists();
 
         if ($alreadyCheckedIn) {
-            $this->lastScanStatus = 'already';
-            $this->lastScannedUser = ['name' => $user->christian_full_name, 'id' => $user->id];
+            Flux::toast(
+                text: __('Already checked in').': '.$user->christian_full_name,
+                heading: __('Warning'),
+                variant: 'warning',
+            );
 
             return;
         }
@@ -137,8 +149,11 @@ class AttendanceCheckinScanner extends Component
             'status' => 'pending',
         ]);
 
-        $this->lastScanStatus = 'success';
-        $this->lastScannedUser = ['name' => $user->christian_full_name, 'id' => $user->id];
+        Flux::toast(
+            text: __('Checked in!').' '.$user->christian_full_name,
+            heading: __('Success'),
+            variant: 'success',
+        );
 
         $this->dispatch('checkin-recorded');
     }

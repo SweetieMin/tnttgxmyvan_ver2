@@ -24,7 +24,7 @@
             <div class="flex items-center gap-3">
                 <flux:icon.exclamation-triangle class="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
                 <flux:text class="text-sm text-amber-800 dark:text-amber-300">
-                    {{ __('No attendance schedule is active right now.') }}
+                    {{ __('No attendance schedule is currently active today.') }}
                 </flux:text>
             </div>
         </div>
@@ -33,7 +33,7 @@
     {{-- Camera scanner panel --}}
     <div
         class="flex flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-zinc-950 dark:border-zinc-700"
-        x-data="qrScanner(@entangle('cameraActive').live)"
+        x-data="qrScanner()"
         x-init="init()"
     >
         {{-- Header bar --}}
@@ -61,27 +61,8 @@
         {{-- Video / placeholder --}}
         <div class="relative flex flex-1 items-center justify-center bg-zinc-950">
             {{-- Camera view --}}
-            <div x-show="active" class="relative w-full">
-                <video
-                    x-ref="video"
-                    class="w-full"
-                    autoplay
-                    muted
-                    playsinline
-                ></video>
-                <canvas x-ref="canvas" class="hidden"></canvas>
-
-                {{-- Scan overlay --}}
-                <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <div class="relative h-52 w-52">
-                        <div class="absolute inset-0 rounded-2xl border-2 border-white/20"></div>
-                        <div class="absolute left-0 top-0 h-8 w-8 rounded-tl-2xl border-l-3 border-t-3 border-emerald-400"></div>
-                        <div class="absolute right-0 top-0 h-8 w-8 rounded-tr-2xl border-r-3 border-t-3 border-emerald-400"></div>
-                        <div class="absolute bottom-0 left-0 h-8 w-8 rounded-bl-2xl border-b-3 border-l-3 border-emerald-400"></div>
-                        <div class="absolute bottom-0 right-0 h-8 w-8 rounded-br-2xl border-b-3 border-r-3 border-emerald-400"></div>
-                        <div class="scan-line absolute inset-x-2 h-0.5 bg-emerald-400/80 shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]"></div>
-                    </div>
-                </div>
+            <div x-show="active" class="w-full p-4" wire:ignore>
+                <div id="reader" class="overflow-hidden rounded-lg [&_video]:w-full [&_video]:rounded-lg [&_video]:object-cover"></div>
             </div>
 
             {{-- Idle placeholder --}}
@@ -98,68 +79,31 @@
                 </flux:text>
             </div>
         </div>
-
-        {{-- Scan result feedback --}}
-        @if ($lastScanStatus)
-            <div class="border-t border-zinc-800 px-4 py-3">
-                @if ($lastScanStatus === 'success')
-                    <div class="flex items-center gap-3 rounded-lg bg-emerald-900/40 px-3 py-2">
-                        <flux:icon.check-circle class="h-5 w-5 shrink-0 text-emerald-400" />
-                        <div>
-                            <flux:text class="text-sm font-semibold text-emerald-300">{{ __('Checked in!') }}</flux:text>
-                            <flux:text class="text-xs text-emerald-400">{{ $lastScannedUser['name'] ?? '' }}</flux:text>
-                        </div>
-                    </div>
-                @elseif ($lastScanStatus === 'already')
-                    <div class="flex items-center gap-3 rounded-lg bg-amber-900/40 px-3 py-2">
-                        <flux:icon.exclamation-triangle class="h-5 w-5 shrink-0 text-amber-400" />
-                        <div>
-                            <flux:text class="text-sm font-semibold text-amber-300">{{ __('Already checked in') }}</flux:text>
-                            <flux:text class="text-xs text-amber-400">{{ $lastScannedUser['name'] ?? '' }}</flux:text>
-                        </div>
-                    </div>
-                @elseif ($lastScanStatus === 'not_enrolled')
-                    <div class="flex items-center gap-3 rounded-lg bg-rose-900/40 px-3 py-2">
-                        <flux:icon.x-circle class="h-5 w-5 shrink-0 text-rose-400" />
-                        <div>
-                            <flux:text class="text-sm font-semibold text-rose-300">{{ __('Not enrolled') }}</flux:text>
-                            <flux:text class="text-xs text-rose-400">{{ $lastScannedUser['name'] ?? '' }}</flux:text>
-                        </div>
-                    </div>
-                @elseif ($lastScanStatus === 'not_found')
-                    <div class="flex items-center gap-3 rounded-lg bg-rose-900/40 px-3 py-2">
-                        <flux:icon.x-circle class="h-5 w-5 shrink-0 text-rose-400" />
-                        <flux:text class="text-sm font-semibold text-rose-300">{{ __('QR code not recognized') }}</flux:text>
-                    </div>
-                @endif
-            </div>
-        @endif
     </div>
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 @endpush
 
-<style>
-    @keyframes scanMove {
-        0%, 100% { top: 8px; }
-        50% { top: calc(100% - 10px); }
-    }
-    .scan-line { animation: scanMove 2s ease-in-out infinite; }
-</style>
-
 <script>
-    function qrScanner(cameraActiveEntangle) {
+    function qrScanner() {
         return {
             active: false,
-            stream: null,
-            scanInterval: null,
+            html5QrCode: null,
+            isStarting: false,
+            isStopping: false,
+            isProcessingScan: false,
+            stopPromise: null,
             lastCode: null,
             lastCodeTime: 0,
-            cooldown: 2000,
+            cooldown: 2500,
 
             init() {
+                this.$watch('$wire.cameraActive', (val) => {
+                    this.active = val;
+                });
+
                 this.$watch('active', (val) => {
                     if (val) {
                         this.startCamera();
@@ -168,56 +112,108 @@
                     }
                 });
 
-                this.$watch(() => cameraActiveEntangle, (val) => {
-                    this.active = val;
-                });
+                this.active = this.$wire.cameraActive;
+            },
+
+            async handleScanSuccess(decodedText) {
+                if (this.isProcessingScan || this.isStopping) {
+                    return;
+                }
+
+                const now = Date.now();
+
+                if (decodedText === this.lastCode && now - this.lastCodeTime < this.cooldown) {
+                    return;
+                }
+
+                this.isProcessingScan = true;
+                this.lastCode = decodedText;
+                this.lastCodeTime = now;
+                this.active = false;
+                this.$wire.cameraActive = false;
+                await this.stopCamera();
+                await this.$wire.processQrCode(decodedText);
             },
 
             async startCamera() {
+                if (this.isStarting || this.isStopping) {
+                    return;
+                }
+
+                if (this.html5QrCode?.isScanning) {
+                    return;
+                }
+
+                this.isStarting = true;
+                this.isProcessingScan = false;
+                this.lastCode = null;
+                this.lastCodeTime = 0;
+
                 try {
-                    this.stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-                    });
-                    this.$refs.video.srcObject = this.stream;
-                    await this.$refs.video.play();
-                    this.scanInterval = setInterval(() => this.scanFrame(), 250);
+                    if (! this.html5QrCode) {
+                        this.html5QrCode = new Html5Qrcode('reader');
+                    }
+
+                    await this.html5QrCode.start(
+                        { facingMode: 'environment' },
+                        {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250,
+                            },
+                        },
+                        (decodedText) => this.handleScanSuccess(decodedText)
+                    );
                 } catch (err) {
                     console.error('Camera error:', err);
-                    this.active = false;
-                    cameraActiveEntangle = false;
+                    alert('Lỗi kết nối camera: Không thể mở camera. Hãy kiểm tra lại quyền truy cập hoặc đảm bảo bạn dùng màn hình HTTPS.');
+                    this.$wire.cameraActive = false;
+                } finally {
+                    this.isStarting = false;
                 }
             },
 
-            stopCamera() {
-                clearInterval(this.scanInterval);
-                this.scanInterval = null;
-                if (this.stream) {
-                    this.stream.getTracks().forEach(t => t.stop());
-                    this.stream = null;
+            async stopCamera() {
+                if (! this.html5QrCode) {
+                    return;
                 }
-            },
 
-            scanFrame() {
-                const video = this.$refs.video;
-                const canvas = this.$refs.canvas;
-                if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+                if (this.stopPromise) {
+                    await this.stopPromise;
 
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    return;
+                }
 
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                this.isStopping = true;
 
-                if (code) {
-                    const now = Date.now();
-                    if (code.data !== this.lastCode || now - this.lastCodeTime > this.cooldown) {
-                        this.lastCode = code.data;
-                        this.lastCodeTime = now;
-                        this.$wire.processQrCode(code.data);
+                this.stopPromise = (async () => {
+                    try {
+                        if (this.html5QrCode.isScanning) {
+                            await this.html5QrCode.stop();
+                        }
+                    } catch (err) {
+                        console.error('Failed to stop camera:', err);
                     }
-                }
+
+                    try {
+                        if (! this.html5QrCode.isScanning) {
+                            await this.html5QrCode.clear();
+                        }
+                    } catch (err) {
+                        const message = String(err?.message ?? err);
+
+                        if (! message.includes('Cannot clear while scan is ongoing')) {
+                            console.error('Failed to clear QR reader surface:', err);
+                        }
+                    } finally {
+                        this.isProcessingScan = false;
+                        this.isStopping = false;
+                        this.stopPromise = null;
+                    }
+                })();
+
+                await this.stopPromise;
             },
 
             destroy() {

@@ -24,6 +24,11 @@ class AttendanceCheckinList extends Component implements HasActions, HasSchemas,
 
     public ?int $attendanceScheduleId = null;
 
+    public function mount(?int $attendanceScheduleId = null): void
+    {
+        $this->attendanceScheduleId = $attendanceScheduleId;
+    }
+
     #[On('checkin-recorded')]
     public function refresh(): void
     {
