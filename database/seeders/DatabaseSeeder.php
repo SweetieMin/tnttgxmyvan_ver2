@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             AcademicYearSeeder::class,
             AcademicCourseSeeder::class,
+            AcademicEnrollmentSeeder::class,
             RegulationSeeder::class,
             UserDetailSeeder::class,
             UserParentSeeder::class,

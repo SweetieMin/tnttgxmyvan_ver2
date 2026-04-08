@@ -14,6 +14,7 @@ class AttendanceCheckinIndex extends Component
 
     public function mount(): void
     {
+        $this->expireFinishedSchedules();
         $this->attendanceScheduleId = $this->detectCurrentScheduleId();
     }
 
@@ -33,5 +34,22 @@ class AttendanceCheckinIndex extends Component
             ->where('end_time', '>=', $now->format('H:i:s'))
             ->latest('start_time')
             ->value('id');
+    }
+
+    protected function expireFinishedSchedules(): void
+    {
+        $now = now()->timezone('Asia/Ho_Chi_Minh');
+
+        AttendanceSchedule::query()
+            ->where('is_active', true)
+            ->where(function ($query) use ($now) {
+                $query->whereDate('attendance_date', '<', $now->toDateString())
+                    ->orWhere(function ($nestedQuery) use ($now) {
+                        $nestedQuery
+                            ->whereDate('attendance_date', $now->toDateString())
+                            ->where('end_time', '<', $now->format('H:i:s'));
+                    });
+            })
+            ->update(['is_active' => false]);
     }
 }

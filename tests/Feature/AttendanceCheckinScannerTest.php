@@ -94,3 +94,48 @@ test('attendance scanner keeps repeated scans idempotent', function () {
 
     expect(AttendanceCheckin::query()->count())->toBe(1);
 });
+
+test('attendance scanner rejects scans after the schedule window closes', function () {
+    $operator = User::factory()->create();
+    $member = User::factory()->create([
+        'token' => 'member-expired-token',
+    ]);
+
+    $academicYear = AcademicYear::factory()->create();
+
+    $schedule = AttendanceSchedule::factory()->create([
+        'academic_year_id' => $academicYear->id,
+        'attendance_date' => now('Asia/Ho_Chi_Minh')->toDateString(),
+        'start_time' => now('Asia/Ho_Chi_Minh')->subHours(2)->format('H:i:s'),
+        'end_time' => now('Asia/Ho_Chi_Minh')->subHour()->format('H:i:s'),
+        'is_active' => true,
+    ]);
+
+    AcademicEnrollment::factory()->create([
+        'user_id' => $member->id,
+        'academic_year_id' => $academicYear->id,
+    ]);
+
+    $this->actingAs($operator);
+
+    Livewire::test(AttendanceCheckinScanner::class)
+        ->set('attendanceScheduleId', $schedule->id)
+        ->call('processQrCode', $member->token);
+
+    expect(AttendanceCheckin::query()->count())->toBe(0);
+});
+
+test('attendance scanner marks the current schedule inactive after it ends', function () {
+    $schedule = AttendanceSchedule::factory()->create([
+        'attendance_date' => now('Asia/Ho_Chi_Minh')->toDateString(),
+        'start_time' => now('Asia/Ho_Chi_Minh')->subHours(2)->format('H:i:s'),
+        'end_time' => now('Asia/Ho_Chi_Minh')->subHour()->format('H:i:s'),
+        'is_active' => true,
+    ]);
+
+    Livewire::test(AttendanceCheckinScanner::class, [
+        'attendanceScheduleId' => $schedule->id,
+    ])->call('expireCurrentScheduleIfNeeded');
+
+    expect($schedule->fresh()->is_active)->toBeFalse();
+});

@@ -5,13 +5,19 @@
         icon="arrow-trending-up"
     />
 
-    <x-management-module-placeholder
-        :heading="__('Promotions')"
-        :description="__('This module will calculate yearly eligibility and prepare the review list for chaplains or deacons.')"
-        :highlights="[
-            __('Check catechism, conduct, and activity conditions together.'),
-            __('List children who still need a final review.'),
-            __('Prepare promotion outcomes for the next academic year.'),
-        ]"
-    />
+    <div class="rounded-2xl border border-zinc-200 bg-white px-5 py-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <flux:heading size="lg">{{ __('Pending promotion reviews') }}</flux:heading>
+        <flux:text class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            {{ __('This table keeps both pending reviews and confirmed history for the selected academic year.') }}
+        </flux:text>
+        <flux:text class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            {{ __('Pending items appear by default. Switch the review scope filter to see confirmed decisions.') }}
+        </flux:text>
+    </div>
+
+    <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <livewire:admin.review.promotions.promotion-list />
+    </div>
+
+    <livewire:admin.review.promotions.promotion-actions />
 </section>

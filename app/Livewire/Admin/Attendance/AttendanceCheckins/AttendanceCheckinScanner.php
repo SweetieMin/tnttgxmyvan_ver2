@@ -19,6 +19,8 @@ class AttendanceCheckinScanner extends Component
 
     public function mount(?int $attendanceScheduleId = null): void
     {
+        $this->expireFinishedSchedules();
+
         if ($attendanceScheduleId !== null) {
             $this->attendanceScheduleId = $attendanceScheduleId;
 
@@ -61,7 +63,9 @@ class AttendanceCheckinScanner extends Component
 
     public function toggleCamera(): void
     {
-        if (! $this->attendanceScheduleId) {
+        $schedule = $this->activeScheduleForScanning();
+
+        if ($schedule === null) {
             Flux::toast(
                 text: __('No active schedule found for this time slot.'),
                 heading: __('Warning'),
@@ -76,14 +80,11 @@ class AttendanceCheckinScanner extends Component
 
     public function processQrCode(string $qrValue): void
     {
-        if (! $this->attendanceScheduleId) {
-            return;
-        }
-
-        /** @var AttendanceSchedule|null $schedule */
-        $schedule = AttendanceSchedule::query()->find($this->attendanceScheduleId);
+        $schedule = $this->activeScheduleForScanning();
 
         if ($schedule === null) {
+            $this->cameraActive = false;
+
             Flux::toast(
                 text: __('No active schedule found for this time slot.'),
                 heading: __('Warning'),
@@ -161,6 +162,77 @@ class AttendanceCheckinScanner extends Component
     public function render(): View
     {
         return view('livewire.admin.attendance.attendance-checkins.attendance-checkin-scanner');
+    }
+
+    public function expireCurrentScheduleIfNeeded(): void
+    {
+        if (! $this->attendanceScheduleId) {
+            return;
+        }
+
+        /** @var AttendanceSchedule|null $schedule */
+        $schedule = AttendanceSchedule::query()->find($this->attendanceScheduleId);
+
+        if ($schedule === null || $this->isWithinScanningWindow($schedule)) {
+            return;
+        }
+
+        if ($schedule->is_active) {
+            $schedule->update([
+                'is_active' => false,
+            ]);
+        }
+    }
+
+    protected function activeScheduleForScanning(): ?AttendanceSchedule
+    {
+        if (! $this->attendanceScheduleId) {
+            return null;
+        }
+
+        /** @var AttendanceSchedule|null $schedule */
+        $schedule = AttendanceSchedule::query()->find($this->attendanceScheduleId);
+
+        if ($schedule === null || ! $this->isWithinScanningWindow($schedule)) {
+            return null;
+        }
+
+        return $schedule;
+    }
+
+    protected function expireFinishedSchedules(): void
+    {
+        $now = now()->timezone('Asia/Ho_Chi_Minh');
+
+        AttendanceSchedule::query()
+            ->where('is_active', true)
+            ->where(function ($query) use ($now) {
+                $query->whereDate('attendance_date', '<', $now->toDateString())
+                    ->orWhere(function ($nestedQuery) use ($now) {
+                        $nestedQuery
+                            ->whereDate('attendance_date', $now->toDateString())
+                            ->where('end_time', '<', $now->format('H:i:s'));
+                    });
+            })
+            ->update(['is_active' => false]);
+    }
+
+    protected function isWithinScanningWindow(AttendanceSchedule $schedule): bool
+    {
+        $now = now()->timezone('Asia/Ho_Chi_Minh');
+
+        if (! $schedule->is_active) {
+            return false;
+        }
+
+        if (! $schedule->attendance_date?->isSameDay($now)) {
+            return false;
+        }
+
+        $currentTime = $now->format('H:i:s');
+
+        return $schedule->start_time <= $currentTime
+            && $schedule->end_time >= $currentTime;
     }
 
     protected function extractToken(string $qrValue): string

@@ -46,3 +46,18 @@ test('attendance checkin index keeps the schedule empty when no session is activ
 
     expect($component->attendanceScheduleId)->toBeNull();
 });
+
+test('attendance checkin index deactivates finished schedules during mount', function () {
+    $expiredSchedule = AttendanceSchedule::factory()->create([
+        'attendance_date' => '2026-04-08',
+        'start_time' => '05:00:00',
+        'end_time' => '06:00:00',
+        'is_active' => true,
+    ]);
+
+    $component = app(AttendanceCheckinIndex::class);
+    $component->mount();
+
+    expect($expiredSchedule->fresh()->is_active)->toBeFalse()
+        ->and($component->attendanceScheduleId)->toBeNull();
+});
